@@ -34,23 +34,84 @@ server.get("/contacts", function (req, res, next) {
         }
         bar['contacts'] = foo;
         res.end(JSON.stringify(bar));
-        // res.json({aaron: JSON.stringify(contacts)});
-
     });
     return next();
 });
 
-server.get("/videos", function (req, res, next) {
+ // db.videos.aggregate([{$unwind: "$sessions"},{$project:{ page_id: 1, item_name: "$sessions.hashtag", last_updated_utc:1 }}])
+
+ server.get("/videos", function (req, res, next) {
     dbVideos.videos.find(function (err, videos) {
         res.writeHead(200, {
             'Content-Type': 'application/json; charset=utf-8'
         });
-        console.log(videos);
-        res.end(JSON.stringify(videos));
+        var foo = {};
+        foo['tags'] = videos[0]['tags'];
+        foo['sessions'] = videos[0]['sessions'];
+        foo['speakers'] = videos[0]['speakers'];
+        foo['video_library'] = videos[0]['video_library'];
+        res.end(JSON.stringify(foo));
+    });
+    /*dbVideos.videos.aggregate([{$unwind: "$sessions"},{$project:{ 
+    		item_name: "$sessions.hashtag"}}
+    	]).toArray(function(err, result){
+    		console.log(result);
+    	})
+    res.end();*/
+    return next();
+});
+
+server.get("/videos/tags", function (req, res, next) {
+    dbVideos.videos.find(function (err, videos) {
+        res.writeHead(200, {
+            'Content-Type': 'application/json; charset=utf-8'
+        });
+        var foo = {};
+        foo['tags'] = videos[0]['tags'];
+        res.end(JSON.stringify(foo));
     });
     return next();
 });
 
+server.get("/videos/sessions", function (req, res, next) {
+    dbVideos.videos.find(function (err, videos) {
+        res.writeHead(200, {
+            'Content-Type': 'application/json; charset=utf-8'
+        });
+        
+        var foo = {};
+        foo['sessions'] = videos[0]['sessions'];
+        res.end(JSON.stringify(foo));
+    });
+    return next();
+});
+
+
+server.get("/videos/speakers", function (req, res, next) {
+    dbVideos.videos.find(function (err, videos) {
+        res.writeHead(200, {
+            'Content-Type': 'application/json; charset=utf-8'
+        });
+        
+        var foo = {};
+        foo['speakers'] = videos[0]['speakers'];
+        res.end(JSON.stringify(foo));
+    });
+    return next();
+});
+
+server.get("/videos/video_library", function (req, res, next) {
+    dbVideos.videos.find(function (err, videos) {
+        res.writeHead(200, {
+            'Content-Type': 'application/json; charset=utf-8'
+        });
+        
+        var foo = {};
+        foo['video_library'] = videos[0]['video_library'];
+        res.end(JSON.stringify(foo));
+    });
+    return next();
+});
  
 server.listen(3000, function () {
   console.log('%s listening at %s', server.name, server.url);
