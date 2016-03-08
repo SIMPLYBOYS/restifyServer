@@ -24,8 +24,18 @@ server.get("/contacts", function (req, res, next) {
         res.writeHead(200, {
             'Content-Type': 'application/json; charset=utf-8'
         });
-        console.log(contacts);
-        res.end(JSON.stringify(contacts));
+        console.log('get contacts data ======>');
+        console.log(contacts.length);
+        var foo = [],
+        	bar = {};
+
+        for (i=0; i<contacts.length; i++){
+        	foo[i] = contacts[i];
+        }
+        bar['contacts'] = foo;
+        res.end(JSON.stringify(bar));
+        // res.json({aaron: JSON.stringify(contacts)});
+
     });
     return next();
 });
@@ -40,6 +50,7 @@ server.get("/videos", function (req, res, next) {
     });
     return next();
 });
+
  
 server.listen(3000, function () {
   console.log('%s listening at %s', server.name, server.url);
