@@ -1,7 +1,8 @@
 var restify = require('restify');
 var mongojs = require('mongojs');
 
-var db = mongojs('test', ['contact']);
+var dbContact = mongojs('test', ['contact']);
+var dbVideos = mongojs('test', ['videos']);
  
 var server = restify.createServer({
   name: 'myapp',
@@ -19,12 +20,23 @@ server.get('/echo/:name', function (req, res, next) {
 });
 
 server.get("/contacts", function (req, res, next) {
-    db.contact.find(function (err, contacts) {
+    dbContact.contact.find(function (err, contacts) {
         res.writeHead(200, {
             'Content-Type': 'application/json; charset=utf-8'
         });
         console.log(contacts);
         res.end(JSON.stringify(contacts));
+    });
+    return next();
+});
+
+server.get("/videos", function (req, res, next) {
+    dbVideos.videos.find(function (err, videos) {
+        res.writeHead(200, {
+            'Content-Type': 'application/json; charset=utf-8'
+        });
+        console.log(videos);
+        res.end(JSON.stringify(videos));
     });
     return next();
 });
