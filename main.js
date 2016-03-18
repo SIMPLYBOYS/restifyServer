@@ -172,17 +172,22 @@ server.get("/create_imdb", function(req, res, next){
 
         var $ = cheerio.load(body);
         var poster = {},
-            title = {}.
-            rating = {};
+            title = {},
+            rating = {},
+            year = {};
 
         poster = $('.lister-list tr .posterColumn img');
         title = $('.lister-list tr .titleColumn a');
         rating = $('.lister-list tr .imdbRating strong');
+        year = $('.lister-list tr .titleColumn .secondaryInfo');
+
 
         for (var i = 0; i<250;i++){ 
+            console.log(year);
             dbIMDB.imdb.insert({
                 'top': i+1, 
                 'title': $(title[i]).text(),
+                'year': $(year[i]).text().slice(1,5),
                 'posterUrl': poster[i]['attribs']['src'],
                 'rating': $(rating[i]).text(),
                 'description': title[i]['attribs']['title']
