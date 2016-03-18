@@ -9,9 +9,13 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "bufferhelper": "^0.2.1",
+    "cheerio": "^0.20.0",
+    "iconv-lite": "^0.4.13",
     "install": "^0.5.6",
     "mongojs": "^2.3.0",
-    "npm": "^3.8.0",
+    "npm": "^3.8.1",
+    "request": "^2.69.0",
     "restify": "^4.0.4"
   }
 }
