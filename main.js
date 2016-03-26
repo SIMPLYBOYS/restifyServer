@@ -120,7 +120,7 @@ server.get("/videos/video_library", function (req, res, next) {
     return next();
 });
 
-server.get("/crawler", function(req, res, next){
+server.get("/crawler", function(req, res, next) {
     request({
         url: "http://blog.infographics.tw",
         encoding: 'utf8',
@@ -246,6 +246,38 @@ server.get('/content/:id', function(req, res, next){
 
     contents['contents'] = raw;
     res.end(JSON.stringify(contents));
+});
+
+server.get('/detail/:place', function(req, res, next){
+    var detail = {},
+        raw; 
+    
+    switch (req.params.place) {
+            case "France":
+                   raw = [{'location':'France', 'time': '5/24 am 9:30', 'imgUrl': 'http://www.telegraph.co.uk/travel/destination/article130148.ece/ALTERNATES/w620/parisguidetower.jpg'}];
+                    break;
+            case "Angleterre":
+                   raw = [{'location':'Angleterre', 'time': '5/25 am 10:30', 'imgUrl': 'http://www.traditours.com/images/Photos%20Angleterre/ForumLondonBridge.jpg'}]
+                    break;
+            case "Allemagne":
+                   raw = [{'location':'Allemagne', 'time': '5/26 am 11:30', 'imgUrl': 'http://tanned-allemagne.com/wp-content/uploads/2012/10/pano_rathaus_1280.jpg'}]
+                    break;
+            case "Espagne":
+                   raw = [{'location':'Espagne', 'time': '5/27 pm 00:30', 'imgUrl': 'http://www.sejour-linguistique-lec.fr/wp-content/uploads/espagne-02.jpg'}]
+                    break;
+            case "Italie":
+                   raw = [{'location':'Italie', 'time': '5/28 pm 1:30', 'imgUrl': 'http://retouralinnocence.com/wp-content/uploads/2013/05/Hotel-en-Italie-pour-les-Vacances2.jpg'}]
+                    break;
+            case "Russie":
+                   raw = [{'location':'Russie', 'time': '5/29 pm 2:30', 'imgUrl': 'http://www.choisir-ma-destination.com/uploads/_large_russie-moscou2.jpg'}]
+                    break;
+            default:
+                   raw = [{'location':'France', 'time': '5/24 am 9:30', 'imgUrl': 'http://www.telegraph.co.uk/travel/destination/article130148.ece/ALTERNATES/w620/parisguidetower.jpg'}]
+                    break;
+
+    }
+    detail['contents'] = raw;
+    res.end(JSON.stringify(detail));
 });
  
 server.listen(3000, function () {
