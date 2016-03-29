@@ -167,9 +167,10 @@ server.get("/create_imdb", function(req, res, next){
         url: "http://www.imdb.com/chart/top",
         encoding: "utf8",
         method: "GET"
-    }, function(err, req, body){
+    }, function(err, res, body){
         if (err || !body) { return; }
 
+        var imdb_baseUrl = 'http://www.imdb.com';
         var $ = cheerio.load(body);
         var poster = {},
             title = {},
@@ -180,32 +181,83 @@ server.get("/create_imdb", function(req, res, next){
         title = $('.lister-list tr .titleColumn a');
         rating = $('.lister-list tr .imdbRating strong');
         year = $('.lister-list tr .titleColumn .secondaryInfo');
-
+        detailUrl = $('.titleColumn a');
 
         for (var i = 0; i<250;i++){ 
-            console.log(year);
+            // console.log('http://www.imdb.com' + detailUrl[i]['attribs']['href']);
             dbIMDB.imdb.insert({
                 'top': i+1, 
                 'title': $(title[i]).text(),
                 'year': $(year[i]).text().slice(1,5),
                 'posterUrl': poster[i]['attribs']['src'],
                 'rating': $(rating[i]).text(),
-                'description': title[i]['attribs']['title']
+                'description': title[i]['attribs']['title'],
+                'detailUrl': imdb_baseUrl + detailUrl[i]['attribs']['href']
             });
         }
 
-        /*dbIMDB.imdb.find(function(err, doc){
-            console.log(doc);
-        });*/
-        
+        res.send('Finished crawler @ ' + new Date());
         res.end();
     });
 });
 
+server.get('/create_imdb_detail', function(req, res, next){
+    console.log('http://www.imdb.com/title/tt0111161/?pf_rd_m=A2FGELUUNOQJNL&pf_rd_p=2398042102&pf_rd_r=1HCYECEG0SGYX7VJNTT2&pf_rd_s=center-1&pf_rd_t=15506&pf_rd_i=top&ref_=chttp_tt_1');
+    res.send('Launch crawler @ ' + new Date());
+    dbIMDB.imdb.find({'top':{$lte:250, $gte:1}}).forEach(function(err, doc){
+        request({
+            url: doc['detailUrl'],
+            encoding: "utf8",
+            method: "GET" }, function(err, res, body){
+                if (err || !body) { return; }
+                var $ = cheerio.load(body);
+                var url = $('.slate_wrapper .poster a img')[0];
+                var foo = $('.minPosterWithPlotSummaryHeight .poster img')[0];
+                if (typeof(url)!=='undefined'){
+                    console.log(doc['title']);
+                    console.log('.1-->'+url['attribs']['src']);
+                    var poster = url['attribs']['src'];
+                    var slate = $('.slate_wrapper .slate a img')[0]['attribs']['src'];
+                    var summery = $('.plot_summary .summary_text').text().trim();
+                    console.log(summery);
+                    doc['detailContent'] = {
+                        "poster": poster,
+                        "slate": slate,
+                        "summery": summery
+                    };
+                    dbIMDB.imdb.update({'title':doc['title']}, doc);
+                }
+                else {
+                    console.log(doc['title']);
+                    console.log('.2-->'+foo['attribs']['src']);
+                    var poster = foo['attribs']['src'];
+                    var summery = $('.minPosterWithPlotSummaryHeight .summary_text').text().trim();
+                    doc['detailContent'] = {
+                        "poster": poster,
+                        "summery": summery
+                    };
+                    foo['attribs']['src'];
+                    dbIMDB.imdb.update({'title':doc['title']}, doc);
+                }
+        });
+    });
+    res.end();
+});
+
 server.get('/imdb', function(req, res, next){
-    dbIMDB.imdb.find(function(err, docs){
+    var options = {
+        "sort": "top"
+    };
+
+    console.log('from: '+ req.query.from +'\n to: ' + req.query.to);
+
+    dbIMDB.imdb.find().find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}, function(err, docs){
         var foo = {};
         foo['imdb'] = docs;
+        
+        for (var i=0; i<docs.length; i++){
+            console.log(docs[i]);
+        }
         res.end(JSON.stringify(foo));
     });
 });
