@@ -245,13 +245,10 @@ server.get('/create_imdb_detail', function(req, res, next){
 });
 
 server.get('/imdb', function(req, res, next){
-    var options = {
-        "sort": "top"
-    };
 
     console.log('from: '+ req.query.from +'\n to: ' + req.query.to);
 
-    dbIMDB.imdb.find().find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}, function(err, docs){
+    dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}, function(err, docs){
         var foo = {};
         foo['imdb'] = docs;
         
