@@ -9,6 +9,7 @@ var fs = require("fs");
 var dbContact = mongojs('test', ['contact']);
 var dbVideos = mongojs('test', ['videos']);
 var dbIMDB = mongojs('test', ['imdb']);
+var dbUbike = mongojs('test', ['ubike']);
  
 var server = restify.createServer({
   name: 'myapp',
@@ -93,7 +94,6 @@ server.get("/videos/sessions", function (req, res, next) {
     return next();
 });
 
-
 server.get("/videos/speakers", function (req, res, next) {
     dbVideos.videos.find(function (err, videos) {
         res.writeHead(200, {
@@ -162,12 +162,12 @@ server.get("/crawler/1", function(req, res, next){
     res.end(JSON.stringify(bar));
 });
 
-server.get("/create_imdb", function(req, res, next){
+server.get("/create_imdb", function(req, res, next) {
     request({
         url: "http://www.imdb.com/chart/top",
         encoding: "utf8",
         method: "GET"
-    }, function(err, res, body){
+    }, function(err, response, body){
         if (err || !body) { return; }
 
         var imdb_baseUrl = 'http://www.imdb.com';
@@ -183,7 +183,7 @@ server.get("/create_imdb", function(req, res, next){
         year = $('.lister-list tr .titleColumn .secondaryInfo');
         detailUrl = $('.titleColumn a');
 
-        for (var i = 0; i<250;i++){ 
+        for (var i = 0; i<250;i++) { 
             // console.log('http://www.imdb.com' + detailUrl[i]['attribs']['href']);
             dbIMDB.imdb.insert({
                 'top': i+1, 
@@ -195,25 +195,42 @@ server.get("/create_imdb", function(req, res, next){
                 'detailUrl': imdb_baseUrl + detailUrl[i]['attribs']['href']
             });
         }
+    });
+    res.redirect('/create_imdb_detail', next);
+});
 
-        res.send('Finished crawler @ ' + new Date());
-        res.end();
+server.get('/update_imdb_poster', function(req, res, next) {
+    res.send('update poster @ ' + new Date());
+    dbIMDB.imdb.find({'top':{$lte:250, $gte:1}}).forEach(function(err, doc) {
+        request({
+            url: doc['posterUrl'],
+            encoding: 'utf8',
+            method: "GET" }, function(err, res, body){
+                if (err || !body)
+                    return;
+                var $ = cheerio.load(body);
+                var url = $('.photo img')[0];
+                console.log(doc['top']+':');
+                console.log(url['attribs']['src']);
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': url['attribs']['src']}});
+        });
     });
 });
 
-server.get('/create_imdb_detail', function(req, res, next){
+server.get('/create_imdb_detail', function(req, res, next) {
     console.log('http://www.imdb.com/title/tt0111161/?pf_rd_m=A2FGELUUNOQJNL&pf_rd_p=2398042102&pf_rd_r=1HCYECEG0SGYX7VJNTT2&pf_rd_s=center-1&pf_rd_t=15506&pf_rd_i=top&ref_=chttp_tt_1');
     res.send('Launch crawler @ ' + new Date());
-    dbIMDB.imdb.find({'top':{$lte:250, $gte:1}}).forEach(function(err, doc){
+    dbIMDB.imdb.find({'top':{$lte:250, $gte:1}}).forEach(function(err, doc) {
         request({
             url: doc['detailUrl'],
             encoding: "utf8",
-            method: "GET" }, function(err, res, body){
-                if (err || !body) { return; }
+            method: "GET" }, function(err, res, body) {
+                if (err || !body) 
+                    return;
                 var $ = cheerio.load(body);
                 var url = $('.slate_wrapper .poster a img')[0];
                 var foo = $('.minPosterWithPlotSummaryHeight .poster img')[0];
-                if (typeof(url)!=='undefined'){
+                if (typeof(url)!=='undefined') {
                     console.log(doc['title']);
                     console.log('.1-->'+url['attribs']['src']);
                     var poster = url['attribs']['src'];
@@ -226,6 +243,10 @@ server.get('/create_imdb_detail', function(req, res, next){
                         "summery": summery
                     };
                     dbIMDB.imdb.update({'title':doc['title']}, doc);
+                    var bar = $('.slate_wrapper .poster a')[0];
+                    var path = 'http://www.imdb.com' + bar['attribs']['href'];
+                    console.log(path);
+                    dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': path}});
                 }
                 else {
                     console.log(doc['title']);
@@ -238,28 +259,33 @@ server.get('/create_imdb_detail', function(req, res, next){
                     };
                     foo['attribs']['src'];
                     dbIMDB.imdb.update({'title':doc['title']}, doc);
+
+                    var bar = $('.minPosterWithPlotSummaryHeight .poster a')[0];
+                    var path = 'http://www.imdb.com' + bar['attribs']['href'];
+                    console.log(path);
+                    dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': path}});
                 }
         });
     });
     res.end();
 });
 
-server.get('/imdb', function(req, res, next){
+server.get('/imdb', function(req, res, next) {
 
     console.log('from: '+ req.query.from +'\n to: ' + req.query.to);
 
-    dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}, function(err, docs){
+    dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}, function(err, docs) {
         var foo = {};
-        foo['imdb'] = docs;
+        foo['contents'] = docs;
         
-        for (var i=0; i<docs.length; i++){
+        for (var i=0; i<docs.length; i++) {
             console.log(docs[i]);
         }
         res.end(JSON.stringify(foo));
     });
 });
 
-server.get('/content/:id', function(req, res, next){
+server.get('/content/:id', function(req, res, next) {
     var contents = {},
         raw; 
 
@@ -297,7 +323,7 @@ server.get('/content/:id', function(req, res, next){
     res.end(JSON.stringify(contents));
 });
 
-server.get('/detail/:place', function(req, res, next){
+server.get('/detail/:place', function(req, res, next) {
     var detail = {},
         raw; 
     
@@ -327,6 +353,32 @@ server.get('/detail/:place', function(req, res, next){
     }
     detail['contents'] = raw;
     res.end(JSON.stringify(detail));
+});
+
+server.get('/create_ubike_nTaipei', function(req, res, next) {
+
+    request({
+        url: "http://data.ntpc.gov.tw/api/v1/rest/datastore/382000000A-000352-001",
+        encoding: 'utf8',
+        method: "GET"
+    }, function(err, req, body) {
+
+        var foo,
+            bar;
+        // console.log(typeof(body));
+        foo = JSON.parse(body);
+        console.log(foo['result']['records'].length);
+        bar = foo['result']['records'];
+
+        dbUbike.ubike.remove({});
+
+        bar.forEach(function(doc, index){
+            console.log('insert'+ index);
+            dbUbike.ubike.insert(doc);
+        });
+        // console.log(foo.ubike);
+        res.end();
+    });
 });
  
 server.listen(3000, function () {
