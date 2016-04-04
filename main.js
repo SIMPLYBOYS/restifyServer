@@ -19,6 +19,17 @@ var server = restify.createServer({
 server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser());
 server.use(restify.bodyParser());
+
+var https_options = {
+    key: fs.readFileSync('./ssl/restify.pem'), //on current folder
+    certificate: fs.readFileSync('./ssl/restifycert.pem');
+};
+
+var https_server = restify.createServer(https_options);
+
+https_server.get('/kaif', function(req, res, next) {
+    console.log('got oauth redirect call from kaif.io!\n' + req);
+});
  
 server.get('/echo/:name', function (req, res, next) {
 	console.log(req.params);
@@ -403,4 +414,8 @@ server.get('/create_ubike_nTaipei', function(req, res, next) {
  
 server.listen(3000, function () {
   console.log('%s listening at %s', server.name, server.url);
+});
+
+https_server.listen(443, function() {
+    console.log('%s listening at %s', https_server.name, https_server.url);
 });
