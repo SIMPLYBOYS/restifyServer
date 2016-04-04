@@ -236,11 +236,20 @@ server.get('/create_imdb_detail', function(req, res, next) {
                     var poster = url['attribs']['src'];
                     var slate = $('.slate_wrapper .slate a img')[0]['attribs']['src'];
                     var summery = $('.plot_summary .summary_text').text().trim();
-                    console.log(summery);
+                    if ($($('#titleDetails .txt-block')[0]).find('.inline').text() == 'Country:')
+                        var country = $('#titleDetails .txt-block')[0];
+                    else
+                        var country = $('#titleDetails .txt-block')[1];
+                    var $country = $(country);
+                    if ($country.find('a').length == 1)
+                        country = $country.find('a').text();
+                    else
+                        country = $($country.find('a')[0]).text()
                     doc['detailContent'] = {
                         "poster": poster,
                         "slate": slate,
-                        "summery": summery
+                        "summery": summery,
+                        "country": country
                     };
                     dbIMDB.imdb.update({'title':doc['title']}, doc);
                     var bar = $('.slate_wrapper .poster a')[0];
@@ -253,9 +262,19 @@ server.get('/create_imdb_detail', function(req, res, next) {
                     console.log('.2-->'+foo['attribs']['src']);
                     var poster = foo['attribs']['src'];
                     var summery = $('.minPosterWithPlotSummaryHeight .summary_text').text().trim();
+                    if ($($('#titleDetails .txt-block')[0]).find('.inline').text() == 'Country:')
+                        var country = $('#titleDetails .txt-block')[0];
+                    else
+                        var country = $('#titleDetails .txt-block')[1];
+                    var $country = $(country);
+                    if ($country.find('a').length == 1)
+                        country = $country.find('a').text();
+                    else
+                        country = $($country.find('a')[0]).text()
                     doc['detailContent'] = {
                         "poster": poster,
-                        "summery": summery
+                        "summery": summery,
+                        "country": country
                     };
                     foo['attribs']['src'];
                     dbIMDB.imdb.update({'title':doc['title']}, doc);
@@ -279,7 +298,8 @@ server.get('/imdb', function(req, res, next) {
         foo['contents'] = docs;
         
         for (var i=0; i<docs.length; i++) {
-            console.log(docs[i]);
+            // console.log(docs[i]['title']);
+            console.log(docs[i]['detailContent']['country']);
         }
         res.end(JSON.stringify(foo));
     });
