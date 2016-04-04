@@ -22,7 +22,7 @@ server.use(restify.bodyParser());
 
 var https_options = {
     key: fs.readFileSync('./ssl/restify.pem'), //on current folder
-    certificate: fs.readFileSync('./ssl/restifycert.pem');
+    certificate: fs.readFileSync('./ssl/restifycert.pem')
 };
 
 var https_server = restify.createServer(https_options);
