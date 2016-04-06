@@ -50,7 +50,7 @@ https_server.get('/oauth_k', function(req, res, next) {
 
 var google = require('google');
 
-google.resultsPerPage = 2;
+google.resultsPerPage = 10;
 var nextCounter = 0;
 
 server.get('/google', function (req, res, next){
@@ -83,26 +83,12 @@ server.get('/update_imdb_trailer', function(req, res, next) {
             for (var i = 0; i < res.links.length; ++i) {
                 var link = res.links[i];
                 console.log(link.title);
-                // console.log(link.title);
-                // console.log(link.href);
                 if (link.title.match('YouTube')) {
                     console.log(link.href);
-                    dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'trailerUrl': link.href}}, {"upsert": true});
+                    dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'trailerUrl': link.href}});
                 }
             }
         });
-        /*request({
-            url: doc['posterUrl'],
-            encoding: 'utf8',
-            method: "GET" }, function(err, res, body){
-                if (err || !body)
-                    return;
-                var $ = cheerio.load(body);
-                var url = $('.photo img')[0];
-                console.log(doc['top']+':');
-                console.log(url['attribs']['src']);
-                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': url['attribs']['src']}});
-        });*/
     });
 });
  
@@ -381,11 +367,17 @@ server.get('/imdb', function(req, res, next) {
     dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}, function(err, docs) {
         var foo = {};
         foo['contents'] = docs;
-        
+        var missing = 0;
         for (var i=0; i<docs.length; i++) {
-            // console.log(docs[i]['title']);
-            console.log(docs[i]['detailContent']['slate']);
+            /*console.log(docs[i]['title']);
+            console.log(docs[i]['trailerUrl']);*/
+            if (typeof(docs[i]['trailerUrl']) == 'undefined'){
+                missing++;
+                console.log(docs[i]['title']);
+            }
+            // console.log(docs[i]['detailContent']['slate']);
         }
+        console.log('missing: ' + missing);
         res.end(JSON.stringify(foo));
     });
 });
