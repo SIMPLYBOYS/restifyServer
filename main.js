@@ -47,6 +47,64 @@ https_server.get('/oauth_k', function(req, res, next) {
     });
     res.end();
 });*/
+
+var google = require('google');
+
+google.resultsPerPage = 2;
+var nextCounter = 0;
+
+server.get('/google', function (req, res, next){
+    google('The Shawshank Redemption trailer', function (err, res){
+      if (err) console.error(err)
+
+      for (var i = 0; i < res.links.length; ++i) {
+        var link = res.links[i];
+        console.log(link.title);
+        // console.log(link.href);
+        if (link.title.match('YouTube')){
+            console.log(link.href);
+        }
+      }
+
+      if (nextCounter < 4) {
+        nextCounter += 1
+        if (res.next) res.next()
+      }
+    })
+});
+
+server.get('/update_imdb_trailer', function(req, res, next) {
+    res.send('update trailer @ ' + new Date());
+    var count = 1;
+    dbIMDB.imdb.find({'top':{$lte:250, $gte:1}}).forEach(function(err, doc) {
+        google(doc['title'] + 'trailer', function (err, res) {
+            console.log(count + ': '+ doc['title'] );
+            count++;
+            for (var i = 0; i < res.links.length; ++i) {
+                var link = res.links[i];
+                console.log(link.title);
+                // console.log(link.title);
+                // console.log(link.href);
+                if (link.title.match('YouTube')) {
+                    console.log(link.href);
+                    dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'trailerUrl': link.href}}, {"upsert": true});
+                }
+            }
+        });
+        /*request({
+            url: doc['posterUrl'],
+            encoding: 'utf8',
+            method: "GET" }, function(err, res, body){
+                if (err || !body)
+                    return;
+                var $ = cheerio.load(body);
+                var url = $('.photo img')[0];
+                console.log(doc['top']+':');
+                console.log(url['attribs']['src']);
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': url['attribs']['src']}});
+        });*/
+    });
+});
  
 server.get('/echo/:name', function (req, res, next) {
 	console.log(req.params);
@@ -300,7 +358,6 @@ server.get('/create_imdb_detail', function(req, res, next) {
                         country = $($country.find('a')[0]).text()
                     doc['detailContent'] = {
                         "poster": poster,
-                        "slate": "N/A",
                         "summery": summery,
                         "country": country
                     };
@@ -327,7 +384,7 @@ server.get('/imdb', function(req, res, next) {
         
         for (var i=0; i<docs.length; i++) {
             // console.log(docs[i]['title']);
-            console.log(docs[i]['detailContent']['country']);
+            console.log(docs[i]['detailContent']['slate']);
         }
         res.end(JSON.stringify(foo));
     });
