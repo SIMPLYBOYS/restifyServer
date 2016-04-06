@@ -27,7 +27,7 @@ var https_options = {
 
 var https_server = restify.createServer(https_options);
 
-https_server.get('/kaif', function(req, res, next) {
+https_server.get('/oauth_k', function(req, res, next) {
     console.log('got oauth redirect call from kaif.io!\n' + req);
 });
  
@@ -419,3 +419,8 @@ server.listen(3000, function () {
 https_server.listen(443, function() {
     console.log('%s listening at %s', https_server.name, https_server.url);
 });
+
+curl -H 'Authorization: Bearer Air7BgJ7fcx7Hh0yMUBooVpOQwozt-b_C30iQRX3ng429EEs5zl7wElDdgPna4dO25UPYtnRtm4FHZGgOcwNlQh8AtO9VERtJJK01vFIHpOiGofHtSFnRmXYCI2Dv-jcycfEsro2WzUnpfyxfANG99ypzmLPb7AkGh7ZWOWFUyqasoZV5Icsvm6NYshTQIKmNK573yCfzd0phyfX5uVxX20r5XNr' \
+     -H 'Content-Type: application/json;charset=UTF-8' \
+     -XPOST 'https://kaif.io/v1/echo/message' \
+     -d '{"message":"Hello world!"}'
