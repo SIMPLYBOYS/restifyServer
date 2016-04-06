@@ -25,11 +25,28 @@ var https_options = {
     certificate: fs.readFileSync('./ssl/restifycert.pem')
 };
 
-var https_server = restify.createServer(https_options);
+/*var https_server = restify.createServer(https_options);
+https_server.use(restify.acceptParser(server.acceptable));
+https_server.use(restify.queryParser());
+https_server.use(restify.bodyParser());
 
 https_server.get('/oauth_k', function(req, res, next) {
-    console.log('got oauth redirect call from kaif.io!\n' + req);
-});
+    console.log('got oauth redirect call from kaif.io!\n' + req.query.code);
+    request({
+        url: 'https://kaif.io/oauth/access-token -d \'client_id=2dbc7bc93d1f446f\' -d \'client_secret=954318a490e5439b96722a596d2de567\' -d \'redirect_uri=https%3A%2F%2Fec2-52-193-199-171.ap-northeast-1.compute.amazonaws.com%3A443%2Foauth_k\' -d \'grant_type=authorization_code\' -d \'code='+req.query.code,
+        encoding: 'utf8',
+        method: "POST"
+    }, function(err, response, body){
+        if(err || !body) { 
+            console.log('got error');
+            return;
+        }
+
+        console.log(response);
+        console.log(body);
+    });
+    res.end();
+});*/
  
 server.get('/echo/:name', function (req, res, next) {
 	console.log(req.params);
@@ -270,7 +287,6 @@ server.get('/create_imdb_detail', function(req, res, next) {
                 }
                 else {
                     console.log(doc['title']);
-                    console.log('.2-->'+foo['attribs']['src']);
                     var poster = foo['attribs']['src'];
                     var summery = $('.minPosterWithPlotSummaryHeight .summary_text').text().trim();
                     if ($($('#titleDetails .txt-block')[0]).find('.inline').text() == 'Country:')
@@ -284,6 +300,7 @@ server.get('/create_imdb_detail', function(req, res, next) {
                         country = $($country.find('a')[0]).text()
                     doc['detailContent'] = {
                         "poster": poster,
+                        "slate": "N/A",
                         "summery": summery,
                         "country": country
                     };
@@ -416,11 +433,6 @@ server.listen(3000, function () {
   console.log('%s listening at %s', server.name, server.url);
 });
 
-https_server.listen(443, function() {
+/*https_server.listen(443, function() {
     console.log('%s listening at %s', https_server.name, https_server.url);
-});
-
-curl -H 'Authorization: Bearer Air7BgJ7fcx7Hh0yMUBooVpOQwozt-b_C30iQRX3ng429EEs5zl7wElDdgPna4dO25UPYtnRtm4FHZGgOcwNlQh8AtO9VERtJJK01vFIHpOiGofHtSFnRmXYCI2Dv-jcycfEsro2WzUnpfyxfANG99ypzmLPb7AkGh7ZWOWFUyqasoZV5Icsvm6NYshTQIKmNK573yCfzd0phyfX5uVxX20r5XNr' \
-     -H 'Content-Type: application/json;charset=UTF-8' \
-     -XPOST 'https://kaif.io/v1/echo/message' \
-     -d '{"message":"Hello world!"}'
+});*/
