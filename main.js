@@ -361,8 +361,8 @@ server.get('/create_imdb_detail', function(req, res, next) {
 });
 
 server.get('/imdb', function(req, res, next) {
-    console.log('from: '+ req.query.from +'\n to: ' + req.query.to + 'asend: ' + typeof(req.query.asend));
-    dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}).sort({'top':parseInt(req.query.asend)}, function(err, docs){
+    console.log('from: '+ req.query.from +'\n to: ' + req.query.to);
+    dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}).sort({'top':parseInt(req.query.ascending)}, function(err, docs){
         var foo = {};
         foo['contents'] = docs;
         var missing = 0;
