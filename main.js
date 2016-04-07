@@ -361,16 +361,15 @@ server.get('/create_imdb_detail', function(req, res, next) {
 });
 
 server.get('/imdb', function(req, res, next) {
-
-    console.log('from: '+ req.query.from +'\n to: ' + req.query.to);
-
-    dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}, function(err, docs) {
+    console.log('from: '+ req.query.from +'\n to: ' + req.query.to + 'asend: ' + typeof(req.query.asend));
+    dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}).sort({'top':parseInt(req.query.asend)}, function(err, docs){
         var foo = {};
         foo['contents'] = docs;
         var missing = 0;
         for (var i=0; i<docs.length; i++) {
-            /*console.log(docs[i]['title']);
-            console.log(docs[i]['trailerUrl']);*/
+            console.log(docs[i]['title']);
+            // console.log(docs[i]['trailerUrl']);
+            // console.log(docs[i]['detailContent']['slate']);
             if (typeof(docs[i]['trailerUrl']) == 'undefined'){
                 missing++;
                 console.log(docs[i]['title']);
