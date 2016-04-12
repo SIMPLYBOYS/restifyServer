@@ -289,10 +289,118 @@ server.get('/update_imdb_poster', function(req, res, next) {
     });
 });
 
+server.get('/update_imdb_readmore', function(req, res, next) {
+    dbIMDB.imdb.find({'top': {$lte:250, $gte:1}}).forEach(function(err, doc) {
+        request({
+            url: doc['detailUrl'],
+            encoding: "utf8",
+            method: "GET" }, function(err, res, body) {
+                if (err || !body)
+                    return;
+                var $ = cheerio.load(body);
+                var url = $('.combined-see-more a')[1]['attribs']['href'];
+                var path = 'http://www.imdb.com' + url;
+                var foo = $('.combined-see-more a')[1]['children'];
+                var page = $(foo[0]).text();
+                page = Math.ceil(parseInt(page.split("photos")[0]) / 48);
+                console.log('top: ' + doc['top'] + path);
+                doc['readMore'] = { 
+                    "url": path,
+                    "page": page
+                };
+                dbIMDB.imdb.update({'title': doc['title']}, doc);
+            });
+    });
+    res.send('finish!');
+    res.end();
+});
+
+// fetch full pixel image Url
+server.get('/update_imdb_gallery_f', function(req, res, next) { 
+    console.log('from: '+ req.query.from +'\n to: ' + req.query.to);
+    dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte:parseInt(req.query.from)}}).forEach(function(err, doc) {
+        // console.log(doc['gallery_thumbnail']);
+        var gallery = [];
+        for(var i in doc['gallery_thumbnail']) {
+            console.log(doc['gallery_thumbnail'][i]['detailUrl']);
+
+            var options = {
+              url: doc['gallery_thumbnail'][i]['detailUrl'],
+              encoding: "utf8",
+              method: "GET"
+            };
+
+            var callback = function(err, res, body) {
+                    if (err || !body)
+                        return;
+                    var $ = cheerio.load(body);
+                    // console.log($('.photo a img')[0]['attribs']['src'])
+                    gallery.push({
+                        type: 'full',
+                        url: $('.photo a img')[0]['attribs']['src'],
+                    })
+
+                    doc["gallery_full"] = gallery;
+                    dbIMDB.imdb.update({'title': doc['title']}, doc);
+            };
+            console.log(i);
+            request(options, callback);
+        }
+    });
+    res.send('finish');
+    res.end();
+});
+
+//fetch thumbnail image Url
+server.get('/update_imdb_gallery_t', function(req, res, next) { 
+    console.log('from: '+ req.query.from +'\n to: ' + req.query.to);
+    dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte:parseInt(req.query.from)}}).forEach(function(err, doc) {
+        var gallery = [];
+        for (var j=1; j<=doc['readMore']['page']; j++) {
+
+            var bar = doc['readMore']['url'].split('?');
+
+            var options = {
+              url: bar[0] + '?page=' +j+'&'+bar[1],
+              encoding: "utf8",
+              method: "GET"
+            };
+
+            console.log(doc['top']);
+
+            var callback = function(err, res, body) {
+                    if (err || !body)
+                        return;
+                    var $ = cheerio.load(body);
+                    var gallery_length = $('.page_list a').length/2+1;
+                    var url = $('.media_index_thumb_list a img');
+                    var detailUrl = $('.media_index_thumb_list a');
+                                           
+                    url.each(function(index, body) {
+                        // console.log(detailUrl[index]['attribs']['href']);  
+                        console.log('index: ' + index);
+                        // console.log(body['attribs']['src']);
+                        gallery.push({
+                            type: 'thumbnail',
+                            url: body['attribs']['src'],
+                            detailUrl: 'http://www.imdb.com' + detailUrl[index]['attribs']['href']
+                        })
+                    });
+
+                    // console.log(gallery);
+                    doc["gallery_thumbnail"] = gallery;
+                    dbIMDB.imdb.update({'title': doc['title']}, doc);
+            };
+            request(options, callback);
+        }   
+    });
+    res.send('finish!');
+    res.end();
+});
+
 server.get('/create_imdb_detail', function(req, res, next) {
-    console.log('http://www.imdb.com/title/tt0111161/?pf_rd_m=A2FGELUUNOQJNL&pf_rd_p=2398042102&pf_rd_r=1HCYECEG0SGYX7VJNTT2&pf_rd_s=center-1&pf_rd_t=15506&pf_rd_i=top&ref_=chttp_tt_1');
     res.send('Launch crawler @ ' + new Date());
-    dbIMDB.imdb.find({'top':{$lte:250, $gte:1}}).forEach(function(err, doc) {
+    dbIMDB.imdb.find({'top':{$lte:parseInt(req.query.to), $gte:parseInt(req.query.from)}}).forEach(function(err, doc) {
         request({
             url: doc['detailUrl'],
             encoding: "utf8",
@@ -367,12 +475,12 @@ server.get('/imdb', function(req, res, next) {
         foo['contents'] = docs;
         var missing = 0;
         for (var i=0; i<docs.length; i++) {
-            console.log(docs[i]['title']);
+            console.log(docs[i]['readMore']['page']);
             // console.log(docs[i]['trailerUrl']);
             // console.log(docs[i]['detailContent']['slate']);
-            if (typeof(docs[i]['trailerUrl']) == 'undefined'){
+            if (typeof(docs[i]['gallery_full']) == 'undefined'){
                 missing++;
-                console.log(docs[i]['title']);
+                console.log(docs[i]['title'] + '\n' + docs[i]['top']);
             }
             // console.log(docs[i]['detailContent']['slate']);
         }
