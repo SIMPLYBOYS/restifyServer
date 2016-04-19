@@ -469,7 +469,17 @@ server.get('/create_imdb_detail', function(req, res, next) {
 });
 
 server.get('/imdb', function(req, res, next) {
-    console.log('from: '+ req.query.from +'\n to: ' + req.query.to);
+    console.log('from: '+ req.query.from +'\n to: ' + req.query.to + '\n title: ' + req.query.title);
+    //TODO qury by title
+    if (typeof(req.query.title)!= 'undefined') {      
+        dbIMDB.imdb.find({'title': req.query.title}, function(err, docs){
+                var foo = {};
+                console.log('0419-1: ' + docs);
+                foo['contents'] = docs;
+                res.end(JSON.stringify(foo));
+        });
+    }
+
     dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}).sort({'top':parseInt(req.query.ascending)}, function(err, docs){
         var foo = {};
         foo['contents'] = docs;
@@ -490,7 +500,7 @@ server.get('/imdb', function(req, res, next) {
 });
 
 server.get('/imdb_title', function(req, res, next) {
-    dbIMDB.imdb.find({'top': {$lte:20, $gte: 1}}).sort({'top':1}, function(err, docs){
+    dbIMDB.imdb.find({'top': {$lte:250, $gte: 1}}).sort({'top':1}, function(err, docs){
         var foo = {'contents': []};
         for (var i=0; i< docs.length; i++){
             console.log(docs[i]['title']);
