@@ -489,6 +489,17 @@ server.get('/imdb', function(req, res, next) {
     });
 });
 
+server.get('/imdb_title', function(req, res, next) {
+    dbIMDB.imdb.find({'top': {$lte:20, $gte: 1}}).sort({'top':1}, function(err, docs){
+        var foo = {'contents': []};
+        for (var i=0; i< docs.length; i++){
+            console.log(docs[i]['title']);
+            foo['contents'].push(docs[i]['title']);
+        }
+        res.end(JSON.stringify(foo));
+    });
+});
+
 server.get('/content/:id', function(req, res, next) {
     var contents = {},
         raw; 
