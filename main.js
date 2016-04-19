@@ -471,32 +471,33 @@ server.get('/create_imdb_detail', function(req, res, next) {
 server.get('/imdb', function(req, res, next) {
     console.log('from: '+ req.query.from +'\n to: ' + req.query.to + '\n title: ' + req.query.title);
     //TODO qury by title
+    var foo = {};
     if (typeof(req.query.title)!= 'undefined') {      
         dbIMDB.imdb.find({'title': req.query.title}, function(err, docs){
-                var foo = {};
+                
                 console.log('0419-1: ' + docs);
                 foo['contents'] = docs;
                 res.end(JSON.stringify(foo));
         });
-    }
-
-    dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}).sort({'top':parseInt(req.query.ascending)}, function(err, docs){
-        var foo = {};
-        foo['contents'] = docs;
-        var missing = 0;
-        for (var i=0; i<docs.length; i++) {
-            console.log(docs[i]['readMore']['page']);
-            // console.log(docs[i]['trailerUrl']);
-            // console.log(docs[i]['detailContent']['slate']);
-            if (typeof(docs[i]['gallery_full']) == 'undefined'){
-                missing++;
-                console.log(docs[i]['title'] + '\n' + docs[i]['top']);
+    } else { 
+        dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}).sort({'top':parseInt(req.query.ascending)}, function(err, docs){
+            var foo = {};
+            foo['contents'] = docs;
+            var missing = 0;
+            for (var i=0; i<docs.length; i++) {
+                console.log(docs[i]['readMore']['page']);
+                // console.log(docs[i]['trailerUrl']);
+                // console.log(docs[i]['detailContent']['slate']);
+                if (typeof(docs[i]['gallery_full']) == 'undefined'){
+                    missing++;
+                    console.log(docs[i]['title'] + '\n' + docs[i]['top']);
+                }
+                // console.log(docs[i]['detailContent']['slate']);
             }
-            // console.log(docs[i]['detailContent']['slate']);
-        }
-        console.log('missing: ' + missing);
-        res.end(JSON.stringify(foo));
-    });
+            console.log('missing: ' + missing);
+            res.end(JSON.stringify(foo));
+        });
+    }
 });
 
 server.get('/imdb_title', function(req, res, next) {
