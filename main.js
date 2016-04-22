@@ -6,10 +6,11 @@ var iconv = require('iconv-lite');
 var BufferHelper = require('bufferhelper');
 var fs = require("fs");
 
-var dbContact = mongojs('test', ['contact']);
-var dbVideos = mongojs('test', ['videos']);
+var dbContact = mongojs('http://52.192.246.11/test', ['contact']);
+var dbVideos = mongojs('http://52.192.246.11/test', ['videos']);
 var dbIMDB = mongojs('test', ['imdb']);
-var dbUbike = mongojs('test', ['ubike']);
+var dbUbike = mongojs('http://52.192.246.11/test', ['ubike']);
+var myapiToken = '632ce305-f516-4ccb-8f32-4e0fb1ad412a';
  
 var server = restify.createServer({
   name: 'myapp',
@@ -71,6 +72,43 @@ server.get('/google', function (req, res, next){
         if (res.next) res.next()
       }
     })
+});
+
+server.get('/myapi', function(req, res, next) {
+    request({
+        url: "http://api.myapifilms.com/imdb/idIMDB?title="+ req.params.title + "&token=" + myapiToken,
+        encoding: 'utf8',
+        method: "GET"
+    }, function(err, req, json) {
+        if(err || !json) { return; }
+        var foo = JSON.parse(json),
+            bar = foo['data']['movies'];
+
+        console.log(bar[0]['plot']);
+        res.end(bar);
+    });
+})
+
+server.get('insert_imdb_plot', function(req, res, next) {
+    var titleUrl, count = parseInt(req.query.to) - parseInt(req.query.from) + 1;
+    dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte:parseInt(req.query.from)}}).forEach(function(err, doc) {
+        titleUrl = "http://api.myapifilms.com/imdb/idIMDB?title=" + doc['title'] + "&token=" + myapiToken;
+        // console.log("http://api.myapifilms.com/imdb/idIMDB?title=" + doc['title'] + "&token=" + myapiToken);
+        request({
+            url: titleUrl,
+            encoding: 'utf8',
+            method: "GET" }, function(err, res, json) {
+                if (err || !json)
+                    return;
+                count-- ;
+                console.log(count);
+                var foo = JSON.parse(json),
+                    bar = foo['data']['movies']; 
+                console.log(bar[0]['plot']);   
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'plot': bar[0]['plot']}});
+                res.end(JSON.stringify(bar));
+        });
+    });
 });
 
 server.get('/update_imdb_trailer', function(req, res, next) {
@@ -470,12 +508,9 @@ server.get('/create_imdb_detail', function(req, res, next) {
 
 server.get('/imdb', function(req, res, next) {
     console.log('from: '+ req.query.from +'\n to: ' + req.query.to + '\n title: ' + req.query.title);
-    //TODO qury by title
     var foo = {};
     if (typeof(req.query.title)!= 'undefined') {      
         dbIMDB.imdb.find({'title': req.query.title}, function(err, docs){
-                
-                console.log('0419-1: ' + docs);
                 foo['contents'] = docs;
                 res.end(JSON.stringify(foo));
         });
@@ -488,7 +523,11 @@ server.get('/imdb', function(req, res, next) {
                 console.log(docs[i]['readMore']['page']);
                 // console.log(docs[i]['trailerUrl']);
                 // console.log(docs[i]['detailContent']['slate']);
-                if (typeof(docs[i]['gallery_full']) == 'undefined'){
+                /*if (typeof(docs[i]['gallery_full']) == 'undefined'){
+                    missing++;
+                    console.log(docs[i]['title'] + '\n' + docs[i]['top']);
+                }*/
+                if (typeof(docs[i]['plot']) == 'undefined'){
                     missing++;
                     console.log(docs[i]['title'] + '\n' + docs[i]['top']);
                 }
