@@ -111,6 +111,40 @@ server.get('insert_imdb_plot', function(req, res, next) {
     });
 });
 
+server.get('insert_imdb_genres', function(req, res, next) {
+    var titleUrl, count = parseInt(req.query.to) - parseInt(req.query.from) + 1;
+    dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte:parseInt(req.query.from)}}).forEach(function(err, doc) {
+        titleUrl = "http://api.myapifilms.com/imdb/idIMDB?title=" + doc['title'] + "&token=" + myapiToken;
+        // console.log("http://api.myapifilms.com/imdb/idIMDB?title=" + doc['title'] + "&token=" + myapiToken);
+        request({
+            url: titleUrl,
+            encoding: 'utf8',
+            method: "GET" }, function(err, res, json) {
+                if (err || !json)
+                    return;
+                count-- ;
+                console.log(count);
+                var foo = JSON.parse(json),
+                    bar = foo['data']['movies']; 
+                console.log(bar[0]['genres']);   
+                console.log(bar[0]['votes']);
+                console.log(bar[0]['directors']);
+                console.log(bar[0]['writers']);
+                console.log(bar[0]['runtime']);
+                console.log(bar[0]['metascore']);
+
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'votes': bar[0]['votes']}});
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'genres': bar[0]['genres']}});
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'directors': bar[0]['directors']}});
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'writers': bar[0]['writers']}});
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'runtime': bar[0]['runtime']}});
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'metascore': parseInt(bar[0]['metascore'])}});
+
+                res.end(JSON.stringify(bar));
+        });
+    });
+});
+
 server.get('/update_imdb_trailer', function(req, res, next) {
     res.send('update trailer @ ' + new Date());
     var count = 1;
@@ -510,7 +544,7 @@ server.get('/imdb', function(req, res, next) {
     console.log('from: '+ req.query.from +'\n to: ' + req.query.to + '\n title: ' + req.query.title);
     var foo = {};
     if (typeof(req.query.title)!= 'undefined') {      
-        dbIMDB.imdb.find({'title': req.query.title}, function(err, docs){
+        dbIMDB.imdb.find({'title': req.query.title}, function(err, docs) {
                 foo['contents'] = docs;
                 res.end(JSON.stringify(foo));
         });
@@ -520,17 +554,30 @@ server.get('/imdb', function(req, res, next) {
             foo['contents'] = docs;
             var missing = 0;
             for (var i=0; i<docs.length; i++) {
-                console.log(docs[i]['readMore']['page']);
+                // console.log(docs[i]['readMore']['page']);
+                console.log(docs[i]['detailContent']['country']);
+                // console.log(docs[i]['votes']);
                 // console.log(docs[i]['trailerUrl']);
                 // console.log(docs[i]['detailContent']['slate']);
                 /*if (typeof(docs[i]['gallery_full']) == 'undefined'){
                     missing++;
                     console.log(docs[i]['title'] + '\n' + docs[i]['top']);
                 }*/
-                if (typeof(docs[i]['plot']) == 'undefined'){
+                if (typeof(docs[i]['votes']) == 'undefined') {
                     missing++;
                     console.log(docs[i]['title'] + '\n' + docs[i]['top']);
                 }
+                /*if (typeof(docs[i]['plot']) == 'undefined'){
+                    missing++;
+                    console.log(docs[i]['title'] + '\n' + docs[i]['top']);
+                }*/
+                /*if (typeof(docs[i]['metascore']) == 'undefined' || docs[i]['metascore'] == NaN){
+                    missing++;
+                    console.log(docs[i]['title'] + '\n' + docs[i]['top']);
+                } else if (typeof(docs[i]['votes']) == 'undefined') {
+                    missing++;
+                    console.log(docs[i]['title'] + '\n' + docs[i]['top']);
+                }*/
                 // console.log(docs[i]['detailContent']['slate']);
             }
             console.log('missing: ' + missing);
