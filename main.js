@@ -9,9 +9,17 @@ var fs = require("fs");
 var dbContact = mongojs('http://52.192.246.11/test', ['contact']);
 var dbVideos = mongojs('http://52.192.246.11/test', ['videos']);
 var dbIMDB = mongojs('test', ['imdb']);
+var dbUpComing = mongojs('test', ['upComing']);
+var dbRecord = mongojs('test', ['records']);
 var dbUbike = mongojs('http://52.192.246.11/test', ['ubike']);
 var myapiToken = '632ce305-f516-4ccb-8f32-4e0fb1ad412a';
- 
+var YouTube = require('youtube-node');
+var Scraper = require('./Scraper');
+var upComingScraper = require('./upComingScraper');
+var upComingGalleryScraper = require('./upComingGalleryScraper');
+var Trailer = require('./Trailer');
+var MovieInfomer = require('./MovieInfomer');
+    
 var server = restify.createServer({
   name: 'myapp',
   version: '1.0.0'
@@ -21,10 +29,20 @@ server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser());
 server.use(restify.bodyParser());
 
+youTube = new YouTube();
+youTube.setKey('AIzaSyB1OOSpTREs85WUMvIgJvLTZKye4BVsoFU');
+
 var https_options = {
     key: fs.readFileSync('./ssl/restify.pem'), //on current folder
     certificate: fs.readFileSync('./ssl/restifycert.pem')
 };
+
+var upComingPages = [],
+    upComingDetailPages = [],
+    upComingGalleryPages = [];
+
+// store all urls in a global variable  
+upComingPages = generateUpComingUrls(10);
 
 /*var https_server = restify.createServer(https_options);
 https_server.use(restify.acceptParser(server.acceptable));
@@ -54,6 +72,184 @@ var google = require('google');
 google.resultsPerPage = 10;
 var nextCounter = 0;
 
+function generateUpComingUrls(limit) {
+  var url = 'http://www.imdb.com/movies-coming-soon/2016-';
+  var urls = [];
+  var i;
+  for (i=5; i <= limit; i++) {
+    if (i<10)
+        urls.push(url + '0'+ i + '/');
+    else
+        urls.push(url + i + '/');
+  }
+  return urls;
+}
+
+function generateUpComingDetailUrls(month, callback) {
+    // var galleryUrl = [];
+    dbUpComing.upComing.find({month: month}).forEach(function(err, doc) {
+        if (doc) {
+            // console.log(doc['movies']);
+           for (var i in doc['movies']) {
+                upComingDetailPages.push(doc['movies'][i]['galleryUrl']); 
+                /*console.log(doc['movies'][i]['title']);
+                var foo = doc['movies'][i]['title'];
+                foo = foo.slice(0, foo.length-1);
+                dbIMDB.imdb.find({title: foo}).forEach(function(err, item) {
+                    console.log(item['title']);
+                    console.log(item['readMore']['page']);
+                    galleryUrl.push({page: item['readMore']['page']});
+                });*/
+           }
+           callback(upComingDetailPages);
+        }
+    });
+}
+
+function generateUpComingGalleryUrls(month, callback) {
+    dbUpComing.upComing.find({'month': month}).forEach(function(err, doc) {
+        if (doc) {
+            for (var i in doc['movies']) {   
+                var title = doc['movies'][i]['title'];
+                title = title.slice(0, title.length-1);
+                dbIMDB.imdb.find({title: title}).forEach(function(err, item) {
+                    if (item['gallery_thumbnail'].length >0) {
+                        for (var j in item['gallery_thumbnail']){
+                            upComingGalleryPages.push(item['gallery_thumbnail'][j]['detailUrl']);
+                        }
+                        callback(upComingGalleryPages);
+                    }
+                });
+            }
+        }    
+    });
+}
+
+function generateUpComingTrailerUrls(month, callback) {
+    dbUpComing.upComing.find({'month': month}).forEach(function(err, doc) {
+        if (doc) {
+            for (var i in doc['movies']) {   
+                var title = doc['movies'][i]['title'];
+                console.log(title);
+                title = title.slice(0, title.length-1);
+                new Trailer(title, youTube, dbIMDB);
+            }
+            callback('got trailerUrlsuccessfully');
+            res.end();
+        }    
+    });
+}
+
+function generateUpComingMovieInfo(month, callback) {
+    dbUpComing.upComing.find({'month': month}).forEach(function(err, doc) {
+        if (doc) {
+            for (var i in doc['movies']) {   
+                var title = doc['movies'][i]['title'];
+                console.log(title);
+                title = title.slice(0, title.length-1);
+                new MovieInfomer(title, myapiToken, dbIMDB);
+            }
+            callback('generateUpComingMovieInfo successfully');
+            res.end();
+        }    
+    });
+}
+
+function upComingGalleryWizard() {
+
+    if (!upComingGalleryPages.length) {
+        return console.log('Done!!!!');
+    }
+
+    var url = upComingGalleryPages.pop();
+    console.log(url);
+    var scraper = new upComingGalleryScraper(url);
+    console.log('Requests Left: ' + upComingGalleryPages.length);
+    scraper.on('error', function (error) {
+      console.log(error);
+      upComingGalleryWizard();
+    });
+
+    scraper.on('complete', function (listing) {
+        
+        console.log(listing);
+        console.log('got complete!');
+
+        dbIMDB.imdb.update({'title': listing['title']}, {'$push': {'gallery_full': { type: 'full', url: listing['url']}
+            }
+        });
+
+        upComingGalleryWizard();
+    });
+}
+
+function upComingDetailWizard(month) {
+
+    if (!upComingDetailPages.length) {
+        return console.log('Done!!!!');
+    }
+
+    var url = upComingDetailPages.pop();
+    console.log(url);
+    var scraper = new upComingScraper(url);
+    console.log('Requests Left: ' + upComingDetailPages.length);
+    scraper.on('error', function (error) {
+      console.log(error);
+      upComingDetailWizard(month);
+    });
+
+    scraper.on('complete', function (listing) {
+
+        /*dbIMDB.imdb.insert({
+            title: listing['title']
+        })*/
+
+        console.log(listing);
+        console.log('got complete!');
+
+        dbIMDB.imdb.find({title: listing['title']}).forEach(function(err, doc) {
+            dbIMDB.imdb.update({'title': listing['title']}, {'$set': {'gallery_thumbnail': listing['picturesUrl']}});
+            // dbIMDB.imdb.update({'title': listing['title']}, {'$set': {'readMore': listing}});
+        });
+
+        upComingDetailWizard(month);
+    });
+}
+
+function upComingWizard() {
+  // if the Pages array is empty, we are Done!!
+  if (!upComingPages.length) {
+    return console.log('Done!!!!');
+  }
+  var url = upComingPages.pop();
+  var scraper = new Scraper(url);
+  console.log('Requests Left: ' + upComingPages.length);
+  // if the error occurs we still want to create our
+  // next request
+  scraper.on('error', function (error) {
+    console.log(error);
+    upComingWizard();
+  });
+
+  // if the request completed successfully
+  // we want to store the results in our database
+  scraper.on('complete', function (listing) {
+    // console.log(listing['groups'][0]['month'].split(' ')[0]);
+    var month = listing['groups'][0]['month'].split(' ')[0];
+    dbUpComing.upComing.insert({
+        month: month
+    })
+    
+    dbUpComing.upComing.find({'month': month}).forEach(function(err, doc){
+        dbUpComing.upComing.update({'month': month}, {'$set': {'movies': listing['movies']}})
+    });
+    
+    // dbUpComing.upComing.insert()
+    console.log('got complete!');
+    upComingWizard();
+  });
+}
+
 server.get('/google', function (req, res, next){
     google('The Shawshank Redemption trailer', function (err, res){
       if (err) console.error(err)
@@ -74,6 +270,77 @@ server.get('/google', function (req, res, next){
     })
 });
 
+server.get('/create_upComing', function(req, res, next) {
+    var numberOfParallelRequests = 20;
+    for (var i = 0; i < numberOfParallelRequests; i++) {
+      upComingWizard();
+    }
+    res.end();
+});
+
+server.get('/upComing', function(req, res, next) {
+    dbUpComing.upComing.find({'month': req.params.month}, function(err, docs) {
+        for (var i in docs[0]['movies']) {   
+            var title = docs[0]['movies'][i]['title'];
+            title = title.slice(0, title.length-1);
+            dbIMDB.imdb.find({title: title}).forEach(function(err, item) {
+                console.log(item['title']);
+                console.log(item['readMore']['page']);
+                /*if (item['gallery_thumbnail'].length >0) {
+                    for (var j in item['gallery_thumbnail']){
+                        if (item['gallery_thumbnail'][j]['url'])
+                            console.log(item['gallery_thumbnail'][j]['url']);
+                        // upComingGalleryPages.push()
+                    }
+                    console.log(item['gallery_thumbnail']);
+                }*/
+            });
+        }
+        res.end(JSON.stringify(docs[0]['movies']));
+    });
+});
+
+server.get('/create_upComing_detail', function(req, res, next) {
+    generateUpComingDetailUrls(req.params.month, function(urls) {
+        var numberOfParallelRequests = 5;
+        for (var i = 0; i < numberOfParallelRequests; i++) {
+          upComingDetailWizard(req.params.month);
+        }
+    });
+    res.end();
+});
+
+server.get('/create_upComing_gallery_thumbnail', function(req, res, next) {
+    var count=0;
+    generateUpComingGalleryUrls(req.params.month, function(urls) {
+        var numberOfParallelRequests = 5;
+        console.log(urls.length);
+        console.log('count: ' + count);
+        count++;
+        for (var i = 0; i < numberOfParallelRequests; i++) {
+          upComingGalleryWizard();
+        }
+    });
+    res.end();
+});
+
+server.get('/create_upComing_trailerUrl', function(req, res, next) {
+    var count=0;
+    generateUpComingTrailerUrls(req.params.month, function(result) {
+        console.log(result);
+    });
+    res.end();
+});
+
+server.get('/create_upComing_movieInfo', function(req, res, next) {
+    var count=0;
+    generateUpComingMovieInfo(req.params.month, function(result) {
+        console.log(result);
+    });
+    res.end();
+});
+
+
 server.get('/myapi', function(req, res, next) {
     request({
         url: "http://api.myapifilms.com/imdb/idIMDB?title="+ req.params.title + "&token=" + myapiToken,
@@ -84,8 +351,8 @@ server.get('/myapi', function(req, res, next) {
         var foo = JSON.parse(json),
             bar = foo['data']['movies'];
 
-        console.log(bar[0]['plot']);
-        res.end(bar);
+        console.log(bar[0]['idIMDB']);
+        res.end();
     });
 })
 
@@ -106,6 +373,28 @@ server.get('insert_imdb_plot', function(req, res, next) {
                     bar = foo['data']['movies']; 
                 console.log(bar[0]['plot']);   
                 dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'plot': bar[0]['plot']}});
+                res.end(JSON.stringify(bar));
+        });
+    });
+});
+
+server.get('insert_imdb_id', function(req, res, next) {
+    var titleUrl, count = parseInt(req.query.to) - parseInt(req.query.from) + 1;
+    dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte:parseInt(req.query.from)}}).forEach(function(err, doc) {
+        titleUrl = "http://api.myapifilms.com/imdb/idIMDB?title=" + doc['title'] + "&token=" + myapiToken;
+        // console.log("http://api.myapifilms.com/imdb/idIMDB?title=" + doc['title'] + "&token=" + myapiToken);
+        request({
+            url: titleUrl,
+            encoding: 'utf8',
+            method: "GET" }, function(err, res, json) {
+                if (err || !json)
+                    return;
+                count-- ;
+                console.log(count);
+                var foo = JSON.parse(json),
+                    bar = foo['data']['movies']; 
+                console.log(bar[0]['idIMDB']);   
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'idIMDB': bar[0]['idIMDB']}});
                 res.end(JSON.stringify(bar));
         });
     });
@@ -163,7 +452,21 @@ server.get('/update_imdb_trailer', function(req, res, next) {
         });
     });
 });
- 
+
+server.get('/youtube_search', function(req, res, next) {
+    var movieTitle = req.query.title;
+
+    youTube.search(movieTitle, 2, function(error, result) {
+      if (error) {
+        console.log(error);
+      }
+      else {
+        console.log(JSON.stringify(result, null, 2));
+        res.end(JSON.stringify(result, null, 2));
+      }
+    });
+});
+
 server.get('/echo/:name', function (req, res, next) {
 	console.log(req.params);
   res.send(req.params);
@@ -343,6 +646,169 @@ server.get("/create_imdb", function(req, res, next) {
     res.redirect('/create_imdb_detail', next);
 });
 
+function is_numeric(str) {
+    return /^\d+$/.test(str);
+}
+
+server.get("/insert_imdb_cast", function(req, res, next) {
+     var count = parseInt(req.query.to) - parseInt(req.query.from) + 1;
+     dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte:parseInt(req.query.from)}}).forEach(function(err, doc) {
+        Url = "http://top250.info/movie/?" + doc['idIMDB'].slice(2)+'/full';
+        console.log('from: '+ req.query.from +'\n to: ' + req.query.to);
+        request({
+            url: Url,
+            encoding: "utf8",
+            method: "GET"
+        }, function(err, response, body) {
+            count-- ;
+            console.log(count);
+            if (err || !body) { return; }
+            var record_baseUrl = 'http://top250.info/movie',
+                $ = cheerio.load(body),
+                movieLeft = {},
+                token = null,
+                cast = [];
+
+            movieLeft = $('.movie_left');
+            //method1
+            $(movieLeft).find('p').each(function(index, item) {
+                    token = $(this).text();
+                    if (token.indexOf("Cast")!= -1) {
+                        var bar = token.split(','),
+                            foo, name;
+                        for (var i=0; i<bar.length; i++) {
+                                foo = bar[i].split('/');
+                                name = foo[0];
+                            for (var j=0; j<name.length; j++) {
+                                if (is_numeric(name[j])) {
+                                    name = name.slice(0,j);
+                                    console.log(name);
+                                    if (i==0) {
+                                        name = name.slice(6, name.length);
+                                        name = name.replace(/\s+/g, '');
+                                        console.log(name);
+                                        cast.push(name);
+                                    } else {
+                                        name = name.replace(/\s+/g, '');
+                                        cast.push(name);
+                                    }
+                                    continue;
+                                } else if (j==name.length-1) {
+                                    console.log(name);
+                                }
+                            }
+                        }
+                    }
+            });
+
+            dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'cast': cast}});
+            res.end();
+        });
+    }); 
+});
+
+server.get('/imdb_records', function(req, res, next) {
+    dbRecord.records.find({'title': req.query.title}, function(err, doc) {
+        console.log(doc);
+        res.end(JSON.stringify(doc));
+    });
+});
+
+server.get("/insert_record_title", function(req, res, next) {
+    var count = parseInt(req.query.to) - parseInt(req.query.from) + 1;
+    dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte:parseInt(req.query.from)}}).forEach(function(err, doc) {
+        count-- ;
+        console.log(count);
+        dbRecord.records.insert({
+            'title': doc['title']
+        });
+    });
+    res.end();
+});
+
+server.get("/create_record", function(req, res, next) {
+     var count = parseInt(req.query.to) - parseInt(req.query.from) + 1;
+     dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte:parseInt(req.query.from)}}).forEach(function(err, doc) {
+        Url = "http://top250.info/movie/?" + doc['idIMDB'].slice(2)+'/full';
+        console.log('from: '+ req.query.from +'\n to: ' + req.query.to);
+        request({
+            url: Url,
+            encoding: "utf8",
+            method: "GET"
+        }, function(err, response, body) {
+            count-- ;
+            console.log(count);
+            if (err || !body) { return; }
+            var $ = cheerio.load(body);
+            var movieRight = {},
+                token,
+                year,
+                month,
+                date,
+                position,
+                rating,
+                votes,
+                cast = [];
+
+            movieRight = $('.movie_right');
+            //fetch record
+            var collecton = $(movieRight).find('table').find('tr');
+            
+            var records = [];
+
+            for (i=0; i< collecton.length; i++) {
+                token = $(collecton[i]).find('td').text();
+                
+                if (!token.replace(/\s/g, '').length) {
+                    console.log('got space string');
+                    continue;
+                } else {
+                    /*console.log(token.lastIndexOf('.') - findposition(token))
+                    console.log(token);*/
+                    year = token.substring(0,4);
+                    month = token.substring(5,7);
+                    date = token.substring(8,10);
+                    position = token.substring(10, findposition(token));
+                    rating = token.substring(token.lastIndexOf('.')-1,token.lastIndexOf('.')+2);
+                    votes = token.substring(token.lastIndexOf('.')+2,token.length);
+                    records.push({
+                        'position': position, 
+                        'year': year,
+                        'month': month,
+                        'date': date,
+                        'rating': rating,
+                        'votes': votes
+                    });
+                    console.log(year+' ' + month + ' ' + date + ' ' + position + ' ' + rating + ' ' + votes + '\n');
+                }
+            }
+
+            dbRecord.records.find({'title': doc['title']}).forEach(function(err, doc) {
+                dbRecord.records.update({'title': doc['title']}, {'$set': {'records': records}});
+            });
+
+            res.end();
+        });
+    }); 
+});
+
+var findposition = function(token) {
+    if (token.indexOf('*') == -1) {
+        if (token.indexOf('↓') == -1) {
+            if (token.indexOf('↑') == -1) {
+                return token.lastIndexOf('-');
+            }
+            else {
+                return token.indexOf('↑');
+            }
+        } else {
+            return token.indexOf('↓');
+        }
+    } else { 
+        return token.indexOf('*');
+    }
+}
+
 server.get('/update_imdb_poster', function(req, res, next) {
     res.send('update poster @ ' + new Date());
     dbIMDB.imdb.find({'top':{$lte:250, $gte:1}}).forEach(function(err, doc) {
@@ -427,6 +893,51 @@ server.get('/update_imdb_gallery_f', function(req, res, next) {
 server.get('/update_imdb_gallery_t', function(req, res, next) { 
     console.log('from: '+ req.query.from +'\n to: ' + req.query.to);
     dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte:parseInt(req.query.from)}}).forEach(function(err, doc) {
+        var gallery = [];
+        for (var j=1; j<=doc['readMore']['page']; j++) {
+
+            var bar = doc['readMore']['url'].split('?');
+
+            var options = {
+              url: bar[0] + '?page=' +j+'&'+bar[1],
+              encoding: "utf8",
+              method: "GET"
+            };
+
+            console.log(doc['top']);
+
+            var callback = function(err, res, body) {
+                    if (err || !body)
+                        return;
+                    var $ = cheerio.load(body);
+                    var gallery_length = $('.page_list a').length/2+1;
+                    var url = $('.media_index_thumb_list a img');
+                    var detailUrl = $('.media_index_thumb_list a');
+                                           
+                    url.each(function(index, body) {
+                        // console.log(detailUrl[index]['attribs']['href']);  
+                        console.log('index: ' + index);
+                        // console.log(body['attribs']['src']);
+                        gallery.push({
+                            type: 'thumbnail',
+                            url: body['attribs']['src'],
+                            detailUrl: 'http://www.imdb.com' + detailUrl[index]['attribs']['href']
+                        })
+                    });
+
+                    // console.log(gallery);
+                    doc["gallery_thumbnail"] = gallery;
+                    dbIMDB.imdb.update({'title': doc['title']}, doc);
+            };
+            request(options, callback);
+        }   
+    });
+    res.send('finish!');
+    res.end();
+});
+
+server.get('/update_imdb_gallery_t_2', function(req, res, next) { 
+    dbIMDB.imdb.find({'title': req.query.title}).forEach(function(err, doc) {
         var gallery = [];
         for (var j=1; j<=doc['readMore']['page']; j++) {
 
@@ -555,7 +1066,8 @@ server.get('/imdb', function(req, res, next) {
             var missing = 0;
             for (var i=0; i<docs.length; i++) {
                 // console.log(docs[i]['readMore']['page']);
-                console.log(docs[i]['detailContent']['country']);
+                // console.log(docs[i]['detailContent']['country']);
+                console.log(docs[i]['cast']);
                 // console.log(docs[i]['votes']);
                 // console.log(docs[i]['trailerUrl']);
                 // console.log(docs[i]['detailContent']['slate']);
@@ -563,7 +1075,11 @@ server.get('/imdb', function(req, res, next) {
                     missing++;
                     console.log(docs[i]['title'] + '\n' + docs[i]['top']);
                 }*/
-                if (typeof(docs[i]['votes']) == 'undefined') {
+                /*if (typeof(docs[i]['votes']) == 'undefined') {
+                    missing++;
+                    console.log(docs[i]['title'] + '\n' + docs[i]['top']);
+                }*/
+                if (typeof(docs[i]['cast']) == 'undefined') {
                     missing++;
                     console.log(docs[i]['title'] + '\n' + docs[i]['top']);
                 }
