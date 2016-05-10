@@ -155,6 +155,16 @@ function generateUpComingMovieInfo(month, callback) {
     });
 }
 
+function generateUpComingMovieInfo_t(title, callback) {
+    dbIMDB.imdb.find({title: title}).forEach(function(err, doc) {
+        if (doc) {
+            new MovieInfomer(title, myapiToken, dbIMDB);
+            callback('generateUpComingMovieInfo successfully');
+            res.end();
+        }    
+    });
+}
+
 function upComingGalleryWizard() {
 
     if (!upComingGalleryPages.length) {
@@ -334,7 +344,10 @@ server.get('/create_upComing_trailerUrl', function(req, res, next) {
 
 server.get('/create_upComing_movieInfo', function(req, res, next) {
     var count=0;
-    generateUpComingMovieInfo(req.params.month, function(result) {
+    /*generateUpComingMovieInfo(req.params.month, function(result) {
+        console.log(result);
+    });*/
+    generateUpComingMovieInfo_t(req.query.title, function(result) {
         console.log(result);
     });
     res.end();
@@ -369,6 +382,26 @@ server.get('insert_imdb_plot', function(req, res, next) {
                     return;
                 count-- ;
                 console.log(count);
+                var foo = JSON.parse(json),
+                    bar = foo['data']['movies']; 
+                console.log(bar[0]['plot']);   
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'plot': bar[0]['plot']}});
+                res.end(JSON.stringify(bar));
+        });
+    });
+});
+
+server.get('insert_imdb_plot_t', function(req, res, next) {
+    var titleUrl
+    dbIMDB.imdb.find({title: req.query.title}).forEach(function(err, doc) {
+        titleUrl = "http://api.myapifilms.com/imdb/idIMDB?title=" + doc['title'] + "&token=" + myapiToken;
+        // console.log("http://api.myapifilms.com/imdb/idIMDB?title=" + doc['title'] + "&token=" + myapiToken);
+        request({
+            url: titleUrl,
+            encoding: 'utf8',
+            method: "GET" }, function(err, res, json) {
+                if (err || !json)
+                    return;
                 var foo = JSON.parse(json),
                     bar = foo['data']['movies']; 
                 console.log(bar[0]['plot']);   
@@ -413,6 +446,38 @@ server.get('insert_imdb_genres', function(req, res, next) {
                     return;
                 count-- ;
                 console.log(count);
+                var foo = JSON.parse(json),
+                    bar = foo['data']['movies']; 
+                console.log(bar[0]['genres']);   
+                console.log(bar[0]['votes']);
+                console.log(bar[0]['directors']);
+                console.log(bar[0]['writers']);
+                console.log(bar[0]['runtime']);
+                console.log(bar[0]['metascore']);
+
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'votes': bar[0]['votes']}});
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'genres': bar[0]['genres']}});
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'directors': bar[0]['directors']}});
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'writers': bar[0]['writers']}});
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'runtime': bar[0]['runtime']}});
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'metascore': parseInt(bar[0]['metascore'])}});
+
+                res.end(JSON.stringify(bar));
+        });
+    });
+});
+
+server.get('insert_imdb_genres_t', function(req, res, next) {
+    var titleUrl;
+    dbIMDB.imdb.find({title: req.query.title}).forEach(function(err, doc) {
+        titleUrl = "http://api.myapifilms.com/imdb/idIMDB?title=" + doc['title'] + "&token=" + myapiToken;
+        // console.log("http://api.myapifilms.com/imdb/idIMDB?title=" + doc['title'] + "&token=" + myapiToken);
+        request({
+            url: titleUrl,
+            encoding: 'utf8',
+            method: "GET" }, function(err, res, json) {
+                if (err || !json)
+                    return;
                 var foo = JSON.parse(json),
                     bar = foo['data']['movies']; 
                 console.log(bar[0]['genres']);   
@@ -709,8 +774,17 @@ server.get("/insert_imdb_cast", function(req, res, next) {
 
 server.get('/imdb_records', function(req, res, next) {
     dbRecord.records.find({'title': req.query.title}, function(err, doc) {
-        console.log(doc);
-        res.end(JSON.stringify(doc));
+        var object = {};
+            object['contents'] = doc[0];
+        var bar = JSON.stringify(doc[0]);
+        var foo = JSON.parse(bar);
+        console.log(foo['records'].length);
+        
+        if (foo['records'].length > 50) {
+            //TODO
+        }
+
+        res.end(JSON.stringify(object));
     });
 });
 
