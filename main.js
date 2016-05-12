@@ -289,25 +289,31 @@ server.get('/create_upComing', function(req, res, next) {
 });
 
 server.get('/upComing', function(req, res, next) {
-    dbUpComing.upComing.find({'month': req.params.month}, function(err, docs) {
-        for (var i in docs[0]['movies']) {   
-            var title = docs[0]['movies'][i]['title'];
-            title = title.slice(0, title.length-1);
-            dbIMDB.imdb.find({title: title}).forEach(function(err, item) {
-                console.log(item['title']);
-                console.log(item['readMore']['page']);
-                /*if (item['gallery_thumbnail'].length >0) {
-                    for (var j in item['gallery_thumbnail']){
-                        if (item['gallery_thumbnail'][j]['url'])
-                            console.log(item['gallery_thumbnail'][j]['url']);
-                        // upComingGalleryPages.push()
-                    }
-                    console.log(item['gallery_thumbnail']);
-                }*/
-            });
-        }
-        res.end(JSON.stringify(docs[0]['movies']));
-    });
+
+    if (typeof(req.query.month) != 'undefined') {
+        dbUpComing.upComing.find({'month': req.params.month}, function(err, docs) {
+            for (var i in docs[0]['movies']) {   
+                var title = docs[0]['movies'][i]['title'];
+                title = title.slice(0, title.length-1);
+                dbIMDB.imdb.find({title: title}).forEach(function(err, item) {
+                    console.log(item['title']);
+                    console.log(item['readMore']['page']);
+                    /*if (item['gallery_thumbnail'].length >0) {
+                        for (var j in item['gallery_thumbnail']){
+                            if (item['gallery_thumbnail'][j]['url'])
+                                console.log(item['gallery_thumbnail'][j]['url']);
+                            // upComingGalleryPages.push()
+                        }
+                        console.log(item['gallery_thumbnail']);
+                    }*/
+                });
+            }
+            res.end(JSON.stringify(docs[0]['movies']));
+        });
+    } else {
+        res.send('please insert query month');
+        res.end();
+    }    
 });
 
 server.get('/create_upComing_detail', function(req, res, next) {
@@ -775,7 +781,8 @@ server.get("/insert_imdb_cast", function(req, res, next) {
 server.get('/imdb_records', function(req, res, next) {
     dbRecord.records.find({'title': req.query.title}, function(err, doc) {
         var object = {};
-            object['contents'] = doc[0];
+            object['contents'] = doc;
+            
         var bar = JSON.stringify(doc[0]);
         var foo = JSON.parse(bar);
         console.log(foo['records'].length);
@@ -1133,7 +1140,7 @@ server.get('/imdb', function(req, res, next) {
                 foo['contents'] = docs;
                 res.end(JSON.stringify(foo));
         });
-    } else { 
+    } else if (typeof(req.query.to)!= 'undefined' && typeof(req.query.from)!= 'undefined') { 
         dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}).sort({'top':parseInt(req.query.ascending)}, function(err, docs){
             var foo = {};
             foo['contents'] = docs;
@@ -1173,6 +1180,18 @@ server.get('/imdb', function(req, res, next) {
             console.log('missing: ' + missing);
             res.end(JSON.stringify(foo));
         });
+    } else if (typeof(req.query.release_to)!= 'undefined' && typeof(req.query.release_from)!= 'undefined') { 
+        dbIMDB.imdb.find({releaseDate: {$gte: parseInt(req.query.release_from), $lte: parseInt(req.query.release_to)}}, function(err, docs){
+            var foo = {};
+            foo['contents'] = docs;
+            for (var i=0; i<docs.length; i++) {
+                console.log(docs[i]['title']);
+            }
+            res.end(JSON.stringify(foo));
+        });
+    } else {
+        res.send('like missing query params!');
+        res.end();
     }
 });
 
