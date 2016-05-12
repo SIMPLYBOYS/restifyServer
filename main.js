@@ -1062,73 +1062,81 @@ server.get('/update_imdb_gallery_t_2', function(req, res, next) {
     res.end();
 });
 
+function create_detail (err, doc) {
+    console.log("0512" + doc);
+            request({
+                url: doc['detailUrl'],
+                encoding: "utf8",
+                method: "GET" }, function(err, res, body) {
+                    if (err || !body) 
+                        return;
+                    var $ = cheerio.load(body);
+                    var url = $('.slate_wrapper .poster a img')[0];
+                    var foo = $('.minPosterWithPlotSummaryHeight .poster img')[0];
+                    if (typeof(url)!=='undefined') {
+                        console.log(doc['title']);
+                        console.log('.1-->'+url['attribs']['src']);
+                        var poster = url['attribs']['src'];
+                        var slate = $('.slate_wrapper .slate a img')[0]['attribs']['src'];
+                        var summery = $('.plot_summary .summary_text').text().trim();
+                        if ($($('#titleDetails .txt-block')[0]).find('.inline').text() == 'Country:')
+                            var country = $('#titleDetails .txt-block')[0];
+                        else
+                            var country = $('#titleDetails .txt-block')[1];
+                        var $country = $(country);
+                        if ($country.find('a').length == 1)
+                            country = $country.find('a').text();
+                        else
+                            country = $($country.find('a')[0]).text()
+                        doc['detailContent'] = {
+                            "poster": poster,
+                            "slate": slate,
+                            "summery": summery,
+                            "country": country
+                        };
+                        dbIMDB.imdb.update({'title':doc['title']}, doc);
+                        var bar = $('.slate_wrapper .poster a')[0];
+                        var path = 'http://www.imdb.com' + bar['attribs']['href'];
+                        console.log(path);
+                        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': path}});
+                    }
+                    else {
+                        console.log(doc['title']);
+                        var poster = foo['attribs']['src'];
+                        var summery = $('.minPosterWithPlotSummaryHeight .summary_text').text().trim();
+                        if ($($('#titleDetails .txt-block')[0]).find('.inline').text() == 'Country:')
+                            var country = $('#titleDetails .txt-block')[0];
+                        else
+                            var country = $('#titleDetails .txt-block')[1];
+                        var $country = $(country);
+                        if ($country.find('a').length == 1)
+                            country = $country.find('a').text();
+                        else
+                            country = $($country.find('a')[0]).text()
+                        doc['detailContent'] = {
+                            "poster": poster,
+                            "summery": summery,
+                            "country": country
+                        };
+                        foo['attribs']['src'];
+                        dbIMDB.imdb.update({'title':doc['title']}, doc);
+
+                        var bar = $('.minPosterWithPlotSummaryHeight .poster a')[0];
+                        var path = 'http://www.imdb.com' + bar['attribs']['href'];
+                        console.log(path);
+                        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': path}});
+                    }
+            });
+}
+
 server.get('/create_imdb_detail', function(req, res, next) {
     res.send('Launch crawler @ ' + new Date());
-    dbIMDB.imdb.find({'top':{$lte:parseInt(req.query.to), $gte:parseInt(req.query.from)}}).forEach(function(err, doc) {
-        request({
-            url: doc['detailUrl'],
-            encoding: "utf8",
-            method: "GET" }, function(err, res, body) {
-                if (err || !body) 
-                    return;
-                var $ = cheerio.load(body);
-                var url = $('.slate_wrapper .poster a img')[0];
-                var foo = $('.minPosterWithPlotSummaryHeight .poster img')[0];
-                if (typeof(url)!=='undefined') {
-                    console.log(doc['title']);
-                    console.log('.1-->'+url['attribs']['src']);
-                    var poster = url['attribs']['src'];
-                    var slate = $('.slate_wrapper .slate a img')[0]['attribs']['src'];
-                    var summery = $('.plot_summary .summary_text').text().trim();
-                    if ($($('#titleDetails .txt-block')[0]).find('.inline').text() == 'Country:')
-                        var country = $('#titleDetails .txt-block')[0];
-                    else
-                        var country = $('#titleDetails .txt-block')[1];
-                    var $country = $(country);
-                    if ($country.find('a').length == 1)
-                        country = $country.find('a').text();
-                    else
-                        country = $($country.find('a')[0]).text()
-                    doc['detailContent'] = {
-                        "poster": poster,
-                        "slate": slate,
-                        "summery": summery,
-                        "country": country
-                    };
-                    dbIMDB.imdb.update({'title':doc['title']}, doc);
-                    var bar = $('.slate_wrapper .poster a')[0];
-                    var path = 'http://www.imdb.com' + bar['attribs']['href'];
-                    console.log(path);
-                    dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': path}});
-                }
-                else {
-                    console.log(doc['title']);
-                    var poster = foo['attribs']['src'];
-                    var summery = $('.minPosterWithPlotSummaryHeight .summary_text').text().trim();
-                    if ($($('#titleDetails .txt-block')[0]).find('.inline').text() == 'Country:')
-                        var country = $('#titleDetails .txt-block')[0];
-                    else
-                        var country = $('#titleDetails .txt-block')[1];
-                    var $country = $(country);
-                    if ($country.find('a').length == 1)
-                        country = $country.find('a').text();
-                    else
-                        country = $($country.find('a')[0]).text()
-                    doc['detailContent'] = {
-                        "poster": poster,
-                        "summery": summery,
-                        "country": country
-                    };
-                    foo['attribs']['src'];
-                    dbIMDB.imdb.update({'title':doc['title']}, doc);
-
-                    var bar = $('.minPosterWithPlotSummaryHeight .poster a')[0];
-                    var path = 'http://www.imdb.com' + bar['attribs']['href'];
-                    console.log(path);
-                    dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': path}});
-                }
-        });
-    });
+    if (typeof(req.query.title) == 'undefined') {
+        dbIMDB.imdb.find({'top':{$lte:parseInt(req.query.to), $gte:parseInt(req.query.from)}}).forEach(create_detail);
+    } else {
+        dbIMDB.imdb.find({'title': req.query.title}, create_detail);
+    }
+    
     res.end();
 });
 
