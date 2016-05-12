@@ -19,6 +19,7 @@ var upComingScraper = require('./upComingScraper');
 var upComingGalleryScraper = require('./upComingGalleryScraper');
 var Trailer = require('./Trailer');
 var MovieInfomer = require('./MovieInfomer');
+var upComingPosterScraper = require('./upComingPosterScraper');
     
 var server = restify.createServer({
   name: 'myapp',
@@ -39,7 +40,8 @@ var https_options = {
 
 var upComingPages = [],
     upComingDetailPages = [],
-    upComingGalleryPages = [];
+    upComingGalleryPages = [],
+    upComingPosterPages = [];
 
 // store all urls in a global variable  
 upComingPages = generateUpComingUrls(10);
@@ -114,7 +116,7 @@ function generateUpComingGalleryUrls(month, callback) {
                 title = title.slice(0, title.length-1);
                 dbIMDB.imdb.find({title: title}).forEach(function(err, item) {
                     if (item['gallery_thumbnail'].length >0) {
-                        for (var j in item['gallery_thumbnail']){
+                        for (var j in item['gallery_thumbnail']) {
                             upComingGalleryPages.push(item['gallery_thumbnail'][j]['detailUrl']);
                         }
                         callback(upComingGalleryPages);
@@ -122,6 +124,45 @@ function generateUpComingGalleryUrls(month, callback) {
                 });
             }
         }    
+    });
+}
+
+function generateUpComingPosterUrls(month, callback) {
+    dbUpComing.upComing.find({'month': month}).forEach(function(err, doc) {
+        if (doc) {
+            for (var i in doc['movies']) {   
+                var title = doc['movies'][i]['title'];
+                title = title.slice(0, title.length-1);
+                console.log(title);
+                dbIMDB.imdb.find({title: title}, function(err, item){
+                    if (typeof(item[0]['idIMDB']) == 'undefined')
+                        console.log(item[0]['title']);
+                    // console.log(item[0]['idIMDB']);
+                    upComingPosterPages.push('http://www.imdb.com/title/' + item[0]['idIMDB'] + '/');
+                    callback(upComingPosterPages);
+                });
+            }
+        }    
+    });
+}
+
+function updateUpComingPosterUrls(month, callback) {
+    dbUpComing.upComing.find({'month': month}, function(err, doc){
+        doc = doc[0];
+        if (doc) {
+            for (var i in doc['movies']) { 
+                var title = doc['movies'][i]['title'];
+                title = title.slice(0, title.length-1);
+                dbIMDB.imdb.find({title: title}, function(err, item){
+                    console.log(item[0]['posterUrl']);
+                    if (typeof(item[0]['posterUrl']) != 'undefined') {
+                        upComingPosterPages.push(item[0]['posterUrl']);
+                        callback(upComingPosterPages);
+                    } 
+                    
+                });
+            }
+        }
     });
 }
 
@@ -141,6 +182,7 @@ function generateUpComingTrailerUrls(month, callback) {
 }
 
 function generateUpComingMovieInfo(month, callback) {
+    console.log(month);
     dbUpComing.upComing.find({'month': month}).forEach(function(err, doc) {
         if (doc) {
             for (var i in doc['movies']) {   
@@ -162,6 +204,30 @@ function generateUpComingMovieInfo_t(title, callback) {
             callback('generateUpComingMovieInfo successfully');
             res.end();
         }    
+    });
+}
+
+function upComingPosterWizard() {
+
+    if (!upComingPosterPages.length) {
+        return console.log('Done!!!!');
+    }
+
+    var url = upComingPosterPages.pop();
+    console.log(url);
+    var scraper = new upComingPosterScraper(url);
+    console.log('Requests Left: ' + upComingPosterPages.length);
+    scraper.on('error', function (error) {
+      console.log(error);
+      upComingPosterWizard();
+    });
+
+    scraper.on('poster_complete', function (listing) {
+        console.log(listing);
+        console.log('poster_complete!');
+        dbIMDB.imdb.update({'title': listing['title']}, {'$set': {'posterUrl': listing['url']}
+        });
+        upComingPosterWizard();
     });
 }
 
@@ -297,7 +363,8 @@ server.get('/upComing', function(req, res, next) {
                 title = title.slice(0, title.length-1);
                 dbIMDB.imdb.find({title: title}).forEach(function(err, item) {
                     console.log(item['title']);
-                    console.log(item['readMore']['page']);
+                    console.log(item['year']);
+                    // console.log(item['readMore']['page']);
                     /*if (item['gallery_thumbnail'].length >0) {
                         for (var j in item['gallery_thumbnail']){
                             if (item['gallery_thumbnail'][j]['url'])
@@ -343,14 +410,37 @@ server.get('/create_upComing_gallery_thumbnail', function(req, res, next) {
 server.get('/create_upComing_trailerUrl', function(req, res, next) {
     var count=0;
     generateUpComingTrailerUrls(req.params.month, function(result) {
+        count++;
+        console.log('count: ' + count);
         console.log(result);
     });
     res.end();
 });
 
+server.get('/create_upComing_PosterUrl', function(req, res, next) {
+    //------ Step1 ------//
+    /*generateUpComingPosterUrls(req.query.month, function(urls) {
+        var numberOfParallelRequests = 5;
+        for (var i=0; i< numberOfParallelRequests; i++) {
+            upComingPosterWizard();
+        }
+    });*/
+
+    //------ Step2 ------//
+    updateUpComingPosterUrls(req.query.month, function(urls) {
+        var numberOfParallelRequests = 5;
+        // console.log(urls);
+        for (var i=0; i< numberOfParallelRequests; i++) {
+            upComingPosterWizard();
+        }
+    })
+    res.end();
+});
+
 server.get('/create_upComing_movieInfo', function(req, res, next) {
     var count=0;
-    /*generateUpComingMovieInfo(req.params.month, function(result) {
+    console.log("month: " + req.query.month);
+    /*generateUpComingMovieInfo(req.query.month, function(result) {
         console.log(result);
     });*/
     generateUpComingMovieInfo_t(req.query.title, function(result) {
@@ -1087,7 +1177,7 @@ function create_detail (err, doc) {
                         if ($country.find('a').length == 1)
                             country = $country.find('a').text();
                         else
-                            country = $($country.find('a')[0]).text()
+                            country = $($country.find('a')[0]).text();
                         doc['detailContent'] = {
                             "poster": poster,
                             "slate": slate,
@@ -1099,8 +1189,7 @@ function create_detail (err, doc) {
                         var path = 'http://www.imdb.com' + bar['attribs']['href'];
                         console.log(path);
                         dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': path}});
-                    }
-                    else {
+                    } else {
                         console.log(doc['title']);
                         var poster = foo['attribs']['src'];
                         var summery = $('.minPosterWithPlotSummaryHeight .summary_text').text().trim();
