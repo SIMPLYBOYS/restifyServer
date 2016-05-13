@@ -58,7 +58,7 @@ upComingScraper.prototype.parsePage = function (html) {
   var title;
 
   // fetch for gallery_thumbnail url
-  /*title = $('.parent a').text();
+  title = $('.parent a').text();
   $('.media_index_thumb_list a').each(function(index, item) {
     var foo = $(this)[0]['attribs']['href'];
     if (foo.localeCompare('/register/login') != 0) {
@@ -66,20 +66,16 @@ upComingScraper.prototype.parsePage = function (html) {
         url:  null,
         detailUrl: 'http://www.imdb.com' + foo});
     }
-  })*/
+  })
 
-  /*var model = {
+  var model = {
     title: title,
-  	picturesUrl: picturesUrl,
-    readMore: {
-      url: url,
-      page: page
-    }
+  	picturesUrl: picturesUrl
   }
-  return model;*/
+  return model;
 
   // fetch for readMore info
-  title = $('.title_wrapper h1').text();
+  /*title = $('.title_wrapper h1').text();
   var bar = title.trim().split('(')[0];
   title = bar.slice(0, bar.length-1);
   // console.log('title: ' + bar);
@@ -99,7 +95,7 @@ upComingScraper.prototype.parsePage = function (html) {
     title: title,
     url: path,
     page: page
-  };
+  };*/
 };
 
 module.exports = upComingScraper;

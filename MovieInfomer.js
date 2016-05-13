@@ -28,8 +28,8 @@ MovieInformer.prototype.init = function () {
         // console.log(movieInfo);
         var info = JSON.parse(movieInfo);
             info = info[0];
-        console.log(parseInt(info['releaseDate']));
-        
+        console.log(self.title);
+
         self.dbIMDB.imdb.update({'title': self.title}, {'$set': {'detailContent': {
               summery: info['simplePlot'],
               country: info['countries'],
@@ -64,6 +64,9 @@ MovieInformer.prototype.init = function () {
           }
         });
         self.dbIMDB.imdb.update({'title': self.title}, {'$set': {'releaseDate': parseInt(info['releaseDate'])
+          }
+        });
+        self.dbIMDB.imdb.update({'title': self.title}, {'$set': {'year': 2016
           }
         });
     });
