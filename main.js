@@ -133,7 +133,7 @@ function generateUpComingPosterUrls(month, callback) {
             for (var i in doc['movies']) {   
                 var title = doc['movies'][i]['title'];
                 title = title.slice(0, title.length-1);
-                console.log(title);
+                console.log('0513 '+title);
                 dbIMDB.imdb.find({title: title}, function(err, item){
                     if (typeof(item[0]['idIMDB']) == 'undefined')
                         console.log(item[0]['title']);
@@ -158,8 +158,7 @@ function updateUpComingPosterUrls(month, callback) {
                     if (typeof(item[0]['posterUrl']) != 'undefined') {
                         upComingPosterPages.push(item[0]['posterUrl']);
                         callback(upComingPosterPages);
-                    } 
-                    
+                    }   
                 });
             }
         }
@@ -222,11 +221,13 @@ function upComingPosterWizard() {
       upComingPosterWizard();
     });
 
-    scraper.on('poster_complete', function (listing) {
+    scraper.on('complete', function (listing) {
         console.log(listing);
-        console.log('poster_complete!');
+        console.log('complete!');
         dbIMDB.imdb.update({'title': listing['title']}, {'$set': {'posterUrl': listing['url']}
         });
+        /*dbIMDB.imdb.update({'title': listing['title']}, {'$set': {'description': listing['description']}
+        });*/
         upComingPosterWizard();
     });
 }
@@ -393,7 +394,7 @@ server.get('/create_upComing_detail', function(req, res, next) {
     res.end();
 });
 
-server.get('/create_upComing_gallery_thumbnail', function(req, res, next) {
+server.get('/create_upComing_gallery_full', function(req, res, next) {
     var count=0;
     generateUpComingGalleryUrls(req.params.month, function(urls) {
         var numberOfParallelRequests = 5;
@@ -449,7 +450,6 @@ server.get('/create_upComing_movieInfo', function(req, res, next) {
     res.end();
 });
 
-
 server.get('/myapi', function(req, res, next) {
     request({
         url: "http://api.myapifilms.com/imdb/idIMDB?title="+ req.params.title + "&token=" + myapiToken,
@@ -464,6 +464,17 @@ server.get('/myapi', function(req, res, next) {
         res.end();
     });
 })
+
+server.get('insert_data', function(req, res, next){
+    obj = {"top":194,"title":"Ben-Hur","year":"1959","posterUrl":"http://ia.media-imdb.com/images/M/MV5BNjg2NjA3NDY2OV5BMl5BanBnXkFtZTgwNzE3NTkxMTE@._V1_SX640_SY720_.jpg","rating":"8.1","description":"William Wyler (dir.), Charlton Heston, Jack Hawkins","detailUrl":"http://www.imdb.com/title/tt0052618/?pf_rd_m=A2FGELUUNOQJNL&pf_rd_p=2398042102&pf_rd_r=18ZPYK4SHEX54X7RBWDS&pf_rd_s=center-1&pf_rd_t=15506&pf_rd_i=top&ref_=chttp_tt_194","detailContent":{"poster":"http://ia.media-imdb.com/images/M/MV5BNjg2NjA3NDY2OV5BMl5BanBnXkFtZTgwNzE3NTkxMTE@._V1_UX182_CR0,0,182,268_AL_.jpg","summery":"When a Jewish prince is betrayed and sent into slavery by a Roman friend, he regains his freedom and comes back for revenge.","country":"USA"},"trailerUrl":"https://www.youtube.com/watch?v=LlzfqVtmxVA","readMore":{"url":"http://www.imdb.com/title/tt0052618/mediaindex?ref_=tt_pv_mi_sm","page":2},"gallery_full":[{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTQ4NDQzNTYzNV5BMl5BanBnXkFtZTYwMDE4Mjk5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMDQyN2NlYWYtNjUxZi00ZWZkLTllZTItNmFiM2Y1Mjk3NThiXkEyXkFqcGdeQXVyNjUwNzk3NDc@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTQ4NTE2MzUxNV5BMl5BanBnXkFtZTcwOTM1MzUxMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BOTQ4NDA0NjE5MF5BMl5BanBnXkFtZTcwNzAyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BYTE3ZTY4YWEtMTIzYS00OGI0LWFkNjktMzEwYjI3YWM3ZDkyXkEyXkFqcGdeQXVyNjUwNzk3NDc@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNGZmMjI0MGItZmM2Mi00ZWM3LWEyNGEtNzAwMmNjZmUxMDRiXkEyXkFqcGdeQXVyMDUyOTUyNQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNTAwODU3NzgxMl5BMl5BanBnXkFtZTcwMzk3OTIyNw@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTUyMzI2NDI4Nl5BMl5BanBnXkFtZTcwNDIyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNTAyMTk3NTA1N15BMl5BanBnXkFtZTcwMjIyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTAzNzU0MTc3NTJeQTJeQWpwZ15BbWU3MDI4MjU0OTY@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMjExMTE5NTc5MF5BMl5BanBnXkFtZTcwNzg3NjAyMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BODA2MzI4OGQtYWNkNi00MThjLWJjMzItMDMwNzFhMWRmODk2XkEyXkFqcGdeQXVyMDI2NDg0NQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTkwNzAxOTQwOF5BMl5BanBnXkFtZTYwNjg0MjU5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNjYxMTE1NDEtN2QwMS00YjE1LTk3NGItYWNiM2IwYTViYjNiXkEyXkFqcGdeQXVyNjUwNzk3NDc@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTI0ODU3NTM3M15BMl5BanBnXkFtZTYwMTE4Mjk5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNzk0NDYxNTgzNV5BMl5BanBnXkFtZTcwNTIyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTk1OTU2NjQ1NV5BMl5BanBnXkFtZTcwOTEyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTc4MTY4MzMzNF5BMl5BanBnXkFtZTYwMDE4MDU5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMjI2NTQ2NzEwNF5BMl5BanBnXkFtZTcwNDEyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNjg2NjA3NDY2OV5BMl5BanBnXkFtZTgwNzE3NTkxMTE@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTUzNTI0NDA4NV5BMl5BanBnXkFtZTcwMTgyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMzYwNTMwNDAyNl5BMl5BanBnXkFtZTYwNjQ4ODM5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTUyMjM1MDM1Ml5BMl5BanBnXkFtZTcwMjgyMDIyMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BODU2NDM0MDU5Nl5BMl5BanBnXkFtZTYwMDk4NDc5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMjE0NzAwOTA1OV5BMl5BanBnXkFtZTcwMzEyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMjAxOTEzMTI0Ml5BMl5BanBnXkFtZTcwMDIyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTY5OTk4Nzg5MF5BMl5BanBnXkFtZTcwNTAyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTkwMTUzOTA2Ml5BMl5BanBnXkFtZTcwNjkzMzE2MQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTIxNDU1NzEyNl5BMl5BanBnXkFtZTcwNDEzMzEzMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BZDgzY2QyNTQtMDVmZC00MjFhLTgwMjMtNGZjNDY4YTJiOGI5XkEyXkFqcGdeQXVyNTIzOTk5ODM@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTc1ODc2MDI4M15BMl5BanBnXkFtZTcwMjg3NjcyMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTI3NTM3ODA4OV5BMl5BanBnXkFtZTcwMzM0MjEzMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTM3OTkxODQ3OF5BMl5BanBnXkFtZTcwMzIyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTY4NzUxNzg3NV5BMl5BanBnXkFtZTYwMzQwODI5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNDc0MTEwNjY5OV5BMl5BanBnXkFtZTYwOTA4Mjk5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTYwMTI2NDk4M15BMl5BanBnXkFtZTcwNDc0NzIxOQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BODkxOTc0MzU0Ml5BMl5BanBnXkFtZTcwNTgwNjEyMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTc4NzgyNDI1OV5BMl5BanBnXkFtZTYwMDg3NDY5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTk1NDk1MTEwNl5BMl5BanBnXkFtZTYwOTUyMjU5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMjEyNjMzOTk2OF5BMl5BanBnXkFtZTYwNTYxMzY5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTI0NjE4ODQzNl5BMl5BanBnXkFtZTcwMzQwODAzMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNzQyOTQ0ODk2NF5BMl5BanBnXkFtZTcwNTkwOTI3MQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNzVmZDhjMDItMTYxNi00N2YzLTllMmEtMmI4OWNjNTQwNTY2XkEyXkFqcGdeQXVyMDUyOTUyNQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNDI5Mjk2NTk1OF5BMl5BanBnXkFtZTcwNzU2ODU1NQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTI2NzAzNTU0MF5BMl5BanBnXkFtZTcwMzM3NTEyMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTQ1NjUyMTMwMF5BMl5BanBnXkFtZTcwMjk3OTIyNw@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BZTEwNmEwZTEtNjAyYi00YmU1LWJmOTUtYzIxZmNkOTliYjY1XkEyXkFqcGdeQXVyMDI2NDg0NQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNTU3MTg2NDgzMF5BMl5BanBnXkFtZTYwMTE2Mjk4._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTA5NzEzMDEzMzReQTJeQWpwZ15BbWU3MDI3MDEwMzE@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTQzNDk2NjI1NV5BMl5BanBnXkFtZTcwNjU1NTgxMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BODA1NDQzNTM3MF5BMl5BanBnXkFtZTcwMDgyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMzAxODA1MTE5Ml5BMl5BanBnXkFtZTYwODA4Mjk5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTAyNjk2OTc4MzheQTJeQWpwZ15BbWU3MDcxODEwMjE@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMjEzMDEwMjI0OV5BMl5BanBnXkFtZTYwMDU5NTE5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTk4NzAyMDU5Ml5BMl5BanBnXkFtZTcwMzgyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTg1MzYzMzU0OV5BMl5BanBnXkFtZTcwNTU3NDcyMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMjAyNjc3MDg4Nl5BMl5BanBnXkFtZTYwMTk3Njg4._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BZThjZTdhM2UtNzNkYS00MGMzLWE0OTEtZjFjNWE0ZjY2NDMyXkEyXkFqcGdeQXVyMDI2NDg0NQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTgyODk1MzIxNl5BMl5BanBnXkFtZTYwNzA4Mjk5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTI3MDEyOTQwN15BMl5BanBnXkFtZTYwMDI5NTU5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTg3NTQ1NDk0OF5BMl5BanBnXkFtZTcwNzcyNTMyMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTY2MDc4NDM0MV5BMl5BanBnXkFtZTcwMzkxMjUxMw@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMzgyMjgwMzcyM15BMl5BanBnXkFtZTYwNjI2ODM5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMzEwMjkxMGYtNmIxOS00OWE0LThlZWItZmRmZmZkNTE2OWM4XkEyXkFqcGdeQXVyMDI2NDg0NQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNTA4NTY4Nzg1N15BMl5BanBnXkFtZTYwMTI5NTU5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTcxMDIxMTYzOV5BMl5BanBnXkFtZTcwMTEwNDEzMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMGM4ZTcyMTUtN2I1Yi00MDUyLWE3NTgtYmNlZDRlNzE4ZGNkXkEyXkFqcGdeQXVyNjUwNzk3NDc@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTQyMjU4NjU3N15BMl5BanBnXkFtZTcwODEyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMjEyNjUwNzk4Ml5BMl5BanBnXkFtZTcwMDcxNDkyMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTc1MjU4NDYwM15BMl5BanBnXkFtZTcwNDk3OTIyNw@@._V1_SX640_SY720_.jpg"}],"plot":"A falsely accused Jewish nobleman survives years of slavery to take vengeance on his Roman best friend, who betrayed him.","genres":["Adventure","Drama","History"],"votes":"","directors":[{"name":"Timur Bekmambetov","id":"nm0067457"}],"writers":[{"name":"Lew Wallace","id":"nm0908753"},{"name":"Keith R. Clarke","id":"nm0164851"}],"runtime":"","metascore":null,"idIMDB":"tt2638144"}
+    dbIMDB.imdb.insert(obj, function(err, doc){
+        if (err)
+            return;
+        console.log('success insert data!');
+        res.send('success!');
+        res.end();
+    })
+});
 
 server.get('insert_imdb_plot', function(req, res, next) {
     var titleUrl, count = parseInt(req.query.to) - parseInt(req.query.from) + 1;
@@ -775,7 +786,7 @@ server.get("/create_imdb", function(req, res, next) {
         url: "http://www.imdb.com/chart/top",
         encoding: "utf8",
         method: "GET"
-    }, function(err, response, body){
+    }, function(err, response, body) {
         if (err || !body) { return; }
 
         var imdb_baseUrl = 'http://www.imdb.com';
@@ -1245,44 +1256,26 @@ server.get('/imdb', function(req, res, next) {
             for (var i=0; i<docs.length; i++) {
                 // console.log(docs[i]['readMore']['page']);
                 // console.log(docs[i]['detailContent']['country']);
-                console.log(docs[i]['cast']);
-                // console.log(docs[i]['votes']);
-                // console.log(docs[i]['trailerUrl']);
-                // console.log(docs[i]['detailContent']['slate']);
-                /*if (typeof(docs[i]['gallery_full']) == 'undefined'){
-                    missing++;
-                    console.log(docs[i]['title'] + '\n' + docs[i]['top']);
-                }*/
-                /*if (typeof(docs[i]['votes']) == 'undefined') {
-                    missing++;
-                    console.log(docs[i]['title'] + '\n' + docs[i]['top']);
-                }*/
+            
                 if (typeof(docs[i]['cast']) == 'undefined') {
                     missing++;
                     console.log(docs[i]['title'] + '\n' + docs[i]['top']);
                 }
-                /*if (typeof(docs[i]['plot']) == 'undefined'){
-                    missing++;
-                    console.log(docs[i]['title'] + '\n' + docs[i]['top']);
-                }*/
-                /*if (typeof(docs[i]['metascore']) == 'undefined' || docs[i]['metascore'] == NaN){
-                    missing++;
-                    console.log(docs[i]['title'] + '\n' + docs[i]['top']);
-                } else if (typeof(docs[i]['votes']) == 'undefined') {
-                    missing++;
-                    console.log(docs[i]['title'] + '\n' + docs[i]['top']);
-                }*/
-                // console.log(docs[i]['detailContent']['slate']);
             }
             console.log('missing: ' + missing);
             res.end(JSON.stringify(foo));
         });
     } else if (typeof(req.query.release_to)!= 'undefined' && typeof(req.query.release_from)!= 'undefined') { 
-        dbIMDB.imdb.find({releaseDate: {$gte: parseInt(req.query.release_from), $lte: parseInt(req.query.release_to)}}, function(err, docs){
+        dbIMDB.imdb.find({releaseDate: {$gte: parseInt(req.query.release_from), $lte: parseInt(req.query.release_to)}}).sort({'releaseDate': 1}, function(err, docs){
             var foo = {};
             foo['contents'] = docs;
+            var bar = [];
+            console.log(docs.length);
             for (var i=0; i<docs.length; i++) {
-                console.log(docs[i]['title']);
+                if (typeof(docs[i]['description']) == 'undefined')
+                    bar.push(docs[i]['title']);
+                    // console.log(docs[i]['title']);
+                // console.log(docs[i]['posterUrl']);
             }
             res.end(JSON.stringify(foo));
         });
