@@ -1253,6 +1253,7 @@ server.get('/imdb', function(req, res, next) {
         dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}).sort({'top':parseInt(req.query.ascending)}, function(err, docs){
             var foo = {};
             foo['contents'] = docs;
+            foo['byTitle'] = false;
             var missing = 0;
             for (var i=0; i<docs.length; i++) {
                 // console.log(docs[i]['readMore']['page']);
@@ -1270,6 +1271,7 @@ server.get('/imdb', function(req, res, next) {
         dbIMDB.imdb.find({releaseDate: {$gte: parseInt(req.query.release_from), $lte: parseInt(req.query.release_to)}}).sort({'releaseDate': 1}, function(err, docs){
             var foo = {};
             foo['contents'] = docs;
+            foo['byTitle'] = false;
             var bar = [];
             console.log(docs.length);
             for (var i=0; i<docs.length; i++) {
