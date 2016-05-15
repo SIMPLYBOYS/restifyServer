@@ -1288,14 +1288,20 @@ server.get('/imdb', function(req, res, next) {
     }
 });
 
-server.get('/imdb_title', function(req, res, next) {
+server.get('/imdb_title', function(req, res) {
+    var foo = {'contents': []};
     dbIMDB.imdb.find({'top': {$lte:250, $gte: 1}}).sort({'top':1}, function(err, docs){
-        var foo = {'contents': []};
-        for (var i=0; i< docs.length; i++){
-            console.log(docs[i]['title']);
+        for (var i=0; i<docs.length; i++){
+            // console.log(docs[i]['title']);
             foo['contents'].push(docs[i]['title']);
         }
-        res.end(JSON.stringify(foo));
+        dbIMDB.imdb.find({releaseDate: {$gte: parseInt(20160501), $lte: parseInt(20160930)}}).sort({'releaseDate': 1}, function(err, docs){
+            for (var j=0; j<docs.length; j++){
+                // console.log(docs[j]['title']);
+                foo['contents'].push(docs[j]['title']);
+            }
+            res.end(JSON.stringify(foo));
+        });
     });
 });
 
