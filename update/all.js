@@ -43,27 +43,18 @@ async.series([
   //fetch today notification message
   function (done) {
   	console.log('InOut: ' + Obj.InOut);
-    var $ = cheerio.load(Obj.body),
-    	i = 0;
+    var $ = cheerio.load(Obj.body);
+
     	$('.movie_left').each(function(index, item) {
-    			if (index == 0) {
-    				console.log(item['children'].length);
-    				console.log("\n\nIn ========>");
-    				for (i=14; i<=14+2*(Obj.InOut+1); i++) {
-    					if (item['children'][i]['type'] == 'tag' && item['children'][i]['name'] == 'a') {
-    						console.log(item['children'][i]['children'][0]['data']);
-    						today['inList'].push({'item': item['children'][i]['children'][0]['data']});
-    					}
-    					// console.log(item['children'][i]);
-    				}
-    				console.log("\nOut ========>");
-    				for (i=14+2*(Obj.InOut+1)+1; i<=14+2*(Obj.InOut+1)+9; i++) {
-    					if (item['children'][i]['type'] == 'tag' && item['children'][i]['name'] == 'a') {
-    						console.log(item['children'][i]['children'][0]['data']);
-    						today['outList'].push({'item': item['children'][i]['children'][0]['data']});
-    					}
-    				}
-    			}
+            // console.log($(item).text().split('In'));
+            var bar = $(item).text().split('In');
+            var token = bar[1].split('Out')
+            // console.log(token[0]);
+            for (var i = 0; i < Obj.InOut; i++) {
+                console.log(token[i].replace(/\t/g, '').trim());
+                today['inList'].push({'item': token[i].replace(/\t/g, '').trim()});
+            }
+            today['outList'].push({'item': token[Obj.InOut].split('Position')[0].replace(/\t/g, '').trim()});
     	});
 	    console.log('job2 finish');
 	    done(null);
@@ -110,6 +101,7 @@ async.series([
     	Obj.up = up;
     	Obj.down = down;
     	console.log(Obj);
+        console.log(today);
 	    console.log('job3 finish');
 	    done(null);
   },
