@@ -43,9 +43,13 @@ async.series([
   //fetch today notification message
   function (done) {
   	console.log('InOut: ' + Obj.InOut);
-    var $ = cheerio.load(Obj.body);
+    if (typeof(Obj.InOut) == 'undefined') {
+        console.log('job2 finish');
+        done(null);
+    } else {
+        var $ = cheerio.load(Obj.body);
 
-    	$('.movie_left').each(function(index, item) {
+        $('.movie_left').each(function(index, item) {
             // console.log($(item).text().split('In'));
             var bar = $(item).text().split('In');
             var token = bar[1].split('Out')
@@ -55,9 +59,10 @@ async.series([
                 today['inList'].push({'item': token[i].replace(/\t/g, '').trim()});
             }
             today['outList'].push({'item': token[Obj.InOut].split('Position')[0].replace(/\t/g, '').trim()});
-    	});
-	    console.log('job2 finish');
-	    done(null);
+        });
+        console.log('job2 finish');
+        done(null);
+    }
   },
   //fetch update top250 movie title with position
   function (done) {
