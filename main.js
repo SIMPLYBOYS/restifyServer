@@ -17,7 +17,7 @@ var dbUpComing = config.dbUpComing;
 var dbRecord = config.dbRecord;
 var dbToday = config.dbToday;
 var moment = require("moment");
-var Special = require("./update/special");
+// var Special = require("./update/special");
 var dbUbike = mongojs('http://52.192.246.11/test', ['ubike']);
 var myapiToken = config.myapiToken;
 var Scraper = require('./crawler/Scraper');
@@ -1326,9 +1326,9 @@ server.get('/create_ubike_nTaipei', function(req, res, next) {
     });
 });
 
-server.get('/special', function(req, res, next) {
+/*server.get('/special', function(req, res, next) {
     Special.special(req, res);
-});
+});*/
 
 /*var job1 = new cronJob('00 15 12 * * 1-7', function(){
     console.log('execute in every 13:18 pm from Monday to Sunday');
