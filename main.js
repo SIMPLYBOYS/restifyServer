@@ -7,6 +7,7 @@ var BufferHelper = require('bufferhelper');
 var cronJob = require('cron').CronJob;
 var spawn = require('child_process').spawn;
 var config = require('./config');
+var Read = require('./web/read');
 var fs = require("fs");
 var localPath = require('path');
 var dbContact = mongojs('http://52.192.246.11/test', ['contact']);
@@ -16,6 +17,7 @@ var dbUpComing = config.dbUpComing;
 var dbRecord = config.dbRecord;
 var dbToday = config.dbToday;
 var moment = require("moment");
+var Special = require("./update/special");
 var dbUbike = mongojs('http://52.192.246.11/test', ['ubike']);
 var myapiToken = config.myapiToken;
 var Scraper = require('./crawler/Scraper');
@@ -76,6 +78,22 @@ https_server.get('/oauth_k', function(req, res, next) {
 
 google.resultsPerPage = 10;
 var nextCounter = 0;
+
+server.get('/google', Read.google);
+
+server.get('/upComing', Read.upComing);
+
+server.get('/myapi', Read.myapi);
+
+server.get('/imdb_records', Read.getRecords);
+
+server.get('/imdb', Read.read);
+
+server.get('/imdb_title', Read.getTitle);
+
+server.get('/imdb_position', Read.getPosition);
+
+server.get('/update_imdbPosition', Read.updatePosition);
 
 function generateUpComingUrls(limit) {
   var url = 'http://www.imdb.com/movies-coming-soon/2016-';
@@ -200,11 +218,13 @@ function generateUpComingMovieInfo(month, callback) {
 }
 
 function generateUpComingMovieInfo_t(title, callback) {
-    dbIMDB.imdb.find({title: title}).forEach(function(err, doc) {
+    dbIMDB.imdb.findOne({title: title}, function(err, doc) {
         if (doc) {
             new MovieInfomer(title, myapiToken, dbIMDB);
             callback('generateUpComingMovieInfo successfully');
             res.end();
+        } else if (!doc) {
+            callback('no doc in imdb database!');
         }    
     });
 }
@@ -330,26 +350,6 @@ function upComingWizard() {
   });
 }
 
-server.get('/google', function (req, res, next){
-    google('The Shawshank Redemption trailer', function (err, res){
-      if (err) console.error(err)
-
-      for (var i = 0; i < res.links.length; ++i) {
-        var link = res.links[i];
-        console.log(link.title);
-        // console.log(link.href);
-        if (link.title.match('YouTube')){
-            console.log(link.href);
-        }
-      }
-
-      if (nextCounter < 4) {
-        nextCounter += 1
-        if (res.next) res.next()
-      }
-    })
-});
-
 server.get('/create_upComing', function(req, res, next) {
     var numberOfParallelRequests = 20;
     for (var i = 0; i < numberOfParallelRequests; i++) {
@@ -358,34 +358,6 @@ server.get('/create_upComing', function(req, res, next) {
     res.end();
 });
 
-server.get('/upComing', function(req, res, next) {
-
-    if (typeof(req.query.month) != 'undefined') {
-        dbUpComing.upComing.find({'month': req.params.month}, function(err, docs) {
-            for (var i in docs[0]['movies']) {   
-                var title = docs[0]['movies'][i]['title'];
-                title = title.slice(0, title.length-1);
-                dbIMDB.imdb.find({title: title}).forEach(function(err, item) {
-                    console.log(item['title']);
-                    console.log(item['year']);
-                    // console.log(item['readMore']['page']);
-                    /*if (item['gallery_thumbnail'].length >0) {
-                        for (var j in item['gallery_thumbnail']){
-                            if (item['gallery_thumbnail'][j]['url'])
-                                console.log(item['gallery_thumbnail'][j]['url']);
-                            // upComingGalleryPages.push()
-                        }
-                        console.log(item['gallery_thumbnail']);
-                    }*/
-                });
-            }
-            res.end(JSON.stringify(docs[0]['movies']));
-        });
-    } else {
-        res.send('please insert query month');
-        res.end();
-    }    
-});
 
 server.get('/create_upComing_detail', function(req, res, next) {
     generateUpComingDetailUrls(req.params.month, function(urls) {
@@ -442,9 +414,8 @@ server.get('/create_upComing_PosterUrl', function(req, res, next) {
 });
 
 server.get('/create_upComing_movieInfo', function(req, res, next) {
-    var count=0;
-    console.log("month: " + req.query.month);
-    /*generateUpComingMovieInfo(req.query.month, function(result) {
+    /*console.log("month: " + req.query.month);
+    generateUpComingMovieInfo(req.query.month, function(result) {
         console.log(result);
     });*/
     generateUpComingMovieInfo_t(req.query.title, function(result) {
@@ -453,20 +424,7 @@ server.get('/create_upComing_movieInfo', function(req, res, next) {
     res.end();
 });
 
-server.get('/myapi', function(req, res, next) {
-    request({
-        url: "http://api.myapifilms.com/imdb/idIMDB?title="+ req.params.title + "&token=" + myapiToken,
-        encoding: 'utf8',
-        method: "GET"
-    }, function(err, req, json) {
-        if(err || !json) { return; }
-        var foo = JSON.parse(json),
-            bar = foo['data']['movies'];
 
-        console.log(bar[0]['idIMDB']);
-        res.end();
-    });
-})
 
 server.get('/today', function(req, res, next) {
     dbToday.today.find({'date': moment().format('l')}, function(err, doc){
@@ -637,7 +595,13 @@ server.get('/update_imdb_trailer', function(req, res, next) {
 server.get('/youtube_search', function(req, res, next) {
     var movieTitle = req.query.title;
 
-    youTube.search(movieTitle, 2, function(error, result) {
+    dbIMDB.imdb.find({title: movieTitle}, function(err, item) {
+        new Trailer(movieTitle, youTube, dbIMDB);
+    });
+    console.log('got trailerUrl reques');
+    res.end();
+
+    /*youTube.search(movieTitle, 2, function(error, result) {
       if (error) {
         console.log(error);
       }
@@ -645,7 +609,7 @@ server.get('/youtube_search', function(req, res, next) {
         console.log(JSON.stringify(result, null, 2));
         res.end(JSON.stringify(result, null, 2));
       }
-    });
+    });*/
 });
 
 server.get('/echo/:name', function (req, res, next) {
@@ -810,7 +774,7 @@ server.get("/create_imdb", function(req, res, next) {
         year = $('.lister-list tr .titleColumn .secondaryInfo');
         detailUrl = $('.titleColumn a');
 
-        for (var i = 0; i<250;i++) { 
+        /*for (var i = 0; i<250;i++) { 
             // console.log('http://www.imdb.com' + detailUrl[i]['attribs']['href']);
             dbIMDB.imdb.insert({
                 'top': i+1, 
@@ -821,7 +785,17 @@ server.get("/create_imdb", function(req, res, next) {
                 'description': title[i]['attribs']['title'],
                 'detailUrl': imdb_baseUrl + detailUrl[i]['attribs']['href']
             });
-        }
+        }*/
+        console.log('title: ' + $(title[246]).text());
+        dbIMDB.imdb.insert({
+                'top': 247, 
+                'title': $(title[246]).text(),
+                'year': $(year[246]).text().slice(1,5),
+                'posterUrl': poster[246]['attribs']['src'],
+                'rating': $(rating[246]).text(),
+                'description': title[246]['attribs']['title'],
+                'detailUrl': imdb_baseUrl + detailUrl[246]['attribs']['href']
+            });
     });
     res.redirect('/create_imdb_detail', next);
 });
@@ -887,24 +861,11 @@ server.get("/insert_imdb_cast", function(req, res, next) {
     }); 
 });
 
-server.get('/imdb_records', function(req, res, next) {
-    dbRecord.records.find({'title': req.query.title}, function(err, doc) {
-        var object = {};
-            object['contents'] = doc;
-            
-        var bar = JSON.stringify(doc[0]);
-        var foo = JSON.parse(bar);
-        console.log(foo['records'].length);
-        
-        if (foo['records'].length > 50) {
-            //TODO
-        }
 
-        res.end(JSON.stringify(object));
-    });
-});
 
 server.get("/insert_record_title", function(req, res, next) {
+    if (!req.query.to || !req.query.from)
+        res.end('missing to or from params');
     var count = parseInt(req.query.to) - parseInt(req.query.from) + 1;
     dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte:parseInt(req.query.from)}}).forEach(function(err, doc) {
         count-- ;
@@ -1001,7 +962,7 @@ var findposition = function(token) {
 
 server.get('/update_imdb_poster', function(req, res, next) {
     res.send('update poster @ ' + new Date());
-    dbIMDB.imdb.find({'top':{$lte:250, $gte:1}}).forEach(function(err, doc) {
+    dbIMDB.imdb.find({'top':{$lte:parseInt(req.query.to), $gte:parseInt(req.query.from)}}).forEach(function(err, doc) {
         request({
             url: doc['posterUrl'],
             encoding: 'utf8',
@@ -1018,7 +979,28 @@ server.get('/update_imdb_poster', function(req, res, next) {
 });
 
 server.get('/update_imdb_readmore', function(req, res, next) {
-    dbIMDB.imdb.find({'top': {$lte:250, $gte:1}}).forEach(function(err, doc) {
+    /*dbIMDB.imdb.find({'top': {$lte:250, $gte:1}}).forEach(function(err, doc) {
+        request({
+            url: doc['detailUrl'],
+            encoding: "utf8",
+            method: "GET" }, function(err, res, body) {
+                if (err || !body)
+                    return;
+                var $ = cheerio.load(body);
+                var url = $('.combined-see-more a')[1]['attribs']['href'];
+                var path = 'http://www.imdb.com' + url;
+                var foo = $('.combined-see-more a')[1]['children'];
+                var page = $(foo[0]).text();
+                page = Math.ceil(parseInt(page.split("photos")[0]) / 48);
+                console.log('top: ' + doc['top'] + path);
+                doc['readMore'] = { 
+                    "url": path,
+                    "page": page
+                };
+                dbIMDB.imdb.update({'title': doc['title']}, doc);
+            });
+    });*/
+    dbIMDB.imdb.find({'top': {$lte:247, $gte:247}}).forEach(function(err, doc) {
         request({
             url: doc['detailUrl'],
             encoding: "utf8",
@@ -1127,7 +1109,7 @@ server.get('/update_imdb_gallery_t', function(req, res, next) {
 });
 
 server.get('/update_imdb_gallery_t_2', function(req, res, next) { 
-    dbIMDB.imdb.find({'title': req.query.title}).forEach(function(err, doc) {
+    dbIMDB.imdb.find({'title': req.query.title}, function(err, doc) {
         var gallery = [];
         for (var j=1; j<=doc['readMore']['page']; j++) {
 
@@ -1172,7 +1154,7 @@ server.get('/update_imdb_gallery_t_2', function(req, res, next) {
 });
 
 function create_detail (err, doc) {
-    console.log("0512" + doc);
+    console.log("0512" + doc['detailUrl']);
             request({
                 url: doc['detailUrl'],
                 encoding: "utf8",
@@ -1197,16 +1179,16 @@ function create_detail (err, doc) {
                             country = $country.find('a').text();
                         else
                             country = $($country.find('a')[0]).text();
-                        doc['detailContent'] = {
+                        /*doc['detailContent'] = {
                             "poster": poster,
                             "slate": slate,
                             "summery": summery,
                             "country": country
-                        };
-                        dbIMDB.imdb.update({'title':doc['title']}, doc);
+                        };*/
+                        /*dbIMDB.imdb.update({'title':doc['title']}, doc);
                         var bar = $('.slate_wrapper .poster a')[0];
                         var path = 'http://www.imdb.com' + bar['attribs']['href'];
-                        console.log(path);
+                        console.log(path);*/
                         dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': path}});
                     } else {
                         console.log(doc['title']);
@@ -1226,8 +1208,8 @@ function create_detail (err, doc) {
                             "summery": summery,
                             "country": country
                         };
-                        foo['attribs']['src'];
-                        dbIMDB.imdb.update({'title':doc['title']}, doc);
+                        /*foo['attribs']['src'];
+                        dbIMDB.imdb.update({'title':doc['title']}, doc);*/
 
                         var bar = $('.minPosterWithPlotSummaryHeight .poster a')[0];
                         var path = 'http://www.imdb.com' + bar['attribs']['href'];
@@ -1242,75 +1224,10 @@ server.get('/create_imdb_detail', function(req, res, next) {
     if (typeof(req.query.title) == 'undefined') {
         dbIMDB.imdb.find({'top':{$lte:parseInt(req.query.to), $gte:parseInt(req.query.from)}}).forEach(create_detail);
     } else {
-        dbIMDB.imdb.find({'title': req.query.title}, create_detail);
+        console.log('missing title field');
     }
     
     res.end();
-});
-
-server.get('/imdb', function(req, res, next) {
-    console.log('from: '+ req.query.from +'\n to: ' + req.query.to + '\n title: ' + req.query.title);
-    var foo = {};
-    if (typeof(req.query.title)!= 'undefined') {      
-        dbIMDB.imdb.find({'title': req.query.title}, function(err, docs) {
-                foo['contents'] = docs;
-                foo['byTitle'] = true;
-                res.end(JSON.stringify(foo));
-        });
-    } else if (typeof(req.query.to)!= 'undefined' && typeof(req.query.from)!= 'undefined') { 
-        dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}).sort({'top':parseInt(req.query.ascending)}, function(err, docs){
-            var foo = {};
-            foo['contents'] = docs;
-            foo['byTitle'] = false;
-            var missing = 0;
-            for (var i=0; i<docs.length; i++) {
-                // console.log(docs[i]['readMore']['page']);
-                // console.log(docs[i]['detailContent']['country']);
-            
-                if (typeof(docs[i]['cast']) == 'undefined') {
-                    missing++;
-                    console.log(docs[i]['title'] + '\n' + docs[i]['top']);
-                }
-            }
-            console.log('missing: ' + missing);
-            res.end(JSON.stringify(foo));
-        });
-    } else if (typeof(req.query.release_to)!= 'undefined' && typeof(req.query.release_from)!= 'undefined') { 
-        dbIMDB.imdb.find({releaseDate: {$gte: parseInt(req.query.release_from), $lte: parseInt(req.query.release_to)}}).sort({'releaseDate': 1}, function(err, docs){
-            var foo = {};
-            foo['contents'] = docs;
-            foo['byTitle'] = false;
-            var bar = [];
-            console.log(docs.length);
-            for (var i=0; i<docs.length; i++) {
-                if (typeof(docs[i]['description']) == 'undefined')
-                    bar.push(docs[i]['title']);
-                    // console.log(docs[i]['title']);
-                // console.log(docs[i]['posterUrl']);
-            }
-            res.end(JSON.stringify(foo));
-        });
-    } else {
-        res.send('like missing query params!');
-        res.end();
-    }
-});
-
-server.get('/imdb_title', function(req, res) {
-    var foo = {'contents': []};
-    dbIMDB.imdb.find({'top': {$lte:250, $gte: 1}}).sort({'top':1}, function(err, docs){
-        for (var i=0; i<docs.length; i++){
-            // console.log(docs[i]['title']);
-            foo['contents'].push(docs[i]['title']);
-        }
-        dbIMDB.imdb.find({releaseDate: {$gte: parseInt(20160501), $lte: parseInt(20160930)}}).sort({'releaseDate': 1}, function(err, docs){
-            for (var j=0; j<docs.length; j++){
-                // console.log(docs[j]['title']);
-                foo['contents'].push(docs[j]['title']);
-            }
-            res.end(JSON.stringify(foo));
-        });
-    });
 });
 
 server.get('/content/:id', function(req, res, next) {
@@ -1409,6 +1326,10 @@ server.get('/create_ubike_nTaipei', function(req, res, next) {
     });
 });
 
+server.get('/special', function(req, res, next) {
+    Special.special(req, res);
+});
+
 /*var job1 = new cronJob('00 15 12 * * 1-7', function(){
     console.log('execute in every 13:18 pm from Monday to Sunday');
 });
@@ -1431,7 +1352,7 @@ var job2 = new cronJob(config.autoUpdate, function () {
   });*/
 });
 
-job2.start();
+// job2.start();
  
 server.listen(config.port, function () {
   console.log('%s listening at %s', server.name, server.url);
