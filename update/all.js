@@ -51,16 +51,23 @@ async.series([
 
         $('.movie_left').each(function(index, item) {
             // console.log($(item).text().split('In'));
-            var bar = $(item).text().split('In');
-            var token = bar[1].split('Out')
-            // console.log(token[0]);
+            var bar = $(item).text().split('Position')[0].split('Change');
+            var token = bar[0].trim().split('In:');
+            token[0] = token[0].replace(/\t/g, '');
+            token[1] = token[1].replace(/\t/g, '');
+            token[0] = token[0].split('Out:')[1];
+            var In = token[1].replace(/\r/g, '').trim().split('Out:')[0].trim().split('\n');
+            var Out = token[1].replace(/\r/g, '').trim().split('Out:')[1].trim().split('\n');
+            /*console.log('\n\nIn===> '+ In);
+            console.log('\n\nOut===> '+ Out); */
+
             for (var i = 0; i < Obj.InOut; i++) {
-                console.log(token[i].replace(/\t/g, '').trim());
-                today['inList'].push({'item': token[i].replace(/\t/g, '').trim()});
+                today['inList'].push({'item': In[i]});
+                today['outList'].push({'item': Out[i]});
             }
-            today['outList'].push({'item': token[Obj.InOut].split('Position')[0].replace(/\t/g, '').trim()});
         });
         console.log('job2 finish');
+        console.log(today);
         done(null);
     }
   },
