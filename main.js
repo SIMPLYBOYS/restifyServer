@@ -6,6 +6,7 @@ var mongojs = require('mongojs');
 var BufferHelper = require('bufferhelper');
 var cronJob = require('cron').CronJob;
 var spawn = require('child_process').spawn;
+var http = require('http');
 var config = require('./config');
 var Read = require('./web/read');
 var fs = require("fs");
@@ -26,6 +27,7 @@ var upComingGalleryScraper = require('./crawler/upComingGalleryScraper');
 var Trailer = require('./Trailer');
 var MovieInfomer = require('./MovieInfomer');
 var upComingPosterScraper = require('./crawler/upComingPosterScraper');
+var Position = require('./update/position');
 var google = require('google');
     
 var server = restify.createServer({
@@ -1336,7 +1338,7 @@ server.get('/create_ubike_nTaipei', function(req, res, next) {
 
 job1.start();*/
 
-var job2 = new cronJob(config.autoUpdate, function () {
+var job2 = new cronJob(config.recordUpdate, function () {
   console.log('开始执行定时更新任务');
   var update = spawn(process.execPath, [localPath.resolve(__dirname, 'update/all.js')]);
   update.stdout.pipe(process.stdout);
@@ -1344,15 +1346,22 @@ var job2 = new cronJob(config.autoUpdate, function () {
   update.on('close', function (code) {
     console.log('finish jobs，code=%d', code);
   });
+  
   /*var special = spawn(process.execPath, [localPath.resolve(__dirname, 'update/special.js')]);
   special.stdout.pipe(process.stdout);
   special.stderr.pipe(process.stderr);
   special.on('close', function (code) {
     console.log('finish jobs，code=%d', code);
   });*/
+
 });
 
-// job2.start();
+var job3 = new cronJob(config.positionUpdate, function() {
+    Position.updatePosition();
+});
+
+job2.start();
+job3.start();
  
 server.listen(config.port, function () {
   console.log('%s listening at %s', server.name, server.url);

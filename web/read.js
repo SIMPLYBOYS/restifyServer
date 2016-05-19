@@ -120,16 +120,19 @@ exports.updatePosition = function(req, res) {
     dbPosition.position.find({date: moment().format('l')}, function(err, doc) {
         
         doc = doc[0];
-        // console.log(doc);
+        
+        if (!doc)
+            res.end('fail and finished!!');
 
         async.series([
           function (done) {
+            console.log(doc);
             //type A 
             if (doc['newItem']) {
                 doc['newItem'].forEach(function(item, index) {
-                     /*updateMovies.push({'title': item['title'].split('(')[0].trim(),
+                     updateMovies.push({'title': item['title'].split('(')[0].trim(),
                         'position': item['position']
-                     });*/
+                     });
                      //TODO before update the item need to insert hole bunch of data
                 })
                 done(null);
@@ -231,7 +234,7 @@ exports.getRecords = function(req, res, next) {
     });
 };
 
-exports.google = function (req, res, next){
+exports.google = function (req, res, next) {
     google('The Shawshank Redemption trailer', function (err, res){
       if (err) console.error(err)
 

@@ -8,6 +8,7 @@ var dbToday = mongojs('test', ['today']);
 var myapiToken = '632ce305-f516-4ccb-8f32-4e0fb1ad412a';
 var YouTube = require('youtube-node');
 var YouTubeKey = 'AIzaSyB1OOSpTREs85WUMvIgJvLTZKye4BVsoFU';
+// var dbContact = mongojs('http://52.192.246.11/test', ['contact']);
 
 exports.myapiToken = myapiToken;
 exports.dbRecord = dbRecord;
@@ -29,5 +30,9 @@ exports.db = mysql.createConnection({
 // Web服务器端口
 exports.port = 3000;
 
-// 定时更新
-exports.autoUpdate = '00 15 12 * * 1-7';  // 任务执行规则，参考 cron 语法
+// update record
+exports.recordUpdate = '* 10 8 * * 1-7';  
+
+exports.positionUpdate = '* 30 8 * * 1-7';
+
+
