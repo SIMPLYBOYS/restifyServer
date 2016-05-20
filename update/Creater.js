@@ -80,19 +80,8 @@ Creater.prototype.createMovie = function () {
         year = $('.lister-list tr .titleColumn .secondaryInfo');
         detailUrl = $('.titleColumn a');
 
-        /*for (var i = 0; i<250;i++) { 
-            // console.log('http://www.imdb.com' + detailUrl[i]['attribs']['href']);
-            dbIMDB.imdb.insert({
-                'top': i+1, 
-                'title': $(title[i]).text(),
-                'year': $(year[i]).text().slice(1,5),
-                'posterUrl': poster[i]['attribs']['src'],
-                'rating': $(rating[i]).text(),
-                'description': title[i]['attribs']['title'],
-                'detailUrl': imdb_baseUrl + detailUrl[i]['attribs']['href']
-            });
-        }*/
-        if (that.title == 'PK') {
+    
+        /*if (that.title == 'PK') {
             console.log('\n\n-------- 2016 0520 title --------- : ' + imdb_baseUrl + detailUrl[245]['attribs']['href']);
             dbIMDB.imdb.insert({
                 'top': 248, 
@@ -102,16 +91,16 @@ Creater.prototype.createMovie = function () {
                 'description': title[245]['attribs']['title'],
                 'detailUrl': imdb_baseUrl + detailUrl[245]['attribs']['href']
             });
-        }
+        }*/
 
-        /*dbIMDB.imdb.insert({
+        dbIMDB.imdb.insert({
             'top': that.position, 
             'title': $(title[that.position-1]).text(),
             'year': $(year[that.position-1]).text().slice(1,5),
             'rating': $(rating[that.position-1]).text(),
             'description': title[that.position-1]['attribs']['title'],
             'detailUrl': imdb_baseUrl + detailUrl[that.position-1]['attribs']['href']
-        });*/
+        });
 
         done(null);
     });
