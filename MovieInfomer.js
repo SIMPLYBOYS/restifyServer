@@ -7,11 +7,12 @@ var STATUS_CODES = http.STATUS_CODES;
 /*
  * Scraper Constructor
 **/
-function MovieInformer (title, apiToken, dbIMDB) {
+function MovieInformer (title, apiToken, dbIMDB, done) {
     this.title = title;
     this.apiToken = apiToken;
     this.dbIMDB = dbIMDB;
     this.init();
+    this.done = done;
 }
 /*
  * Make it an EventEmitter
@@ -69,6 +70,8 @@ MovieInformer.prototype.init = function () {
         self.dbIMDB.imdb.update({'title': self.title}, {'$set': {'year': 2016
           }
         });
+        if (self.done)
+          self.done(null);
     });
     self.findMovieInfo();
 };

@@ -6,11 +6,12 @@ var STATUS_CODES = http.STATUS_CODES;
 /*
  * Scraper Constructor
 **/
-function Trailer (title, youtube, dbIMDB) {
+function Trailer (title, youtube, dbIMDB, done) {
     this.title = title;
     this.youtube = youtube;
     this.dbIMDB = dbIMDB;
     this.init();
+    this.done = done;
 }
 /*
  * Make it an EventEmitter
@@ -27,6 +28,8 @@ Trailer.prototype.init = function () {
         console.log(trailerUrl);
         self.dbIMDB.imdb.update({'title': self.title}, {'$set': {'trailerUrl': trailerUrl}
         });
+        if (self.done)
+          self.done(null);
     });
     self.findTrailer();
 };

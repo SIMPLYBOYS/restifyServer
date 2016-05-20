@@ -223,12 +223,13 @@ exports.getRecords = function(req, res, next) {
             object['contents'] = doc;
             
         var bar = JSON.stringify(doc[0]);
+        console.log(object['contents']);
         var foo = JSON.parse(bar);
-        console.log(foo['records'].length);
+        // console.log(foo['records'].length);
         
-        if (foo['records'].length > 50) {
+        /*if (foo['records'].length > 50) {
             //TODO
-        }
+        }*/
 
         res.end(JSON.stringify(object));
     });
