@@ -4,16 +4,34 @@ var dbUpComing = config.dbUpComing;
 var dbPosition = config.dbPosition;
 var dbRecord = config.dbRecord;
 var myapiToken = config.myapiToken;
+var dbToday = config.dbToday;
 var Updater = require('../update/Updater');
 var Creater = require('../update/Creater');
+var Remover = require('../update/Remover');
 var google = require('google');
 var request = require("request");
 var async = require('async');
 var moment = require("moment");
 var updateMovies = [];
 var newMovies = []; // not in database before this time
+var outMovies = [];
 
 exports.updatePosition = function() {
+
+    dbToday.today.find({date: moment().format('l')}, function(err, doc) {
+        // console.log(doc[0]['outList']);
+        if (doc[0]['outList']) {
+            doc[0]['outList'].forEach(function(movie, index) {
+                 if (movie['item'].indexOf(',') !== -1) {
+                    var bar = movie['item'].trim().split(',');
+                    movie['item'] = bar[1].split('(')[0] + bar[0];
+                    outMovies.push({'title': movie['item'].trim()});
+                 } else {
+                    outMovies.push({'title': movie['item'].split('(')[0].trim()});
+                 }
+            });
+        }
+    });
     
     dbPosition.position.find({date: moment().format('l')}, function(err, doc) {
         
@@ -68,14 +86,21 @@ exports.updatePosition = function() {
           function (done) {
             // console.log('\n\nnewMovies: =======> ' + newMovies.length);
             var updateItems = updateMovies.length,
-                newItems = newMovies.length;
+                newItems = newMovies.length,
+                outItems = outMovies.length;
+
+            console.log('\n\n\n'+JSON.stringify(outMovies) + '\n\n\n');
 
             for (var i = 0; i < updateItems+1; i++) {
               updatePositionWizard();
             }
 
-            for (var i = 0; i < newItems+1; i++) {
+            for (i = 0; i < newItems+1; i++) {
               createNewMovieWizard();
+            }
+
+            for (i = 0; i < outItems+1; i++) {
+              removeMovieWizard();
             }
 
           }
@@ -138,12 +163,32 @@ function createNewMovieWizard() {
     console.log('Requests Left: ' + newMovies.length);
     creater.on('error', function (error) {
       console.log(error);
-      updatePositionWizard();
+      createNewMovieWizard();
     });
 
     creater.on('complete', function (listing) {
         // console.log(listing);
         console.log(listing + ' got complete!');
-        updatePositionWizard();
+        createNewMovieWizard();
+    });
+}
+
+function removeMovieWizard() {
+    if (!outMovies.length)
+        return console.log('Done!!!!');
+
+    var item = outMovies.pop();
+    var remover = new Remover(item.title, item.position);
+    // console.log('item ' + item + ' will be removed in top 250');
+
+    remover.on('error', function (error) {
+      console.log(error);
+      removeMovieWizard();
+    });
+
+    remover.on('complete', function (listing) {
+        // console.log(listing);
+        console.log(listing + ' be moved complete!');
+        removeMovieWizard();
     });
 }

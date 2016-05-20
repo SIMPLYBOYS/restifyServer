@@ -235,6 +235,14 @@ exports.getRecords = function(req, res, next) {
     });
 };
 
+exports.getToday = function(req, res, next) {
+    dbToday.today.find({'date': moment().format('l')}, function(err, doc) {
+        var object = {};
+            object['contents'] = doc;
+        res.end(JSON.stringify(object));
+    });
+};
+
 exports.google = function (req, res, next) {
     google('The Shawshank Redemption trailer', function (err, res){
       if (err) console.error(err)
