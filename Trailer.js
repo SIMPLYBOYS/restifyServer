@@ -27,9 +27,10 @@ Trailer.prototype.init = function () {
     self.on('finish', function (trailerUrl) {
         console.log(trailerUrl);
         self.dbIMDB.imdb.update({'title': self.title}, {'$set': {'trailerUrl': trailerUrl}
-        });
-        if (self.done)
+        }, function(){
+          if (self.done)
           self.done(null);
+        });
     });
     self.findTrailer();
 };
