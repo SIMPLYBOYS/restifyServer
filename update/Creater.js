@@ -98,7 +98,7 @@ Creater.prototype.createMovie = function () {
         
 
         dbIMDB.imdb.insert({
-            'top': that.position, 
+            'top': parseInt(that.position), 
             'title': that.title,
             'year': $(year[that.position-1]).text().slice(1,5),
             'rating': $(rating[that.position-1]).text(),
@@ -275,6 +275,29 @@ Creater.prototype.createMovie = function () {
   },
   function (done) {
         console.log('\n\n-------- 2016 0520 step6 ---------' + that.title );
+         dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
+            if (doc) {
+                request({
+                    url: doc['posterUrl'],
+                    encoding: 'utf8',
+                    method: "GET" }, function(err, res, body){
+                        if (err || !body)
+                            return;
+                        var $ = cheerio.load(body);
+                        var url = $('.photo img')[0];
+                        console.log(doc['top']+':');
+                        console.log(url['attribs']['src']);
+                        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': url['attribs']['src']}});
+                        done(null);
+                });       
+            } else {
+                console.log(that.title + ' not found!');
+                done(null);
+            }
+        });
+  },
+  function (done) {
+        console.log('\n\n-------- 2016 0520 step7 ---------' + that.title );
         dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
           if (doc) {
             var gallery = [];
@@ -311,29 +334,6 @@ Creater.prototype.createMovie = function () {
           } 
         });
         
-  },
-  function (done) {
-        console.log('\n\n-------- 2016 0520 step7 ---------' + that.title );
-         dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
-            if (doc) {
-                request({
-                    url: doc['posterUrl'],
-                    encoding: 'utf8',
-                    method: "GET" }, function(err, res, body){
-                        if (err || !body)
-                            return;
-                        var $ = cheerio.load(body);
-                        var url = $('.photo img')[0];
-                        console.log(doc['top']+':');
-                        console.log(url['attribs']['src']);
-                        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': url['attribs']['src']}});
-                        done(null);
-                });       
-            } else {
-                console.log(that.title + ' not found!');
-                done(null);
-            }
-        });
   },
   function (done) {
     console.log('\n\n-------- 2016 0520 step8 --------- ' + that.title );
