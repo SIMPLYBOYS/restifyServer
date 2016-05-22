@@ -89,6 +89,8 @@ server.get('/myapi', Read.myapi);
 
 server.get('/imdb_records', Read.getRecords);
 
+server.get('/today', Read.getToday);
+
 server.get('/imdb', Read.read);
 
 server.get('/imdb_title', Read.getTitle);
@@ -424,14 +426,6 @@ server.get('/create_upComing_movieInfo', function(req, res, next) {
         console.log(result);
     });
     res.end();
-});
-
-
-
-server.get('/today', function(req, res, next) {
-    dbToday.today.find({'date': moment().format('l')}, function(err, doc){
-        res.end(JSON.stringify(doc));
-    })
 });
 
 /*server.get('insert_data', function(req, res, next){
@@ -1332,11 +1326,11 @@ server.get('/create_ubike_nTaipei', function(req, res, next) {
     Special.special(req, res);
 });*/
 
-/*var job1 = new cronJob('00 15 12 * * 1-7', function(){
+var job1 = new cronJob('*/5 * * * * *', function(){
     console.log('execute in every 13:18 pm from Monday to Sunday');
 });
 
-job1.start();*/
+// job1.start();
 
 var job2 = new cronJob(config.recordUpdate, function () {
   console.log('开始执行定时更新任务');
@@ -1360,7 +1354,7 @@ var job3 = new cronJob(config.positionUpdate, function() {
     Position.updatePosition();
 });
 
-job2.start();
+// job2.start();
 job3.start();
  
 server.listen(config.port, function () {
