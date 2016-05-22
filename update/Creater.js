@@ -9,7 +9,9 @@ var async = require('async');
 var request = require("request");
 var MovieInfomer = require('../MovieInfomer');
 var Trailer = require('../Trailer');
+var Thumbnail = require('./Thumbnail');
 var EventEmitter = require('events').EventEmitter;
+var updateThumbnail = [];
 /*
  * Scraper Constructor
 **/
@@ -225,6 +227,7 @@ Creater.prototype.createMovie = function () {
         });      
   },
   function (done) {
+        //TODO addGalleryUrlWizard refrence step 7
         console.log('\n\n-------- 2016 0520 step5 ---------' + that.title);
         dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
           if (doc) {
@@ -303,31 +306,11 @@ Creater.prototype.createMovie = function () {
             var gallery = [];
             for(var i in doc['gallery_thumbnail']) {
                 console.log(doc['gallery_thumbnail'][i]['detailUrl']);
-
-                var options = {
-                  url: doc['gallery_thumbnail'][i]['detailUrl'],
-                  encoding: "utf8",
-                  method: "GET"
-                };
-
-                var callback = function(err, res, body) {
-                        if (err || !body)
-                            return;
-                        var $ = cheerio.load(body);
-                        // console.log($('.photo a img')[0]['attribs']['src'])
-                        gallery.push({
-                            type: 'full',
-                            url: $('.photo a img')[0]['attribs']['src'],
-                        })
-
-                        doc["gallery_full"] = gallery;
-                        dbIMDB.imdb.update({'title': doc['title']}, doc);
-                        done(null);
-                };
-                console.log(i);
-                request(options, callback);
-                
+                updateThumbnail.push({'title': that.title, 'thumbnailUrl': doc['gallery_thumbnail'][i]['detailUrl']});                
             }  
+
+            updateThumbnailWizard(doc, gallery, done);
+
           } else {
             console.log(that.title + ' not found!');
             done(null);
@@ -448,6 +431,37 @@ var findposition = function(token) {
     } else { 
         return token.indexOf('*');
     }
+}
+
+function updateThumbnailWizard(doc, gallery, done) {
+    if (!updateThumbnail.length) {
+        doc["gallery_full"] = gallery;
+        dbIMDB.imdb.update({'title': doc['title']}, doc);
+        done(null);
+        return console.log('Done!!!!');
+    }
+    var item = updateThumbnail.pop();
+    if (item['title'].indexOf(',') != -1) {
+        var bar = item['title'].split(',');
+        console.log('\n\n----->' + bar[1] + ' ' + bar[0] + '\n\n');
+        item['title'] = bar[1] + ' ' + bar[0];
+        var thumbnail = new Thumbnail(item.title.trim(), item.thumbnailUrl);
+    } else {
+        var thumbnail = new Thumbnail(item.title, item.thumbnailUrl);
+    }
+
+    console.log('Requests Left: ' + updateThumbnail.length);
+    thumbnail.on('error', function (error) {
+      console.log(error);
+      updateThumbnailWizard(doc, gallery, done);
+    });
+
+    thumbnail.on('complete', function (item) {
+        // console.log(listing);
+        gallery.push(item);
+        console.log(item + ' got complete!');
+        updateThumbnailWizard(doc, gallery, done);
+    });
 }
 
 module.exports = Creater;
