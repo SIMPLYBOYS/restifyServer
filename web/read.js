@@ -2,6 +2,7 @@ var config = require('../config');
 var dbIMDB = config.dbIMDB;
 var dbUpComing = config.dbUpComing;
 var dbPosition = config.dbPosition;
+var dbToday = config.dbToday;
 var dbRecord = config.dbRecord;
 var myapiToken = config.myapiToken;
 var Updater = require('../update/Updater');
