@@ -43,11 +43,11 @@ Updater.prototype.updateMovie = function () {
         return;     
       }
 
-      if (title != 'Ben-Hur') {
+      if (doc['title'] != 'Ben-Hur') {
         dbIMDB.imdb.update({'title': that['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
           that.emit('updated', that.title);
         });
-      } else if (title == 'Ben-Hur') {
+      } else if (doc['title'] == 'Ben-Hur') {
         dbIMDB.imdb.update({ _id: mongojs.ObjectId('5734d89f39c619427064d312')}, {'$set': {'top': parseInt(that['position'])}},
            function() {
               that.emit('updated', that.title);
