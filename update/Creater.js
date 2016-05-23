@@ -97,6 +97,8 @@ Creater.prototype.createMovie = function () {
 
         // console.log('\n\n-------- 2016 0520 title --------- : ' + imdb_baseUrl + detailUrl[that.position-1]['attribs']['href']);
         console.log('\n\n-------- 2016 0520 title --------- : ' + $(title[that.position-1]).text() + '\n' + that.title);
+        if (that.title == 'Дети небес')
+            that.title = 'Bacheha-Ye aseman'
         
 
         dbIMDB.imdb.insert({
