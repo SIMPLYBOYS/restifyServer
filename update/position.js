@@ -17,7 +17,7 @@ var newMovies = []; // not in database before this time
 var outMovies = [];
 
 exports.updatePosition = function() {
-
+    console.log(moment().format('l'));
     dbToday.today.find({date: moment().format('l')}, function(err, doc) {
         // console.log(doc[0]['outList']);
         if (doc[0]['outList']) {
@@ -59,7 +59,7 @@ exports.updatePosition = function() {
             //type B
             if (doc['upItem']) {
                 doc['upItem'].forEach(function(item, index) {
-                    if (item == 'Sunrise (1927)')
+                    if (item['title'] == 'Sunrise (1927)')
                         item['title'] = 'Sunrise: A Song of Two Humans';
                     console.log(item['title'].split('(')[0].trim());
                     updateMovies.push({'title': item['title'].split('(')[0].trim(),
@@ -75,6 +75,8 @@ exports.updatePosition = function() {
             //type C
             if (doc['downItem']) {
                 doc['downItem'].forEach(function(item, index) {
+                    if (item['title'] == 'Sunrise (1927)')
+                        item['title'] = 'Sunrise: A Song of Two Humans';
                     console.log(item['title'].split('(')[0].trim());
                     updateMovies.push({'title': item['title'].split('(')[0].trim(),
                         'position': item['position']
@@ -127,14 +129,10 @@ function updatePositionWizard() {
         console.log('\n\n----->' + bar[1] + ' ' + bar[0] + '\n\n');
         if (bar[1].trim() == 'The')
             item['title'] = bar[1] + ' ' + bar[0];
-        else if (item['title'] !== 'Lock, Stock and Two Smoking Barrels')
+        else if (item['title'] !== 'Lock, Stock and Two Smoking Barrels' && item['title'] !== 'Monsters, Inc.')
             item['title'] = bar[1] + ' ' + bar[0].toLowerCase();
-        
-        /*if (item['title'].trim().indexOf('aboliques') != -1) {
-            item['title'] = 'Les diaboliques';
-        }*/
         var updater = new Updater(item.title.trim(), item.position);
-    } else {
+    } else  {
         var updater = new Updater(item.title.trim(), item.position);
     }
 

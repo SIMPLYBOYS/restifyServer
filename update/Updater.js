@@ -39,11 +39,11 @@ Updater.prototype.updateMovie = function () {
   dbIMDB.imdb.findOne({'title': that['title']}, function(err, doc) {
 
       if (!doc) {
-        console.log('\n\n' + doc['title'] + 'not found!');
+        console.log('\n\n' + that['title'] + 'not found!');
         return;     
       }
 
-      if (doc['title'] != 'Ben-Hur') {
+      if (!specialCase(doc['title'])) {
         dbIMDB.imdb.update({'title': that['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
           that.emit('updated', that.title);
         });
@@ -52,8 +52,24 @@ Updater.prototype.updateMovie = function () {
            function() {
               that.emit('updated', that.title);
         });
+      } else if (doc['title'] == 'Sunrise') {
+        dbIMDB.imdb.update({ _id: mongojs.ObjectId('5705057233c8ea8e13b6244a')}, {'$set': {'top': parseInt(that['position'])}},
+           function() {
+              that.emit('updated', that.title);
+        });
       }
   })
 };
+
+function specialCase(title) {
+  switch (title) {
+    case 'Ben-Hur':
+    case 'Sunrise':
+      return true;
+    default:
+      return false;
+  }
+  return false;
+}
 
 module.exports = Updater;
