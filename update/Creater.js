@@ -42,6 +42,8 @@ Creater.prototype.init = function () {
 Creater.prototype.updateMovie = function () {
   
   var that = this;
+  if (that['title'] == 'Дети небес')
+    that['title'] = 'Bacheha-Ye aseman';
 
   dbIMDB.imdb.findOne({'title': that['title']}, function(err, doc) {
 
