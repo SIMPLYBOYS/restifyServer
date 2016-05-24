@@ -8,6 +8,7 @@ var dbToday = mongojs('test', ['today']);
 var myapiToken = '632ce305-f516-4ccb-8f32-4e0fb1ad412a';
 var YouTube = require('youtube-node');
 var YouTubeKey = 'AIzaSyB1OOSpTREs85WUMvIgJvLTZKye4BVsoFU';
+var GCMKey = 'AIzaSyCpHbHblbj_6zfA1AeKsuaxB4ZuoTffVKw';
 // var dbContact = mongojs('http://52.192.246.11/test', ['contact']);
 
 exports.myapiToken = myapiToken;
@@ -18,6 +19,7 @@ exports.dbToday = dbToday;
 exports.dbPosition = dbPosition;
 exports.YouTube = YouTube;
 exports.YouTubeKey = YouTubeKey;
+exports.GCMKey = GCMKey;
 /*var mysql = require('mysql');
 exports.db = mysql.createConnection({
   host:            '127.0.0.1',   // 数据库地址
@@ -31,7 +33,7 @@ exports.db = mysql.createConnection({
 exports.port = 3000;
 
 // update record
-exports.recordUpdate = '*/5 * * * * *';  
+exports.recordUpdate = '30 48 14 * * *';  
 
 exports.positionUpdate = '35 6 1 * * *';
 // exports.positionUpdate = '*/5 * * * * *';
