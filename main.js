@@ -9,6 +9,7 @@ var spawn = require('child_process').spawn;
 var http = require('http');
 var config = require('./config');
 var Read = require('./web/read');
+var Post = require('./web/post');
 var fs = require("fs");
 var localPath = require('path');
 var dbContact = mongojs('http://52.192.246.11/test', ['contact']);
@@ -98,6 +99,8 @@ server.get('/imdb_title', Read.getTitle);
 server.get('/imdb_position', Read.getPosition);
 
 server.get('/update_imdbPosition', Read.updatePosition);
+
+server.get('/gcm', Post.gcmTopic_t);
 
 function generateUpComingUrls(limit) {
   var url = 'http://www.imdb.com/movies-coming-soon/2016-';
@@ -1354,7 +1357,7 @@ var job3 = new cronJob(config.positionUpdate, function() {
     Position.updatePosition();
 });
 
-// job2.start();
+job2.start();
 job3.start();
  
 server.listen(config.port, function () {

@@ -3,6 +3,7 @@ var request = require("request");
 var cheerio = require("cheerio");
 var moment = require("moment");
 var config = require('../config');
+var Post = require('../web/post');
 var dbToday = config.dbToday;
 var dbPosition = config.dbPosition;
 var Obj = {
@@ -140,6 +141,10 @@ async.series([
     	}
     	done(null);
     });
+  },
+  //send message to GCM server
+  function (done) {
+    Post.gcmTopic(today, done);
   },
   // update Imdb database by position database
   function (done) {
