@@ -144,7 +144,26 @@ async.series([
   },
   //send message to GCM server
   function (done) {
-    Post.gcmTopic(today, done);
+    var message = {
+        'In': today['inList'][0]['item'],
+        'Out': today['outList'][0]['item'],
+        'Up': [],
+        'Down': []
+    };
+
+    Obj['upItem'].forEach(function(item, index) {
+        console.log(item);
+        var str = '【'+ item['position'] +'】'+ ' ' + item['title'] + '\n';
+        message.Up.push(str);
+    });
+
+    Obj['downItem'].forEach(function(item, index) {
+        console.log(item);
+        var str = '【'+ item['position'] +'】'+ ' ' + item['title'] + '\n';
+        message.Down.push(str);
+    });
+
+    Post.gcmTopic(message, done);
   },
   // update Imdb database by position database
   function (done) {

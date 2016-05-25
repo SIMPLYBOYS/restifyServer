@@ -1,14 +1,10 @@
 var config = require('../config');
 var dbIMDB = config.dbIMDB;
-var dbUpComing = config.dbUpComing;
 var dbPosition = config.dbPosition;
-var dbRecord = config.dbRecord;
-var myapiToken = config.myapiToken;
 var dbToday = config.dbToday;
 var Updater = require('../update/Updater');
 var Creater = require('../update/Creater');
 var Remover = require('../update/Remover');
-var google = require('google');
 var request = require("request");
 var async = require('async');
 var moment = require("moment");
@@ -127,7 +123,7 @@ function updatePositionWizard() {
     if (item['title'].indexOf(',') != -1) {
         var bar = item['title'].split(',');
         console.log('\n\n----->' + bar[1] + ' ' + bar[0] + '\n\n');
-        if (bar[1].trim() == 'The')
+        if (bar[1].trim() == 'The' || bar[1].trim() == 'A')
             item['title'] = bar[1] + ' ' + bar[0];
         else if (item['title'] !== 'Lock, Stock and Two Smoking Barrels' && item['title'] !== 'Monsters, Inc.')
             item['title'] = bar[1] + ' ' + bar[0].toLowerCase();
