@@ -4,6 +4,7 @@ var util = require('util');
 var config = require('../config');
 var myapiToken = config.myapiToken;
 var dbIMDB = config.dbIMDB;
+var youTube = config.youTube;
 var dbRecord = config.dbRecord;
 var async = require('async');
 var request = require("request");

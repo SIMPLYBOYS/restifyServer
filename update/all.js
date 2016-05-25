@@ -86,7 +86,8 @@ async.series([
     		var foo = $(item).find('td').text();
     		var position = foo.split('↑')[0];
     		var title = foo.split('↑')[1].slice(1);
-    		Obj['upItem'].push({'position': position, 'title': title});
+            var delta = foo.split('↑')[1].slice(0,1);
+    		Obj['upItem'].push({'position': position, 'title': title, 'delta': parseInt(delta)});
     		// console.log(item['parent']['children'].length);
     	});
     	
@@ -97,7 +98,8 @@ async.series([
     		var foo = $(item).find('td').text();
     		var position = foo.split('↓')[0];
     		var title = foo.split('↓')[1].slice(1);
-    		Obj['downItem'].push({'position': position, 'title': title});
+            var delta = foo.split('↓')[1].slice(0,1);
+    		Obj['downItem'].push({'position': position, 'title': title, 'delta': parseInt(delta)});
     		// console.log($(item).find('td').text());
     	});
     	

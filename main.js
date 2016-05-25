@@ -1358,12 +1358,12 @@ var job3 = new cronJob(config.positionUpdate, function() {
     Position.updatePosition();
 });
 
-var job4 = new cronJob(config.recordUpdate, function() {
+var job4 = new cronJob(config.fullrecordUpdate, function() {
     Record.updateRecord();
 });
 
-/*job2.start();
-job3.start();*/
+job2.start();
+job3.start();
 job4.start();
  
 server.listen(config.port, function () {
