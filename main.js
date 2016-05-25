@@ -29,6 +29,7 @@ var Trailer = require('./Trailer');
 var MovieInfomer = require('./MovieInfomer');
 var upComingPosterScraper = require('./crawler/upComingPosterScraper');
 var Position = require('./update/position');
+var Record = require('./update/record');
 var google = require('google');
     
 var server = restify.createServer({
@@ -1357,8 +1358,13 @@ var job3 = new cronJob(config.positionUpdate, function() {
     Position.updatePosition();
 });
 
-job2.start();
-job3.start();
+var job4 = new cronJob(config.recordUpdate, function() {
+    Record.updateRecord();
+});
+
+/*job2.start();
+job3.start();*/
+job4.start();
  
 server.listen(config.port, function () {
   console.log('%s listening at %s', server.name, server.url);
