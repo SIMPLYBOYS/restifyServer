@@ -99,7 +99,7 @@ async.series([
     		var position = foo.split('↓')[0];
     		var title = foo.split('↓')[1].slice(1);
             var delta = foo.split('↓')[1].slice(0,1);
-    		Obj['downItem'].push({'position': position, 'title': title, 'delta': parseInt(delta)});
+    		Obj['downItem'].push({'position': position, 'title': title, 'delta': parseInt('-'+delta)});
     		// console.log($(item).find('td').text());
     	});
     	
@@ -111,6 +111,7 @@ async.series([
     		Obj['newItem'].push({'position': position, 'title': title});
     		// console.log($(item).find('td').text());
     	});
+        
     	Obj.body = '';
     	Obj.newIn = newIn;
     	Obj.up = up;
