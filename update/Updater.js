@@ -10,10 +10,18 @@ var STATUS_CODES = http.STATUS_CODES;
 /*
  * Scraper Constructor
 **/
-function Updater (title, position, record) {
+function Updater (title, position, type, value) {
     this.title = title;
     this.position = position;
-    this.record = record; 
+    this.type = type;
+    switch (type) {
+      case 'record':
+        this.record = value; 
+        break;
+      case 'delta':
+        this.delta = value;
+    }
+    
     this.init();
 }
 /*
@@ -29,10 +37,14 @@ Updater.prototype.init = function () {
         console.log('\n====> \"'+title + '\" got updated!!!');
         this.emit('complete', title);
     });
-    if (!this.record)
-      this.updateMovie();
-    else
-      this.updateRecord();
+    
+    switch(this.type) {
+      case 'record': 
+        this.updateRecord();
+        break;
+      case 'delta':
+        this.updateMovie();
+    } 
 };
 
 Updater.prototype.updateMovie = function () {
@@ -48,19 +60,27 @@ Updater.prototype.updateMovie = function () {
 
       if (!specialCase(doc['title'])) {
         dbIMDB.imdb.update({'title': that['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
-          that.emit('updated', that.title);
+          dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'delta': that['delta']}}, function() {
+            that.emit('updated', that.title);
+          });
         });
       } else if (doc['title'] == 'Ben-Hur') {
         dbIMDB.imdb.update({ _id: mongojs.ObjectId('5734d89f39c619427064d312')}, {'$set': {'top': parseInt(that['position'])}},
            function() {
-              that.emit('updated', that.title);
+              dbIMDB.imdb.update({_id: mongojs.ObjectId('5734d89f39c619427064d312')}, {'$set': {'delta': that['delta']}}, function() {
+                that.emit('updated', that.title);
+              });
         });
       } else if (doc['title'] == 'Sunrise') {
         dbIMDB.imdb.update({ _id: mongojs.ObjectId('5705057233c8ea8e13b6244a')}, {'$set': {'top': parseInt(that['position'])}},
            function() {
-              that.emit('updated', that.title);
+              dbIMDB.imdb.update({_id: mongojs.ObjectId('5705057233c8ea8e13b6244a')}, {'$set': {'delta': that['delta']}}, function() {
+                that.emit('updated', that.title);
+              });
         });
       }
+
+      //TODO add delta field in db.imdb collection
   })
 };
 

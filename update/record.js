@@ -36,7 +36,7 @@ function updateRecordWizard(done) {
     
     var item = updateRecords.pop();
     var record = true;
-    var updater = new Updater(item.title.trim(), item.position, record);
+    var updater = new Updater(item.title.trim(), item.position, 'record', record);
 
     console.log('updatePositionWizard');
     console.log(item);

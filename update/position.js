@@ -14,10 +14,10 @@ var outMovies = [];
 
 exports.updatePosition = function() {
     console.log(moment().format('l'));
-    dbToday.today.find({date: moment().format('l')}, function(err, doc) {
-        // console.log(doc[0]['outList']);
-        if (doc[0]['outList']) {
-            doc[0]['outList'].forEach(function(movie, index) {
+    dbToday.today.find({date: moment().format('l')}, function(err, docs) {
+        // console.log(docs[0]['outList']);
+        if (docs[0]['outList']) {
+            docs[0]['outList'].forEach(function(movie, index) {
                  if (movie['item'].indexOf(',') !== -1) {
                     var bar = movie['item'].trim().split(',');
                     movie['item'] = bar[1].split('(')[0] + bar[0];
@@ -29,19 +29,19 @@ exports.updatePosition = function() {
         }
     });
     
-    dbPosition.position.find({date: moment().format('l')}, function(err, doc) {
+    dbPosition.position.find({date: moment().format('l')}, function(err, docs) {
         
-        doc = doc[0];
+        docs = docs[0];
         
-        if (!doc)
+        if (!docs)
             res.end('fail and finished!!');
 
         async.series([
           function (done) {
-            console.log(doc);
+            console.log(docs);
             //type A 
-            if (doc['newItem']) {
-                doc['newItem'].forEach(function(item, index) {
+            if (docs['newItem']) {
+                docs['newItem'].forEach(function(item, index) {
                      newMovies.push({'title': item['title'].split('(')[0].trim(),
                         'position': item['position']
                      });
@@ -53,13 +53,14 @@ exports.updatePosition = function() {
           },
           function (done) {
             //type B
-            if (doc['upItem']) {
-                doc['upItem'].forEach(function(item, index) {
+            if (docs['upItem']) {
+                docs['upItem'].forEach(function(item, index) {
                     if (item['title'] == 'Sunrise (1927)')
                         item['title'] = 'Sunrise: A Song of Two Humans';
                     console.log(item['title'].split('(')[0].trim());
                     updateMovies.push({'title': item['title'].split('(')[0].trim(),
-                        'position': item['position']
+                        'position': item['position'],
+                        'delta': item['delta']
                     });
                 })
                 done(null);
@@ -69,19 +70,28 @@ exports.updatePosition = function() {
           },
           function (done) {
             //type C
-            if (doc['downItem']) {
-                doc['downItem'].forEach(function(item, index) {
+            if (docs['downItem']) {
+                docs['downItem'].forEach(function(item, index) {
                     if (item['title'] == 'Sunrise (1927)')
                         item['title'] = 'Sunrise: A Song of Two Humans';
                     console.log(item['title'].split('(')[0].trim());
                     updateMovies.push({'title': item['title'].split('(')[0].trim(),
-                        'position': item['position']
+                        'position': item['position'],
+                        'delta': item['delta']
                     });
                 })
                 done(null);
             } else {
                 done(null);
             }
+          },
+          function (done) {
+                dbIMDB.imdb.find({'top': {$lte:250, $gte:1}}, function(err, docs) {
+                        docs.forEach(function(doc, top){
+                            dbIMDB.imdb.update({'title': doc['title']}, {'$unset': {'delta':1}});
+                        });
+                        done(null);
+                });
           },
           function (done) {
             // console.log('\n\nnewMovies: =======> ' + newMovies.length);
@@ -127,9 +137,9 @@ function updatePositionWizard() {
             item['title'] = bar[1] + ' ' + bar[0];
         else if (item['title'] !== 'Lock, Stock and Two Smoking Barrels' && item['title'] !== 'Monsters, Inc.')
             item['title'] = bar[1] + ' ' + bar[0].toLowerCase();
-        var updater = new Updater(item.title.trim(), item.position);
+        var updater = new Updater(item.title.trim(), item.position,'delta', item.delta);
     } else  {
-        var updater = new Updater(item.title.trim(), item.position);
+        var updater = new Updater(item.title.trim(), item.position, 'delta', item.delta);
     }
 
     console.log('Requests Left: ' + updateMovies.length);
