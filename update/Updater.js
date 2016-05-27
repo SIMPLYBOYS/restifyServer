@@ -3,6 +3,7 @@ var cheerio = require('cheerio');
 var util = require('util');
 var config = require('../config');
 var request = require("request");
+var mongojs = require('mongojs');
 var dbIMDB = config.dbIMDB;
 var dbRecord = config.dbRecord;
 var EventEmitter = require('events').EventEmitter;

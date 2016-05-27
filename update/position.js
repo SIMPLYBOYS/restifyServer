@@ -42,6 +42,7 @@ exports.updatePosition = function() {
             //type A 
             if (docs['newItem']) {
                 docs['newItem'].forEach(function(item, index) {
+                    console.log(item['title'] + '-------> creating!');
                      newMovies.push({'title': item['title'].split('(')[0].trim(),
                         'position': item['position']
                      });
@@ -94,25 +95,15 @@ exports.updatePosition = function() {
                 });
           },
           function (done) {
-            // console.log('\n\nnewMovies: =======> ' + newMovies.length);
-            var updateItems = updateMovies.length,
-                newItems = newMovies.length,
-                outItems = outMovies.length;
-
-            console.log('\n\n\n'+JSON.stringify(outMovies) + '\n\n\n');
-
-            for (var i = 0; i < updateItems+1; i++) {
-              updatePositionWizard();
-            }
-
-            for (i = 0; i < newItems+1; i++) {
-              createNewMovieWizard();
-            }
-
-            for (i = 0; i < outItems+1; i++) {
-              removeMovieWizard();
-            }
-
+            updatePositionWizard(done);
+            done(null);
+          },
+          function(done) {
+            createNewMovieWizard(done);
+          },
+          function(done) {
+            removeMovieWizard(done);
+            done(null);
           }
         ], function (err) {
           if (err) console.error(err.stack);
@@ -122,8 +113,9 @@ exports.updatePosition = function() {
     
 };
 
-function updatePositionWizard() {
+function updatePositionWizard(done) {
     if (!updateMovies.length) {
+        done(null);
         return console.log('Done!!!!');
     }
 
@@ -135,8 +127,12 @@ function updatePositionWizard() {
         console.log('\n\n----->' + bar[1] + ' ' + bar[0] + '\n\n');
         if (bar[1].trim() == 'The' || bar[1].trim() == 'A')
             item['title'] = bar[1] + ' ' + bar[0];
-        else if (item['title'] !== 'Lock, Stock and Two Smoking Barrels' && item['title'] !== 'Monsters, Inc.')
-            item['title'] = bar[1] + ' ' + bar[0].toLowerCase();
+        else if (item['title'] !== 'Lock, Stock and Two Smoking Barrels' && item['title'] !== 'Monsters, Inc.') {
+            if (bar[1].trim() == 'La' && bar[0].trim() == 'Battaglia di Algeri')
+                item['title'] = 'La battaglia di Algeri';
+            else
+                item['title'] = bar[1] + ' ' + bar[0].toLowerCase();
+        }
         var updater = new Updater(item.title.trim(), item.position,'delta', item.delta);
     } else  {
         var updater = new Updater(item.title.trim(), item.position, 'delta', item.delta);
@@ -145,18 +141,19 @@ function updatePositionWizard() {
     console.log('Requests Left: ' + updateMovies.length);
     updater.on('error', function (error) {
       console.log(error);
-      updatePositionWizard();
+      updatePositionWizard(done);
     });
 
     updater.on('complete', function (listing) {
         // console.log(listing);
         console.log(listing + ' got complete!');
-        updatePositionWizard();
+        updatePositionWizard(done);
     });
 }
 
-function createNewMovieWizard() {
+function createNewMovieWizard(done) {
     if (!newMovies.length) {
+        done(null);
         return console.log('Done!!!!');
     }
     console.log('newMovies: '+ newMovies);
@@ -165,6 +162,8 @@ function createNewMovieWizard() {
         var bar = item['title'].split(',');
         console.log('\n\n----->' + bar[1] + ' ' + bar[0] + '\n\n');
         item['title'] = bar[1] + ' ' + bar[0];
+        if (item['title'].indexOf('Paris'))
+            item['title'] = 'Paris, Texas';
         var creater = new Creater(item.title.trim(), item.position);
     } else {
         var creater = new Creater(item.title, item.position);
@@ -173,17 +172,17 @@ function createNewMovieWizard() {
     console.log('Requests Left: ' + newMovies.length);
     creater.on('error', function (error) {
       console.log(error);
-      createNewMovieWizard();
+      createNewMovieWizard(done);
     });
 
     creater.on('complete', function (listing) {
         // console.log(listing);
         console.log(listing + ' got complete!');
-        createNewMovieWizard();
+        createNewMovieWizard(done);
     });
 }
 
-function removeMovieWizard() {
+function removeMovieWizard(done) {
     if (!outMovies.length)
         return console.log('Done!!!!');
 
@@ -193,12 +192,12 @@ function removeMovieWizard() {
 
     remover.on('error', function (error) {
       console.log(error);
-      removeMovieWizard();
+      removeMovieWizard(done);
     });
 
     remover.on('complete', function (listing) {
         // console.log(listing);
         console.log(listing + ' be moved complete!');
-        removeMovieWizard();
+        removeMovieWizard(done);
     });
 }
