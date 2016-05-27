@@ -45,6 +45,8 @@ Creater.prototype.updateMovie = function () {
   var that = this;
   if (that['title'] == 'Дети небес')
     that['title'] = 'Bacheha-Ye aseman';
+  else if (that['title'] = 'Texas Paris')
+    that['title'] = 'Paris, Texas';
 
   dbIMDB.imdb.findOne({'title': that['title']}, function(err, doc) {
 
@@ -102,7 +104,8 @@ Creater.prototype.createMovie = function () {
         console.log('\n\n-------- 2016 0520 title --------- : ' + $(title[that.position-1]).text() + '\n' + that.title);
         if (that.title == 'Дети небес')
             that.title = 'Bacheha-Ye aseman'
-        
+        else if (that.title = 'Texas Paris')
+            that.title = 'Paris, Texas'
 
         dbIMDB.imdb.insert({
             'top': parseInt(that.position), 
@@ -403,8 +406,8 @@ Creater.prototype.createMovie = function () {
                     }
                 }
 
-                dbRecord.records.find({'title': doc['title']}).forEach(function(err, movie) {
-                    dbRecord.records.update({'title': movie['title']}, {'$set': {'records': records}});
+                dbRecord.records.findOne({'title': doc['title']}, function(err, doc) {
+                    dbRecord.records.update({'title': doc['title']}, {'$set': {'records': records}});
                     done(null);
                 });
             });
