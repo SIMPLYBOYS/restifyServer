@@ -67,7 +67,7 @@ MovieInformer.prototype.init = function () {
         self.dbIMDB.imdb.update({'title': self.title}, {'$set': {'releaseDate': parseInt(info['releaseDate'])
           }
         });
-        self.dbIMDB.imdb.update({'title': self.title}, {'$set': {'year': 2016
+        self.dbIMDB.imdb.update({'title': self.title}, {'$set': {'year': parseInt(info['year'])
           }
         });
         if (self.done)
