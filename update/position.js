@@ -96,14 +96,12 @@ exports.updatePosition = function() {
           },
           function (done) {
             updatePositionWizard(done);
-            done(null);
           },
           function(done) {
             createNewMovieWizard(done);
           },
           function(done) {
             removeMovieWizard(done);
-            done(null);
           }
         ], function (err) {
           if (err) console.error(err.stack);
@@ -187,8 +185,10 @@ function removeMovieWizard(done) {
         return console.log('Done!!!!');
 
     var item = outMovies.pop();
+    
+    if (item['title'] == 'La Dolce vita')
+        item['title'] = 'La dolce vita';
     var remover = new Remover(item.title, item.position);
-    // console.log('item ' + item + ' will be removed in top 250');
 
     remover.on('error', function (error) {
       console.log(error);
@@ -196,7 +196,6 @@ function removeMovieWizard(done) {
     });
 
     remover.on('complete', function (listing) {
-        // console.log(listing);
         console.log(listing + ' be moved complete!');
         removeMovieWizard(done);
     });

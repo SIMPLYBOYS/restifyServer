@@ -148,22 +148,26 @@ async.series([
   //send message to GCM server
   function (done) {
     var message = {
-        'In': today['inList'][0]['item'],
-        'Out': today['outList'][0]['item'],
+        'In': today['inList'].length > 0 ? today['inList'][0]['item'] : [],
+        'Out': today['outList'].length > 0 ? today['outList'][0]['item'] : [],
         'Up': [],
         'Down': []
     };
 
     Obj['upItem'].forEach(function(item, index) {
         console.log(item);
-        var str = '【'+ item['position'] +'】'+ ' ' + item['title'] + '\n';
-        message.Up.push(str);
+        if (index < 5) {
+            var str = '【'+ item['position'] +'】'+ ' ' + item['title'] + '\n';
+            message.Up.push(str);
+        }
     });
 
     Obj['downItem'].forEach(function(item, index) {
         console.log(item);
-        var str = '【'+ item['position'] +'】'+ ' ' + item['title'] + '\n';
-        message.Down.push(str);
+        if (index < 5) {
+            var str = '【'+ item['position'] +'】'+ ' ' + item['title'] + '\n';
+            message.Down.push(str);
+        }
     });
 
     Post.gcmTopic(message, done);
