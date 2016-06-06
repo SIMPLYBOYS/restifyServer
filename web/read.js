@@ -108,6 +108,7 @@ exports.monthList = function(req, res, next) {
     var count = 0;
     var limit = 12;
     var List = [];
+    var foo = {'contents': ''};
     async.whilst(
         function () { return count < limit; },
         function (callback) {
@@ -128,7 +129,8 @@ exports.monthList = function(req, res, next) {
         },
         function (err, results) {
             console.log('results ===>' + List);
-            res.end(JSON.stringify(List));
+            foo['contents'] = List;
+            res.end(JSON.stringify(foo));
         }
     );
 };
