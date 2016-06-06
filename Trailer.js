@@ -2,16 +2,18 @@ var http = require('http');
 var cheerio = require('cheerio');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
+var config = require('./config');
+var dbIMDB = config.dbIMDB;
 var STATUS_CODES = http.STATUS_CODES;
 /*
  * Scraper Constructor
 **/
-function Trailer (title, youtube, dbIMDB, done) {
+function Trailer (title, youtube, innerCount, innerallback) {
     this.title = title;
     this.youtube = youtube;
-    this.dbIMDB = dbIMDB;
+    this.count = innerCount;
+    this.done = innerallback;
     this.init();
-    this.done = done;
 }
 /*
  * Make it an EventEmitter
@@ -26,7 +28,7 @@ Trailer.prototype.init = function () {
     console.log('init trailer!');
     self.on('finish', function (trailerUrl) {
         console.log(trailerUrl);
-        self.dbIMDB.imdb.update({'title': self.title}, {'$set': {'trailerUrl': trailerUrl}
+        dbIMDB.imdb.update({'title': self.title}, {'$set': {'trailerUrl': trailerUrl}
         }, function(){
           if (self.done)
           self.done(null);
