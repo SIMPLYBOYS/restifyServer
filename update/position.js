@@ -15,12 +15,17 @@ var outMovies = [];
 exports.updatePosition = function() {
     console.log(moment().format('l'));
     dbToday.today.find({date: moment().format('l')}, function(err, docs) {
+        
+        if (docs.length == 0)
+            return;
         // console.log(docs[0]['outList']);
         if (docs[0]['outList']) {
             docs[0]['outList'].forEach(function(movie, index) {
                  if (movie['item'].indexOf(',') !== -1) {
                     var bar = movie['item'].trim().split(',');
                     movie['item'] = bar[1].split('(')[0] + bar[0];
+                    if (movie['item'].indexOf('Paris'))
+                        movie['item'] = 'Paris, Texas';
                     outMovies.push({'title': movie['item'].trim()});
                  } else {
                     outMovies.push({'title': movie['item'].split('(')[0].trim()});
@@ -33,8 +38,10 @@ exports.updatePosition = function() {
         
         docs = docs[0];
         
-        if (!docs)
-            res.end('fail and finished!!');
+        if (!docs) {
+            console.log('docs not found!');
+            return;
+        }
 
         async.series([
           function (done) {
@@ -188,6 +195,7 @@ function removeMovieWizard(done) {
     
     if (item['title'] == 'La Dolce vita')
         item['title'] = 'La dolce vita';
+
     var remover = new Remover(item.title, item.position);
 
     remover.on('error', function (error) {

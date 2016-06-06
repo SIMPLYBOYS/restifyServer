@@ -120,7 +120,7 @@ Creater.prototype.createMovie = function () {
     console.log('\n\n-------- 2016 0520 step2 --------- ' + that.title );
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
         if (doc) {
-            new MovieInfomer(that.title, myapiToken, dbIMDB, done);
+            new MovieInfomer(that.title, myapiToken, 0, done);
         } else {
             console.log(that.title + ' not found!');
             done(null);
@@ -294,8 +294,9 @@ Creater.prototype.createMovie = function () {
                         var url = $('.photo img')[0];
                         console.log(doc['top']+':');
                         console.log(url['attribs']['src']);
-                        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': url['attribs']['src']}});
-                        done(null);
+                        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': url['attribs']['src']}}, function() {
+                            done(null);
+                        });
                 });       
             } else {
                 console.log(that.title + ' not found!');
@@ -326,7 +327,7 @@ Creater.prototype.createMovie = function () {
     console.log('\n\n-------- 2016 0520 step8 --------- ' + that.title );
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
         if (doc) {
-            new Trailer(that.title, youTube, dbIMDB, done);
+            new Trailer(that.title, youTube, 0, done);
         } else {
             console.log(that.title + ' not found!');
             done(null);
@@ -403,8 +404,9 @@ Creater.prototype.createMovie = function () {
                 }
 
                 dbRecord.records.findOne({'title': doc['title']}, function(err, doc) {
-                    dbRecord.records.update({'title': doc['title']}, {'$set': {'records': records}});
-                    done(null);
+                    dbRecord.records.update({'title': doc['title']}, {'$set': {'records': records}}, function() {
+                        done(null);
+                    });
                 });
             });
         } else {
