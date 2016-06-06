@@ -33,12 +33,12 @@ exports.db = mysql.createConnection({
 exports.port = 80;
 
 // update record
-exports.recordUpdate = '5 10 7 * * *';  
+exports.recordUpdate = '5 15 7 * * *';  
 
-exports.positionUpdate = '5 15 7 * * *';
+exports.positionUpdate = '5 10 7 * * *';
 
-exports.upcomingUpdate = '5 10 8 * * *';
+exports.upcomingUpdate = '5 10 10 * * *';
 
-exports.fullrecordUpdate = '10 30 7 * * *'
+exports.fullrecordUpdate = '10 30 8 * * *'
 
 
