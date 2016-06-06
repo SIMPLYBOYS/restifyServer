@@ -41,4 +41,3 @@ exports.upcomingUpdate = '5 10 8 * * *';
 
 exports.fullrecordUpdate = '10 30 7 * * *'
 
-
