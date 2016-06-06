@@ -39,5 +39,5 @@ exports.positionUpdate = '5 15 7 * * *';
 
 exports.upcomingUpdate = '5 10 8 * * *';
 
-exports.fullrecordUpdate = '10 30 7 * * *'
+exports.fullrecordUpdate = '10 30 7 * * *';
 
