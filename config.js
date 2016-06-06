@@ -30,14 +30,15 @@ exports.db = mysql.createConnection({
 });*/
 
 // Web服务器端口
-exports.port = 3000;
+exports.port = 80;
 
 // update record
-exports.recordUpdate = '4 34 2 * * *';  
+exports.recordUpdate = '5 10 7 * * *';  
 
-exports.positionUpdate = '25 24 1 * * *';
-// exports.positionUpdate = '*/5 * * * * *';
+exports.positionUpdate = '5 15 7 * * *';
 
-exports.fullrecordUpdate = '40 32 23 * * *'
+exports.upcomingUpdate = '5 10 8 * * *';
+
+exports.fullrecordUpdate = '10 30 7 * * *'
 
 
