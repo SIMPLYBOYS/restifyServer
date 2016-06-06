@@ -22,15 +22,13 @@ var moment = require("moment");
 // var Special = require("./update/special");
 var dbUbike = mongojs('http://52.192.246.11/test', ['ubike']);
 var myapiToken = config.myapiToken;
-var Scraper = require('./crawler/Scraper');
-var upComingScraper = require('./crawler/upComingScraper');
-var upComingGalleryScraper = require('./crawler/upComingGalleryScraper');
 var Trailer = require('./Trailer');
 var MovieInfomer = require('./MovieInfomer');
-var upComingPosterScraper = require('./crawler/upComingPosterScraper');
 var Position = require('./update/position');
 var Record = require('./update/record');
+var upComing = require('./update/upcoming');
 var google = require('google');
+
     
 var server = restify.createServer({
   name: 'myapp',
@@ -48,14 +46,6 @@ var https_options = {
     key: fs.readFileSync('./ssl/restify.pem'), //on current folder
     certificate: fs.readFileSync('./ssl/restifycert.pem')
 };
-
-var upComingPages = [],
-    upComingDetailPages = [],
-    upComingGalleryPages = [],
-    upComingPosterPages = [];
-
-// store all urls in a global variable  
-upComingPages = generateUpComingUrls(10);
 
 /*var https_server = restify.createServer(https_options);
 https_server.use(restify.acceptParser(server.acceptable));
@@ -102,346 +92,6 @@ server.get('/imdb_position', Read.getPosition);
 server.get('/update_imdbPosition', Read.updatePosition);
 
 server.get('/gcm', Post.gcmTopic_t);
-
-function generateUpComingUrls(limit) {
-  var url = 'http://www.imdb.com/movies-coming-soon/2016-';
-  var urls = [];
-  var i;
-  for (i=5; i <= limit; i++) {
-    if (i<10)
-        urls.push(url + '0'+ i + '/');
-    else
-        urls.push(url + i + '/');
-  }
-  return urls;
-}
-
-function generateUpComingDetailUrls(month, callback) {
-    // var galleryUrl = [];
-    dbUpComing.upComing.find({month: month}).forEach(function(err, doc) {
-        if (doc) {
-            // console.log(doc['movies']);
-           for (var i in doc['movies']) {
-                upComingDetailPages.push(doc['movies'][i]['galleryUrl']); 
-                /*console.log(doc['movies'][i]['title']);
-                var foo = doc['movies'][i]['title'];
-                foo = foo.slice(0, foo.length-1);
-                dbIMDB.imdb.find({title: foo}).forEach(function(err, item) {
-                    console.log(item['title']);
-                    console.log(item['readMore']['page']);
-                    galleryUrl.push({page: item['readMore']['page']});
-                });*/
-           }
-           callback(upComingDetailPages);
-        }
-    });
-}
-
-function generateUpComingGalleryUrls(month, callback) {
-    dbUpComing.upComing.find({'month': month}).forEach(function(err, doc) {
-        if (doc) {
-            for (var i in doc['movies']) {   
-                var title = doc['movies'][i]['title'];
-                title = title.slice(0, title.length-1);
-                dbIMDB.imdb.find({title: title}).forEach(function(err, item) {
-                    if (item['gallery_thumbnail'].length >0) {
-                        for (var j in item['gallery_thumbnail']) {
-                            upComingGalleryPages.push(item['gallery_thumbnail'][j]['detailUrl']);
-                        }
-                        callback(upComingGalleryPages);
-                    }
-                });
-            }
-        }    
-    });
-}
-
-function generateUpComingPosterUrls(month, callback) {
-    dbUpComing.upComing.find({'month': month}).forEach(function(err, doc) {
-        if (doc) {
-            for (var i in doc['movies']) {   
-                var title = doc['movies'][i]['title'];
-                title = title.slice(0, title.length-1);
-                console.log('0513 '+title);
-                dbIMDB.imdb.find({title: title}, function(err, item){
-                    if (typeof(item[0]['idIMDB']) == 'undefined')
-                        console.log(item[0]['title']);
-                    // console.log(item[0]['idIMDB']);
-                    upComingPosterPages.push('http://www.imdb.com/title/' + item[0]['idIMDB'] + '/');
-                    callback(upComingPosterPages);
-                });
-            }
-        }    
-    });
-}
-
-function updateUpComingPosterUrls(month, callback) {
-    dbUpComing.upComing.find({'month': month}, function(err, doc){
-        doc = doc[0];
-        if (doc) {
-            for (var i in doc['movies']) { 
-                var title = doc['movies'][i]['title'];
-                title = title.slice(0, title.length-1);
-                dbIMDB.imdb.find({title: title}, function(err, item){
-                    console.log(item[0]['posterUrl']);
-                    if (typeof(item[0]['posterUrl']) != 'undefined') {
-                        upComingPosterPages.push(item[0]['posterUrl']);
-                        callback(upComingPosterPages);
-                    }   
-                });
-            }
-        }
-    });
-}
-
-function generateUpComingTrailerUrls(month, callback) {
-    dbUpComing.upComing.find({'month': month}).forEach(function(err, doc) {
-        if (doc) {
-            for (var i in doc['movies']) {   
-                var title = doc['movies'][i]['title'];
-                console.log(title);
-                title = title.slice(0, title.length-1);
-                new Trailer(title, youTube, dbIMDB);
-            }
-            callback('got trailerUrlsuccessfully');
-            res.end();
-        }    
-    });
-}
-
-function generateUpComingMovieInfo(month, callback) {
-    console.log(month);
-    dbUpComing.upComing.find({'month': month}).forEach(function(err, doc) {
-        if (doc) {
-            for (var i in doc['movies']) {   
-                var title = doc['movies'][i]['title'];
-                console.log(title);
-                title = title.slice(0, title.length-1);
-                new MovieInfomer(title, myapiToken, dbIMDB);
-            }
-            callback('generateUpComingMovieInfo successfully');
-            res.end();
-        }    
-    });
-}
-
-function generateUpComingMovieInfo_t(title, callback) {
-    dbIMDB.imdb.findOne({title: title}, function(err, doc) {
-        if (doc) {
-            new MovieInfomer(title, myapiToken, dbIMDB);
-            callback('generateUpComingMovieInfo successfully');
-            res.end();
-        } else if (!doc) {
-            callback('no doc in imdb database!');
-        }    
-    });
-}
-
-function upComingPosterWizard() {
-
-    if (!upComingPosterPages.length) {
-        return console.log('Done!!!!');
-    }
-
-    var url = upComingPosterPages.pop();
-    console.log(url);
-    var scraper = new upComingPosterScraper(url);
-    console.log('Requests Left: ' + upComingPosterPages.length);
-    scraper.on('error', function (error) {
-      console.log(error);
-      upComingPosterWizard();
-    });
-
-    scraper.on('complete', function (listing) {
-        console.log(listing);
-        console.log('complete!');
-        dbIMDB.imdb.update({'title': listing['title']}, {'$set': {'posterUrl': listing['url']}
-        });
-        /*dbIMDB.imdb.update({'title': listing['title']}, {'$set': {'description': listing['description']}
-        });*/
-        upComingPosterWizard();
-    });
-}
-
-function upComingGalleryWizard() {
-
-    if (!upComingGalleryPages.length) {
-        return console.log('Done!!!!');
-    }
-
-    var url = upComingGalleryPages.pop();
-    console.log(url);
-    var scraper = new upComingGalleryScraper(url);
-    console.log('Requests Left: ' + upComingGalleryPages.length);
-    scraper.on('error', function (error) {
-      console.log(error);
-      upComingGalleryWizard();
-    });
-
-    scraper.on('complete', function (listing) {
-        
-        console.log(listing);
-        console.log('got complete!');
-
-        dbIMDB.imdb.update({'title': listing['title']}, {'$push': {'gallery_full': { type: 'full', url: listing['url']}
-            }
-        });
-
-        upComingGalleryWizard();
-    });
-}
-
-function upComingDetailWizard(month) {
-
-    if (!upComingDetailPages.length) {
-        return console.log('Done!!!!');
-    }
-
-    var url = upComingDetailPages.pop();
-    console.log(url);
-    var scraper = new upComingScraper(url);
-    console.log('Requests Left: ' + upComingDetailPages.length);
-    scraper.on('error', function (error) {
-      console.log(error);
-      upComingDetailWizard(month);
-    });
-
-    scraper.on('complete', function (listing) {
-
-        /*dbIMDB.imdb.insert({
-            title: listing['title']
-        })*/
-
-        console.log(listing);
-        console.log('got complete!');
-
-        dbIMDB.imdb.find({title: listing['title']}).forEach(function(err, doc) {
-            dbIMDB.imdb.update({'title': listing['title']}, {'$set': {'gallery_thumbnail': listing['picturesUrl']}});
-            // dbIMDB.imdb.update({'title': listing['title']}, {'$set': {'readMore': listing}});
-        });
-
-        upComingDetailWizard(month);
-    });
-}
-
-function upComingWizard() {
-  // if the Pages array is empty, we are Done!!
-  if (!upComingPages.length) {
-    return console.log('Done!!!!');
-  }
-  var url = upComingPages.pop();
-  var scraper = new Scraper(url);
-  console.log('Requests Left: ' + upComingPages.length);
-  // if the error occurs we still want to create our
-  // next request
-  scraper.on('error', function (error) {
-    console.log(error);
-    upComingWizard();
-  });
-
-  // if the request completed successfully
-  // we want to store the results in our database
-  scraper.on('complete', function (listing) {
-    // console.log(listing['groups'][0]['month'].split(' ')[0]);
-    var month = listing['groups'][0]['month'].split(' ')[0];
-    dbUpComing.upComing.insert({
-        month: month
-    })
-    
-    dbUpComing.upComing.find({'month': month}).forEach(function(err, doc){
-        dbUpComing.upComing.update({'month': month}, {'$set': {'movies': listing['movies']}})
-    });
-    
-    // dbUpComing.upComing.insert()
-    console.log('got complete!');
-    upComingWizard();
-  });
-}
-
-server.get('/create_upComing', function(req, res, next) {
-    var numberOfParallelRequests = 20;
-    for (var i = 0; i < numberOfParallelRequests; i++) {
-      upComingWizard();
-    }
-    res.end();
-});
-
-
-server.get('/create_upComing_detail', function(req, res, next) {
-    generateUpComingDetailUrls(req.params.month, function(urls) {
-        var numberOfParallelRequests = 5;
-        for (var i = 0; i < numberOfParallelRequests; i++) {
-          upComingDetailWizard(req.params.month);
-        }
-    });
-    res.end();
-});
-
-server.get('/create_upComing_gallery_full', function(req, res, next) {
-    var count=0;
-    generateUpComingGalleryUrls(req.params.month, function(urls) {
-        var numberOfParallelRequests = 5;
-        console.log(urls.length);
-        console.log('count: ' + count);
-        count++;
-        for (var i = 0; i < numberOfParallelRequests; i++) {
-          upComingGalleryWizard();
-        }
-    });
-    res.end();
-});
-
-server.get('/create_upComing_trailerUrl', function(req, res, next) {
-    var count=0;
-    generateUpComingTrailerUrls(req.params.month, function(result) {
-        count++;
-        console.log('count: ' + count);
-        console.log(result);
-    });
-    res.end();
-});
-
-server.get('/create_upComing_PosterUrl', function(req, res, next) {
-    //------ Step1 ------//
-    /*generateUpComingPosterUrls(req.query.month, function(urls) {
-        var numberOfParallelRequests = 5;
-        for (var i=0; i< numberOfParallelRequests; i++) {
-            upComingPosterWizard();
-        }
-    });*/
-
-    //------ Step2 ------//
-    updateUpComingPosterUrls(req.query.month, function(urls) {
-        var numberOfParallelRequests = 5;
-        // console.log(urls);
-        for (var i=0; i< numberOfParallelRequests; i++) {
-            upComingPosterWizard();
-        }
-    })
-    res.end();
-});
-
-server.get('/create_upComing_movieInfo', function(req, res, next) {
-    /*console.log("month: " + req.query.month);
-    generateUpComingMovieInfo(req.query.month, function(result) {
-        console.log(result);
-    });*/
-    generateUpComingMovieInfo_t(req.query.title, function(result) {
-        console.log(result);
-    });
-    res.end();
-});
-
-/*server.get('insert_data', function(req, res, next){
-    obj = {"top":194,"title":"Ben-Hur","year":"1959","posterUrl":"http://ia.media-imdb.com/images/M/MV5BNjg2NjA3NDY2OV5BMl5BanBnXkFtZTgwNzE3NTkxMTE@._V1_SX640_SY720_.jpg","rating":"8.1","description":"William Wyler (dir.), Charlton Heston, Jack Hawkins","detailUrl":"http://www.imdb.com/title/tt0052618/?pf_rd_m=A2FGELUUNOQJNL&pf_rd_p=2398042102&pf_rd_r=18ZPYK4SHEX54X7RBWDS&pf_rd_s=center-1&pf_rd_t=15506&pf_rd_i=top&ref_=chttp_tt_194","detailContent":{"poster":"http://ia.media-imdb.com/images/M/MV5BNjg2NjA3NDY2OV5BMl5BanBnXkFtZTgwNzE3NTkxMTE@._V1_UX182_CR0,0,182,268_AL_.jpg","summery":"When a Jewish prince is betrayed and sent into slavery by a Roman friend, he regains his freedom and comes back for revenge.","country":"USA"},"trailerUrl":"https://www.youtube.com/watch?v=LlzfqVtmxVA","readMore":{"url":"http://www.imdb.com/title/tt0052618/mediaindex?ref_=tt_pv_mi_sm","page":2},"gallery_full":[{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTQ4NDQzNTYzNV5BMl5BanBnXkFtZTYwMDE4Mjk5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMDQyN2NlYWYtNjUxZi00ZWZkLTllZTItNmFiM2Y1Mjk3NThiXkEyXkFqcGdeQXVyNjUwNzk3NDc@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTQ4NTE2MzUxNV5BMl5BanBnXkFtZTcwOTM1MzUxMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BOTQ4NDA0NjE5MF5BMl5BanBnXkFtZTcwNzAyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BYTE3ZTY4YWEtMTIzYS00OGI0LWFkNjktMzEwYjI3YWM3ZDkyXkEyXkFqcGdeQXVyNjUwNzk3NDc@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNGZmMjI0MGItZmM2Mi00ZWM3LWEyNGEtNzAwMmNjZmUxMDRiXkEyXkFqcGdeQXVyMDUyOTUyNQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNTAwODU3NzgxMl5BMl5BanBnXkFtZTcwMzk3OTIyNw@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTUyMzI2NDI4Nl5BMl5BanBnXkFtZTcwNDIyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNTAyMTk3NTA1N15BMl5BanBnXkFtZTcwMjIyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTAzNzU0MTc3NTJeQTJeQWpwZ15BbWU3MDI4MjU0OTY@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMjExMTE5NTc5MF5BMl5BanBnXkFtZTcwNzg3NjAyMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BODA2MzI4OGQtYWNkNi00MThjLWJjMzItMDMwNzFhMWRmODk2XkEyXkFqcGdeQXVyMDI2NDg0NQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTkwNzAxOTQwOF5BMl5BanBnXkFtZTYwNjg0MjU5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNjYxMTE1NDEtN2QwMS00YjE1LTk3NGItYWNiM2IwYTViYjNiXkEyXkFqcGdeQXVyNjUwNzk3NDc@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTI0ODU3NTM3M15BMl5BanBnXkFtZTYwMTE4Mjk5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNzk0NDYxNTgzNV5BMl5BanBnXkFtZTcwNTIyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTk1OTU2NjQ1NV5BMl5BanBnXkFtZTcwOTEyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTc4MTY4MzMzNF5BMl5BanBnXkFtZTYwMDE4MDU5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMjI2NTQ2NzEwNF5BMl5BanBnXkFtZTcwNDEyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNjg2NjA3NDY2OV5BMl5BanBnXkFtZTgwNzE3NTkxMTE@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTUzNTI0NDA4NV5BMl5BanBnXkFtZTcwMTgyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMzYwNTMwNDAyNl5BMl5BanBnXkFtZTYwNjQ4ODM5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTUyMjM1MDM1Ml5BMl5BanBnXkFtZTcwMjgyMDIyMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BODU2NDM0MDU5Nl5BMl5BanBnXkFtZTYwMDk4NDc5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMjE0NzAwOTA1OV5BMl5BanBnXkFtZTcwMzEyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMjAxOTEzMTI0Ml5BMl5BanBnXkFtZTcwMDIyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTY5OTk4Nzg5MF5BMl5BanBnXkFtZTcwNTAyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTkwMTUzOTA2Ml5BMl5BanBnXkFtZTcwNjkzMzE2MQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTIxNDU1NzEyNl5BMl5BanBnXkFtZTcwNDEzMzEzMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BZDgzY2QyNTQtMDVmZC00MjFhLTgwMjMtNGZjNDY4YTJiOGI5XkEyXkFqcGdeQXVyNTIzOTk5ODM@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTc1ODc2MDI4M15BMl5BanBnXkFtZTcwMjg3NjcyMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTI3NTM3ODA4OV5BMl5BanBnXkFtZTcwMzM0MjEzMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTM3OTkxODQ3OF5BMl5BanBnXkFtZTcwMzIyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTY4NzUxNzg3NV5BMl5BanBnXkFtZTYwMzQwODI5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNDc0MTEwNjY5OV5BMl5BanBnXkFtZTYwOTA4Mjk5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTYwMTI2NDk4M15BMl5BanBnXkFtZTcwNDc0NzIxOQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BODkxOTc0MzU0Ml5BMl5BanBnXkFtZTcwNTgwNjEyMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTc4NzgyNDI1OV5BMl5BanBnXkFtZTYwMDg3NDY5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTk1NDk1MTEwNl5BMl5BanBnXkFtZTYwOTUyMjU5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMjEyNjMzOTk2OF5BMl5BanBnXkFtZTYwNTYxMzY5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTI0NjE4ODQzNl5BMl5BanBnXkFtZTcwMzQwODAzMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNzQyOTQ0ODk2NF5BMl5BanBnXkFtZTcwNTkwOTI3MQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNzVmZDhjMDItMTYxNi00N2YzLTllMmEtMmI4OWNjNTQwNTY2XkEyXkFqcGdeQXVyMDUyOTUyNQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNDI5Mjk2NTk1OF5BMl5BanBnXkFtZTcwNzU2ODU1NQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTI2NzAzNTU0MF5BMl5BanBnXkFtZTcwMzM3NTEyMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTQ1NjUyMTMwMF5BMl5BanBnXkFtZTcwMjk3OTIyNw@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BZTEwNmEwZTEtNjAyYi00YmU1LWJmOTUtYzIxZmNkOTliYjY1XkEyXkFqcGdeQXVyMDI2NDg0NQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNTU3MTg2NDgzMF5BMl5BanBnXkFtZTYwMTE2Mjk4._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTA5NzEzMDEzMzReQTJeQWpwZ15BbWU3MDI3MDEwMzE@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTQzNDk2NjI1NV5BMl5BanBnXkFtZTcwNjU1NTgxMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BODA1NDQzNTM3MF5BMl5BanBnXkFtZTcwMDgyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMzAxODA1MTE5Ml5BMl5BanBnXkFtZTYwODA4Mjk5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTAyNjk2OTc4MzheQTJeQWpwZ15BbWU3MDcxODEwMjE@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMjEzMDEwMjI0OV5BMl5BanBnXkFtZTYwMDU5NTE5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTk4NzAyMDU5Ml5BMl5BanBnXkFtZTcwMzgyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTg1MzYzMzU0OV5BMl5BanBnXkFtZTcwNTU3NDcyMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMjAyNjc3MDg4Nl5BMl5BanBnXkFtZTYwMTk3Njg4._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BZThjZTdhM2UtNzNkYS00MGMzLWE0OTEtZjFjNWE0ZjY2NDMyXkEyXkFqcGdeQXVyMDI2NDg0NQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTgyODk1MzIxNl5BMl5BanBnXkFtZTYwNzA4Mjk5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTI3MDEyOTQwN15BMl5BanBnXkFtZTYwMDI5NTU5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTg3NTQ1NDk0OF5BMl5BanBnXkFtZTcwNzcyNTMyMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTY2MDc4NDM0MV5BMl5BanBnXkFtZTcwMzkxMjUxMw@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMzgyMjgwMzcyM15BMl5BanBnXkFtZTYwNjI2ODM5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMzEwMjkxMGYtNmIxOS00OWE0LThlZWItZmRmZmZkNTE2OWM4XkEyXkFqcGdeQXVyMDI2NDg0NQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BNTA4NTY4Nzg1N15BMl5BanBnXkFtZTYwMTI5NTU5._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTcxMDIxMTYzOV5BMl5BanBnXkFtZTcwMTEwNDEzMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMGM4ZTcyMTUtN2I1Yi00MDUyLWE3NTgtYmNlZDRlNzE4ZGNkXkEyXkFqcGdeQXVyNjUwNzk3NDc@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTQyMjU4NjU3N15BMl5BanBnXkFtZTcwODEyNTQ5Ng@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMjEyNjUwNzk4Ml5BMl5BanBnXkFtZTcwMDcxNDkyMQ@@._V1_SX640_SY720_.jpg"},{"type":"full","url":"http://ia.media-imdb.com/images/M/MV5BMTc1MjU4NDYwM15BMl5BanBnXkFtZTcwNDk3OTIyNw@@._V1_SX640_SY720_.jpg"}],"plot":"A falsely accused Jewish nobleman survives years of slavery to take vengeance on his Roman best friend, who betrayed him.","genres":["Adventure","Drama","History"],"votes":"","directors":[{"name":"Timur Bekmambetov","id":"nm0067457"}],"writers":[{"name":"Lew Wallace","id":"nm0908753"},{"name":"Keith R. Clarke","id":"nm0164851"}],"runtime":"","metascore":null,"idIMDB":"tt2638144"}
-    dbIMDB.imdb.insert(obj, function(err, doc){
-        if (err)
-            return;
-        console.log('success insert data!');
-        res.send('success!');
-        res.end();
-    })
-});*/
 
 server.get('insert_imdb_plot', function(req, res, next) {
     var titleUrl, count = parseInt(req.query.to) - parseInt(req.query.from) + 1;
@@ -1330,13 +980,7 @@ server.get('/create_ubike_nTaipei', function(req, res, next) {
     Special.special(req, res);
 });*/
 
-var job1 = new cronJob('*/5 * * * * *', function(){
-    console.log('execute in every 13:18 pm from Monday to Sunday');
-});
-
-// job1.start();
-
-var job2 = new cronJob(config.recordUpdate, function () {
+var job_recordUpdate = new cronJob(config.recordUpdate, function () {
   console.log('开始执行定时更新任务');
   var update = spawn(process.execPath, [localPath.resolve(__dirname, 'update/all.js')]);
   update.stdout.pipe(process.stdout);
@@ -1344,27 +988,30 @@ var job2 = new cronJob(config.recordUpdate, function () {
   update.on('close', function (code) {
     console.log('finish jobs，code=%d', code);
   });
-  
   /*var special = spawn(process.execPath, [localPath.resolve(__dirname, 'update/special.js')]);
   special.stdout.pipe(process.stdout);
   special.stderr.pipe(process.stderr);
   special.on('close', function (code) {
     console.log('finish jobs，code=%d', code);
   });*/
-
 });
 
-var job3 = new cronJob(config.positionUpdate, function() {
+var job_positionUpdate = new cronJob(config.positionUpdate, function() {
     Position.updatePosition();
 });
 
-var job4 = new cronJob(config.fullrecordUpdate, function() {
+var job_fullrecordUpdate = new cronJob(config.fullrecordUpdate, function() {
     Record.updateRecord();
 });
 
-job2.start();
-job3.start();
-job4.start();
+var job_upcomingUpdate = new cronJob(config.upcomingUpdate, function() {
+    upComing.updateupComing();
+});
+
+job_recordUpdate.start();
+job_positionUpdate.start();
+job_fullrecordUpdate.start();
+job_upcomingUpdate.start();
  
 server.listen(config.port, function () {
   console.log('%s listening at %s', server.name, server.url);
