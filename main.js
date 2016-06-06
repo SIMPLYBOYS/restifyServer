@@ -77,6 +77,8 @@ server.get('/google', Read.google);
 
 server.get('/upComing', Read.upComing);
 
+server.get('/monthList', Read.monthList);
+
 server.get('/myapi', Read.myapi);
 
 server.get('/imdb_records', Read.getRecords);

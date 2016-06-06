@@ -10,7 +10,22 @@ var google = require('google');
 var request = require("request");
 var async = require('async');
 var moment = require("moment");
+var async = require('async');
 var updateMovies = [];
+var monthList = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+    ];
 
 exports.read = function (req, res, next) {
     console.log('from: '+ req.query.from +'\n to: ' + req.query.to + '\n title: ' + req.query.title);
@@ -87,6 +102,35 @@ exports.upComing = function(req, res, next) {
         res.send('please insert query month');
         res.end();
     }    
+};
+
+exports.monthList = function(req, res, next) {
+    var count = 0;
+    var limit = 12;
+    var List = [];
+    async.whilst(
+        function () { return count < limit; },
+        function (callback) {
+            // console.log(monthList[count]);
+            dbUpComing.upComing.findOne({'month': monthList[count]}, function(err, doc) {
+                if (doc) {
+                    console.log('month ' + monthList[count] + ' : ' + doc['movies'].length);
+                    List.push(doc['movies'].length);
+                    count++;
+                    callback(null, count);
+                } else {
+                    console.log('something wrong with the docs in month: ' + monthList[count]);
+                    List.push(0);
+                    count++;
+                    callback(null, count);
+                }
+            });             
+        },
+        function (err, results) {
+            console.log('results ===>' + List);
+            res.end(JSON.stringify(List));
+        }
+    );
 };
 
 exports.getTitle = function(req, res) {
