@@ -22,8 +22,8 @@ var upComingGalleryPages = [];
 var upComingThumbnailPages = [];
 var upComingPosterPages = [];
 var upComingPosterImageObjs = [];
-var limit = 9;
-var start = 5;
+var start = parseInt(moment().format('M'));
+var limit = start + 4;
 var monthList = [
         "January",
         "February",
@@ -440,6 +440,7 @@ function upComingDetailWizard(done) {
         } else {
             dbIMDB.imdb.findOne({title: listing['title']}, function(err, doc) {
                 if (!doc) {
+                    console.log('\n\nfirst insert doc ----> ' + listing['title']);
                     dbIMDB.imdb.insert({ title: listing['title']}, function(err, doc) {
                         dbIMDB.imdb.update({'title': listing['title']}, {'$set': {'readMore': listing}}, function(err, doc) {
                             upComingDetailWizard(done);

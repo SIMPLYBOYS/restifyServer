@@ -13,18 +13,18 @@ var moment = require("moment");
 var async = require('async');
 var updateMovies = [];
 var monthList = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December"
+        {start: '0101', end: '0131'},
+        {start: '0201', end: '0228'},
+        {start: '0301', end: '0331'},
+        {start: '0401', end: '0430'},
+        {start: '0501', end: '0531'},
+        {start: '0601', end: '0630'},
+        {start: '0701', end: '0731'},
+        {start: '0801', end: '0831'},
+        {start: '0901', end: '0930'},
+        {start: '1001', end: '1031'},
+        {start: '1101', end: '1130'},
+        {start: '1201', end: '1231'}
     ];
 
 exports.read = function (req, res, next) {
@@ -105,27 +105,28 @@ exports.upComing = function(req, res, next) {
 };
 
 exports.monthList = function(req, res, next) {
-    var count = 0;
-    var limit = 12;
+    var count = 1;
+    var limit = 13;
     var List = [];
     var foo = {'contents': ''};
     async.whilst(
         function () { return count < limit; },
         function (callback) {
-            // console.log(monthList[count]);
-            dbUpComing.upComing.findOne({'month': monthList[count]}, function(err, doc) {
-                if (doc) {
-                    console.log('month ' + monthList[count] + ' : ' + doc['movies'].length);
-                    List.push(doc['movies'].length);
-                    count++;
-                    callback(null, count);
-                } else {
-                    console.log('something wrong with the docs in month: ' + monthList[count]);
-                    List.push(0);
-                    count++;
-                    callback(null, count);
-                }
-            });             
+            var year = moment().format('YYYY');
+            dbIMDB.imdb.find({releaseDate: {$gte: parseInt(year + monthList[count-1]['start']), 
+                $lte: parseInt(year + monthList[count-1]['end'])}}).sort({'releaseDate': 1},
+                function(err, doc){
+                    if (doc) {
+                        List.push(doc.length);
+                        count++;
+                        callback(null, count);
+                    } else {
+                        console.log('something wrong with the docs in month: ' + monthList[count-1]['start']);
+                        List.push(0);
+                        count++;
+                        callback(null, count);
+                    }
+                });         
         },
         function (err, results) {
             console.log('results ===>' + List);
