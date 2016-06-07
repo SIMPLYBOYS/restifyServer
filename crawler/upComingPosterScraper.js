@@ -64,10 +64,11 @@ upComingPosterScraper.prototype.parseJSON = function (json) {
     var url;
     var title;
     json.forEach(function(item, index){
-      console.log(item['src'].indexOf(that.hash));
+      // console.log(item);
+      // console.log(item['src'].indexOf(that.hash));
       if (item['src'].indexOf(that.hash) != -1) {
         url = item['src'];
-        title = item['altText'].split('(')[0].trim()
+        title = item['relatedTitles'][0]['displayName']
       }
     });
 
