@@ -43,7 +43,7 @@ youTube.setKey(config.YouTubeKey);
 
 exports.updateupComing = function() {
     async.series([
-        /*function(done) {
+        function(done) {
              var url = 'http://www.imdb.com/movies-coming-soon/2016-';
              var i;
              for (i=start; i <= limit; i++) {
@@ -61,16 +61,16 @@ exports.updateupComing = function() {
         upComingThumbnailWizard,
         prepareGalleryPages,
         upComingGalleryWizard,
-        generateUpComingMovieInfo,*/
+        generateUpComingTrailerUrls,
+        generateUpComingMovieInfo,
         generateUpComingPosterPages,
         upComingDescriptionWizard,
         prepareUpComingPosterUrls,
-        upComingPosterWizard/*,
-        generateUpComingTrailerUrls*/
+        upComingPosterWizard
     ],
     function (err) {
         if (err) console.error(err.stack);
-          console.log('all finished!!');
+          console.log('All steps for upComing movies are finished!!');
     });
 };
 
@@ -111,10 +111,10 @@ function prepareThumbnailPages(done) {
                     async.whilst(
                         function() { return InnerCount < doc['movies'].length},
                         function(innercallback) {
-                            var foo = doc['movies'][InnerCount]['title'];
-                            foo = foo.slice(0, foo.length-1);
-                            if (foo == 'Ben-Hur') {
-                                dbIMDB.imdb.findOne({_id: mongojs.ObjectId('5705057233c8ea8e13b62488')}, function(err, item) {
+                            var title = doc['movies'][InnerCount]['title'];
+                            title = title.slice(0, title.length-1);
+                            if (title == 'Ben-Hur') {
+                                dbIMDB.imdb.findOne({'_id': mongojs.ObjectId('5705057233c8ea8e13b62488')}, function(err, item) {
                                     if (err) 
                                         console.log(err);
                                     else {
@@ -128,7 +128,7 @@ function prepareThumbnailPages(done) {
                                     }
                                 });
                             } else {
-                                dbIMDB.imdb.findOne({title: foo}, function(err, item) {
+                                dbIMDB.imdb.findOne({'title': title}, function(err, item) {
                                     for (var j=1; j<=item['readMore']['page']; j++) {
                                         var bar = item['readMore']['url'].split('?');
                                         var url = bar[0] + '?page=' +j+'&'+bar[1];
@@ -171,23 +171,39 @@ function prepareGalleryPages(done) {
                             var title = doc['movies'][innerCount]['title'];
                             title = title.slice(0, title.length-1);
                             console.log('title: ' + title);
-                            dbIMDB.imdb.findOne({title: title}, function(err, item) {
 
-                                console.log(upComingGalleryPages.length);
-                                console.log(item.hasOwnProperty('gallery_thumbnail'));
-
-                                if (!item.hasOwnProperty('gallery_thumbnail')) {
-                                    console.log('---- skip the film without any thumbnail!! -----');
-                                    innerCount++;
-                                    innercallback(null, innerCount);
-                                } else if (item['gallery_thumbnail'].length >0) {
+                            if (title == 'Ben-Hur') {
+                                dbIMDB.imdb.findOne({_id: mongojs.ObjectId('5705057233c8ea8e13b62488')}, function(err, item) {
                                     for (var j in item['gallery_thumbnail']) {
                                         upComingGalleryPages.push(item['gallery_thumbnail'][j]['detailUrl']);
                                     }
-                                    innerCount++;
-                                    innercallback(null, innerCount);
-                                }
-                            });
+                                    dbIMDB.imdb.update({_id: mongojs.ObjectId('5705057233c8ea8e13b62488')}, {'$unset': {'gallery_full': 1}
+                                    }, function() {
+                                           innerCount++;
+                                           innercallback(null, innerCount); 
+                                    });
+                                });
+                            } else {
+                                dbIMDB.imdb.findOne({title: title}, function(err, item) {
+                                    console.log(upComingGalleryPages.length);
+                                    console.log(item.hasOwnProperty('gallery_thumbnail'));
+                                    if (!item.hasOwnProperty('gallery_thumbnail')) {
+                                        console.log('---- skip the film without any thumbnail!! -----');
+                                        innerCount++;
+                                        innercallback(null, innerCount);
+                                    } else if (item['gallery_thumbnail'].length >0) {
+                                        for (var j in item['gallery_thumbnail']) {
+                                            upComingGalleryPages.push(item['gallery_thumbnail'][j]['detailUrl']);
+                                        }
+
+                                        dbIMDB.imdb.update({'title': item['title']}, {'$unset': {'gallery_full': 1}
+                                        }, function() {
+                                               innerCount++;
+                                               innercallback(null, innerCount); 
+                                        });    
+                                    }
+                                });
+                            }  
                         },
                         function (err, n) {
                             count++;
@@ -293,14 +309,26 @@ function generateUpComingPosterPages(done) {
                             var title = doc['movies'][innerCount]['title'];
                             title = title.slice(0, title.length-1);
                             console.log('title: ' + title);
-                            dbIMDB.imdb.findOne({title: title}, function(err, item) {
-                                if (typeof(item['idIMDB']) == 'undefined')
-                                    console.log(item['title'] + ' ===> idIMDB field not be defined!!');
-                                console.log(upComingPosterPages.length);
-                                upComingPosterPages.push('http://www.imdb.com/title/' + item['idIMDB'] + '/');
-                                innerCount++;
-                                innercallback(null, innerCount);
-                            });
+
+                            if (title == 'Ben-Hur') {
+                                dbIMDB.imdb.findOne({_id: mongojs.ObjectId('5705057233c8ea8e13b62488')}, function(err, item) {
+                                    if (typeof(item['idIMDB']) == 'undefined')
+                                        console.log(item['title'] + ' ===> idIMDB field not be defined!!');
+                                    console.log(upComingPosterPages.length);
+                                    upComingPosterPages.push('http://www.imdb.com/title/' + item['idIMDB'] + '/');
+                                    innerCount++;
+                                    innercallback(null, innerCount);
+                                });
+                            } else {
+                                dbIMDB.imdb.findOne({title: title}, function(err, item) {
+                                    if (typeof(item['idIMDB']) == 'undefined')
+                                        console.log(item['title'] + ' ===> idIMDB field not be defined!!');
+                                    console.log(upComingPosterPages.length);
+                                    upComingPosterPages.push('http://www.imdb.com/title/' + item['idIMDB'] + '/');
+                                    innerCount++;
+                                    innercallback(null, innerCount);
+                                });
+                            }    
                         },
                         function (err, n) {
                             count++;
@@ -330,23 +358,38 @@ function prepareUpComingPosterUrls(done) {
                     var innerCount = 0;
                     console.log('<<prepareUpComingPosterUrls>> movies in the month ====> ' + monthList[count-1]);
                     async.whilst(
-                        function () { console.log('innerCount: ' + innerCount); return innerCount < doc['movies'].length; },
+                        function () { console.log('innerCount: ' + innerCount); return innerCount < doc['movies'].length;},
                         function (innercallback) {
                             var title = doc['movies'][innerCount]['title'];
                             title = title.slice(0, title.length-1);
                             console.log('title: ' + title);
-                            dbIMDB.imdb.findOne({title: title}, function(err, item) {
-                                console.log(item['posterUrl']);
-                                console.log(upComingPosterImageObjs.length);
-                                if (typeof(item['posterUrl']) != 'undefined') {
-                                    upComingPosterImageObjs.push({
-                                        url: item['posterUrl'], 
-                                        hash: item['posterHash']
-                                    });
-                                }
-                                innerCount++;
-                                innercallback(null, innerCount);
-                            });
+                            if (title == 'Ben-Hur') {
+                                dbIMDB.imdb.findOne({_id: mongojs.ObjectId('5705057233c8ea8e13b62488')}, function(err, item) {
+                                    console.log(item['posterUrl']);
+                                    console.log(upComingPosterImageObjs.length);
+                                    if (typeof(item['posterUrl']) != 'undefined') {
+                                        upComingPosterImageObjs.push({
+                                            url: item['posterUrl'], 
+                                            hash: item['posterHash']
+                                        });
+                                    }
+                                    innerCount++;
+                                    innercallback(null, innerCount);
+                                });
+                            } else {
+                                dbIMDB.imdb.findOne({title: title}, function(err, item) {
+                                    console.log(item['posterUrl']);
+                                    console.log(upComingPosterImageObjs.length);
+                                    if (typeof(item['posterUrl']) != 'undefined') {
+                                        upComingPosterImageObjs.push({
+                                            url: item['posterUrl'], 
+                                            hash: item['posterHash']
+                                        });
+                                    }
+                                    innerCount++;
+                                    innercallback(null, innerCount);
+                                });
+                            }
                         },
                         function (err, n) {
                             count++;
@@ -534,7 +577,7 @@ function upComingGalleryWizard(done) {
         if (listing['title'] == 'Ben-Hur') {
             dbIMDB.imdb.findAndModify({
                 query: { _id: mongojs.ObjectId('5705057233c8ea8e13b62488')},
-                update: { $push: {'gallery_full': { type: 'full', url: listing['url']}} },
+                update: { $push: {'gallery_full': { type: 'full', url: listing['picturesUrl']}} },
                 new: false
             }, function (err, doc, lastErrorObject) {
                 if (err)
@@ -547,7 +590,8 @@ function upComingGalleryWizard(done) {
         } else {
             console.log(listing);
             console.log('got complete!');
-            dbIMDB.imdb.update({'title': listing['title']}, {'$push': {'gallery_full': { type: 'full', url: listing['url']}
+
+            dbIMDB.imdb.update({'title': listing['title']}, {$push: {'gallery_full': { type: 'full', url: listing['picturesUrl']}
                 }
             }, function() {
                 upComingGalleryWizard(done);
@@ -669,7 +713,6 @@ function upComingPosterWizard(done) {
     }
 
     var obj = upComingPosterImageObjs.pop();
-    console.log(obj.url);
     var scraper = new upComingPosterScraper(obj);
     console.log('Requests Left: ' + upComingPosterImageObjs.length);
     scraper.on('error', function (error) {

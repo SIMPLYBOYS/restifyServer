@@ -171,7 +171,7 @@ function createNewMovieWizard(done) {
             item['title'] = 'Paris, Texas';
         var creater = new Creater(item.title.trim(), item.position);
     } else {
-        var creater = new Creater(item.title, item.position);
+        var creater = new Creater(item.title.trim(), item.position);
     }
 
     console.log('Requests Left: ' + newMovies.length);

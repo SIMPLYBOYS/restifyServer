@@ -62,7 +62,7 @@ upComingGalleryScraper.prototype.parsePage = function (html) {
 
   return model = {
     title: title,
-    url: picturesUrl
+    picturesUrl: picturesUrl
   };
 };
 

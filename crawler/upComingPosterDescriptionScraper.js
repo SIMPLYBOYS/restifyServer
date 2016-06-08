@@ -87,10 +87,14 @@ upComingPosterDescriptionScraper.prototype.parsePage = function (html) {
       var bar = $('.slate_wrapper .poster a')[0];
       var foo = $('.slate_wrapper .poster img')[0];
       console.log(title);
-      console.log(bar['attribs']['href']);
+      // console.log(bar['attribs']['href']);
       var path = 'http://www.imdb.com' + bar['attribs']['href'];
       var hash = foo['attribs']['src'].split('images')[1];
-      hash = hash.split('@')[0].slice(3);
+      console.log(foo['attribs']['src']);
+      hash = hash.split('._V1')[0].slice(3);
+      if (hash.indexOf('@')!= -1) {
+        hash = hash.split('@')[0];
+      }
       console.log('hash code: ' + hash);
     } else {
       var bar = $('.minPosterWithPlotSummaryHeight .poster a')[0];
@@ -103,8 +107,11 @@ upComingPosterDescriptionScraper.prototype.parsePage = function (html) {
       var foo = $('.minPosterWithPlotSummaryHeight .poster img')[0];
       var path = 'http://www.imdb.com' + bar['attribs']['href'];
       var hash = foo['attribs']['src'].split('images')[1];
-      hash = hash.split('@')[0].slice(3);
-      console.log(bar['attribs']['href']);
+      console.log(foo['attribs']['src']);
+      hash = hash.split('._V1')[0].slice(3);
+      if (hash.indexOf('@')!= -1) {
+        hash = hash.split('@')[0];
+      }
     }
 
     return model = {

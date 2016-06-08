@@ -2,6 +2,7 @@ var http = require('http');
 var cheerio = require('cheerio');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
+var mongojs = require('mongojs');
 var config = require('./config');
 var dbIMDB = config.dbIMDB;
 var STATUS_CODES = http.STATUS_CODES;
@@ -28,11 +29,19 @@ Trailer.prototype.init = function () {
     console.log('init trailer!');
     self.on('finish', function (trailerUrl) {
         console.log(trailerUrl);
-        dbIMDB.imdb.update({'title': self.title}, {'$set': {'trailerUrl': trailerUrl}
-        }, function(){
-          if (self.done)
-          self.done(null);
-        });
+        if (self.title == 'Ben-Hur') {
+          dbIMDB.imdb.findOne({'_id': mongojs.ObjectId('5705057233c8ea8e13b62488')}, {'$set': {'trailerUrl': trailerUrl}
+          }, function(){
+              if (self.done)
+                self.done(null);
+          });
+        } else {
+          dbIMDB.imdb.update({'title': self.title}, {'$set': {'trailerUrl': trailerUrl}
+          }, function(){
+            if (self.done)
+              self.done(null);
+          });
+        }
     });
     self.findTrailer();
 };
