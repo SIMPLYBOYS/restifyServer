@@ -165,7 +165,14 @@ Creater.prototype.createMovie = function () {
                         var bar = $('.slate_wrapper .poster a')[0];
                         var path = 'http://www.imdb.com' + bar['attribs']['href'];
                         console.log(path);
+                        var hash = $('.slate_wrapper .poster img')[0];
+                        hash = hash['attribs']['src'].split('images')[1].split('._V1')[0].slice(3);
+                        if (hash.indexOf('@')!= -1) {
+                            hash = hash.split('@')[0];
+                        }
+                        console.log('hash: ' + hash);
                         dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': path}});
+                        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterHash': hash}});
                     } else {
                         console.log(doc['title']);
                         var poster = foo['attribs']['src'];
@@ -184,13 +191,20 @@ Creater.prototype.createMovie = function () {
                             "summery": summery,
                             "country": country
                         };
-                        foo['attribs']['src'];
+                    
                         dbIMDB.imdb.update({'title':doc['title']}, doc);
 
                         var bar = $('.minPosterWithPlotSummaryHeight .poster a')[0];
                         var path = 'http://www.imdb.com' + bar['attribs']['href'];
                         console.log(path);
+                        var hash = $('.minPosterWithPlotSummaryHeight .poster img')[0];
+                        hash = hash['attribs']['src'].split('images')[1].split('._V1')[0].slice(3);
+                        if (hash.indexOf('@')!= -1) {
+                            hash = hash.split('@')[0];
+                        }
+                        console.log('hash: ' + hash);
                         dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': path}});
+                        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterHash': hash}});
                     }
                     done(null);
               });
@@ -284,19 +298,33 @@ Creater.prototype.createMovie = function () {
         console.log('\n\n-------- 2016 0520 step6 ---------' + that.title );
          dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
             if (doc) {
-                request({
-                    url: doc['posterUrl'],
-                    encoding: 'utf8',
-                    method: "GET" }, function(err, res, body){
-                        if (err || !body)
-                            return;
-                        var $ = cheerio.load(body);
-                        var url = $('.photo img')[0];
-                        console.log(doc['top']+':');
-                        console.log(url['attribs']['src']);
-                        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': url['attribs']['src']}}, function() {
+                var path = doc['posterUrl'];
+                var bar = path.split('title')[1];
+                path = path.split('title')[0] + '_json/title' + bar.split('mediaviewer')[0] + 'mediaviewer';
+                http.get(path, function (res) {
+                        var body = '';
+                        if(res.statusCode !== 200) {
+                            console.log('link not avaliable');
                             done(null);
-                        });
+                        }
+                    res.on('data', function (chunk) {
+                      body += chunk;
+                    });
+                    res.on('end', function () {
+                      var json = JSON.parse(body)['allImages'];
+                      json.forEach(function(item, index){
+                          if (item['src'].indexOf(doc['posterHash']) != -1) {
+                            var posterUrl = item['src'];
+                            dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': posterUrl}}, function() {
+                                console.log('posterUrl: ' + posterUrl);
+                                done(null);
+                            });
+                          }
+                      });
+                    });
+                })
+                .on('error', function (err) {
+                    console.log(err);
                 });       
             } else {
                 console.log(that.title + ' not found!');
