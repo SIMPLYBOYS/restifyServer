@@ -39,7 +39,7 @@ upComingPosterScraper.prototype.loadWebPage = function () {
   // foo = foo.split('?')[0] + '/tr?' + foo.split('?')[1]; //tricky part since 2016/6/5
   http.get(foo, function (res) {
     var body = '';
-    if(res.statusCode !== 200) {
+    if (res.statusCode !== 200) {
       return self.emit('error', STATUS_CODES[res.statusCode]);
     }
     res.on('data', function (chunk) {

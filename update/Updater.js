@@ -38,6 +38,11 @@ Updater.prototype.init = function () {
         console.log('\n====> \"'+title + '\" got updated!!!');
         this.emit('complete', title);
     });
+
+    this.on('data not founded', function(title) {
+      console.log('\n====> \"'+title + '\" not updated!!!');
+      this.emit('complete', title);
+    })
     
     switch(this.type) {
       case 'record': 
@@ -55,7 +60,8 @@ Updater.prototype.updateMovie = function () {
   dbIMDB.imdb.findOne({'title': that['title']}, function(err, doc) {
 
       if (!doc) {
-        console.log('\n\n' + that['title'] + 'not found!');
+        console.log('\n\n' + that['title'] + ' not found!');
+        that.emit('data not founded', that.title);
         return;     
       }
 

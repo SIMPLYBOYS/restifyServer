@@ -135,7 +135,9 @@ function updatePositionWizard(done) {
         else if (item['title'] !== 'Lock, Stock and Two Smoking Barrels' && item['title'] !== 'Monsters, Inc.') {
             if (bar[1].trim() == 'La' && bar[0].trim() == 'Battaglia di Algeri')
                 item['title'] = 'La battaglia di Algeri';
-            else
+            /*else if (bar[1].trim() == 'Le' && bar[0].trim() == 'Notti di Cabiria')
+                item['title'] = 'Le notti di Cabiria';*/
+            else    
                 item['title'] = bar[1] + ' ' + bar[0].toLowerCase();
         }
         var updater = new Updater(item.title.trim(), item.position,'delta', item.delta);
@@ -169,6 +171,8 @@ function createNewMovieWizard(done) {
         item['title'] = bar[1] + ' ' + bar[0];
         if (item['title'].indexOf('Paris'))
             item['title'] = 'Paris, Texas';
+        if (item['title'].indexOf('Notti Cabiria'))
+            item['title'] = 'Le notti di Cabiria';
         var creater = new Creater(item.title.trim(), item.position);
     } else {
         var creater = new Creater(item.title.trim(), item.position);
