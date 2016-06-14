@@ -1,6 +1,7 @@
 
 var mongojs = require('mongojs');
 var dbIMDB = mongojs('test', ['imdb']);
+var dbJapan = mongojs('test', ['japan']);
 var dbUpComing = mongojs('test', ['upComing']);
 var dbRecord = mongojs('test', ['records']);
 var dbPosition = mongojs('test', ['position']);
@@ -20,6 +21,7 @@ exports.dbPosition = dbPosition;
 exports.YouTube = YouTube;
 exports.YouTubeKey = YouTubeKey;
 exports.GCMKey = GCMKey;
+exports.dbJapan = dbJapan;
 /*var mysql = require('mysql');
 exports.db = mysql.createConnection({
   host:            '127.0.0.1',   // 数据库地址
@@ -37,7 +39,9 @@ exports.recordUpdate = '5 10 7 * * *';
 
 exports.positionUpdate = '5 15 7 * * *';
 
-exports.upcomingUpdate = '5 10 8 * * *';
+exports.upcomingUpdate = '15 30 8 * * *';
 
 exports.fullrecordUpdate = '10 30 7 * * *';
+
+exports.trendsUpdate = '15 10 4 * * *';
 
