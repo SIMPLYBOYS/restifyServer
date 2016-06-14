@@ -4,6 +4,7 @@ var dbUpComing = config.dbUpComing;
 var dbPosition = config.dbPosition;
 var dbToday = config.dbToday;
 var dbRecord = config.dbRecord;
+var dbJapan = config.dbJapan;
 var myapiToken = config.myapiToken;
 var Updater = require('../update/Updater');
 var google = require('google');
@@ -229,6 +230,15 @@ exports.updatePosition = function(req, res) {
         });
     });
     
+};
+
+exports.getTrends = function(req, res) {
+    var foo = {};        
+    dbJapan.japan.find({'top': {$lte:10, $gte: 1}}, function(err, docs){
+        console.log(docs)
+        foo['contents'] = docs;
+        res.end(JSON.stringify(foo));
+    })
 };
 
 function updatePositionWizard(done) {

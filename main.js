@@ -92,6 +92,8 @@ server.get('/imdb_title', Read.getTitle);
 
 server.get('/imdb_position', Read.getPosition);
 
+server.get('/trends', Read.getTrends);
+
 server.get('/update_imdbPosition', Read.updatePosition);
 
 server.get('/gcm', Post.gcmTopic_t);
