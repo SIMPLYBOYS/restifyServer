@@ -143,7 +143,7 @@ exports.getTitle = function(req, res) {
             // console.log(docs[i]['title']);
             foo['contents'].push(docs[i]['title']);
         }
-        dbIMDB.imdb.find({releaseDate: {$gte: parseInt(20160501), $lte: parseInt(20160930)}}).sort({'releaseDate': 1}, function(err, docs){
+        dbIMDB.imdb.find({releaseDate: {$gte: parseInt(20160501), $lte: parseInt(20161031)}}).sort({'releaseDate': 1}, function(err, docs){
             for (var j=0; j<docs.length; j++) {
                 // console.log(docs[j]['title']);
                 foo['contents'].push(docs[j]['title']);
