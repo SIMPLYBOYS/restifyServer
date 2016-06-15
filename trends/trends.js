@@ -3,7 +3,9 @@ var Updater = require('../update/Updater');
 var cheerio = require("cheerio");
 var request = require("request");
 var async = require('async');
-var moment = require("moment");
+var moment = require("moment")
+var TrendsTrailer = require('./TrendsTrailer');
+var youTube = config.YouTube;
 var dbJapan = config.dbJapan;
 var title = [];
 var link = [];
@@ -11,7 +13,9 @@ var link = [];
 exports.updateTrends = function() {
     async.series([
         insertTitle,
-        insertDetail
+        insertDetail,
+        insertPoster,
+        insertTrailer
     ],
     function (err) {
         if (err) console.error(err.stack);
@@ -60,6 +64,74 @@ function insertTitle(done) {
             }
         );  
     });
+}
+
+function insertPoster(done) {
+    request({
+        url: 'http://movies.yahoo.co.jp/ranking/',
+        encoding: "utf8",
+        method: "GET"
+    }, function(err, response, body) {
+        var $ = cheerio.load(body);
+        var posterUrl = [];
+        $('#yjMain .listview li a').each(function(index, item){
+            // console.log($(item).attr('href'));
+            posterUrl.push('http://movies.yahoo.co.jp' + $(item).attr('href'));
+        });
+        var count = 0;
+        async.whilst(
+                function() { return count < posterUrl.length},
+                function(callback) {
+                    request({
+                        url: posterUrl[count],
+                        encoding: "utf8",
+                        method: "GET"
+                    }, function(err, response, body) {
+                        if (err || !body) { count++; callback(null, count);}
+                        var $ = cheerio.load(body);
+                        $('.relative .thumbnail__figure ').each(
+                            function(index, item) {
+                                var url = $(item).attr('style').split('url(')[1].split(')')[0].slice(0);
+                                url = url.slice(0, url.length);
+                                console.log(url.trim());
+                                dbJapan.japan.findOne({'title': title[count]}, function(err, doc){
+                                     dbJapan.japan.update({'title': title[count]}, {'$set': {'posterUrl': url.trim()}}, function(){
+                                        count++;
+                                        callback(null, count);
+                                     });
+                                });
+                            }
+                        );
+                    });
+                },
+                function(err, n) {
+                    console.log('job3 finish ' + n);
+                    done(null);
+                }
+        );
+    });
+}
+
+function insertTrailer(done) {
+    var count = 0;
+    async.whilst(
+        function() { return count < title.length},
+        function(callback) {
+            dbJapan.japan.findOne({title: title[count]}, function(err, doc) {
+                if (doc) {
+                    new TrendsTrailer(title[count], youTube, count, callback);
+                    count++;
+                } else {
+                    count++;
+                    callback(null, count);
+                }
+            });
+        },
+        function(err, n) {
+            console.log('job3 finish ' + n);
+            done(null);
+        }
+    ); 
 }
 
 function insertDetail(done) {
