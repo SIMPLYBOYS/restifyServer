@@ -234,11 +234,12 @@ exports.updatePosition = function(req, res) {
 
 exports.getTrends = function(req, res) {
     var foo = {};        
-    dbJapan.japan.find({'top': {$lte:10, $gte: 1}}, function(err, docs){
+    dbJapan.japan.find({'top': {$lte:10, $gte: 1}}).sort({'top': parseInt(req.query.ascending)},
+     function(err, docs) {
         console.log(docs)
         foo['contents'] = docs;
         res.end(JSON.stringify(foo));
-    })
+    });
 };
 
 function updatePositionWizard(done) {
