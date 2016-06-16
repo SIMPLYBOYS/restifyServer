@@ -57,10 +57,10 @@ exports.updateupComing = function() {
         upComingInitWizard,
         prepareDetailPages,
         upComingDetailWizard,
-        prepareThumbnailPages,
+        /*prepareThumbnailPages,
         upComingThumbnailWizard,
         prepareGalleryPages,
-        upComingGalleryWizard,
+        upComingGalleryWizard,*/
         generateUpComingTrailerUrls,
         generateUpComingMovieInfo,
         generateUpComingPosterPages,
