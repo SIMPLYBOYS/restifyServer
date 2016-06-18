@@ -88,7 +88,7 @@ Updater.prototype.updateMovie = function () {
       }
 
       //TODO add delta field in db.imdb collection
-  })
+  });
 };
 
 Updater.prototype.updateRecord = function () {

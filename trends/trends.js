@@ -5,16 +5,26 @@ var request = require("request");
 var async = require('async');
 var moment = require("moment")
 var TrendsTrailer = require('./TrendsTrailer');
+var trendsGalleryScraper = require('../crawler/trendsGalleryScraper');
 var youTube = config.YouTube;
 var dbJapan = config.dbJapan;
+var posterUrl = [];
+var galleryUrl = [];
+var galleryfullPages = [];
 var title = [];
+var originTitle = [];
 var link = [];
 
 exports.updateTrends = function() {
     async.series([
+        resetPosition,
         insertTitle,
         insertDetail,
         insertPoster,
+        insertOriginTitle,
+        prepareGalleryPages,
+        resetGallery,
+        GalleryWizard,
         insertTrailer
     ],
     function (err) {
@@ -22,6 +32,33 @@ exports.updateTrends = function() {
           console.log('all finished!!');
     });
 };
+
+function resetPosition (done) {
+    dbJapan.japan.find({'top': {$lte:10, $gte:1}}, function(err, docs) {
+        if (docs) {
+            docs.forEach(function(doc, top){
+                dbJapan.japan.update({'title': doc['title']}, {'$unset': {'top':1}});
+            });
+            done(null);
+        } else {
+            done(null);
+        }
+    });
+}
+
+function resetGallery (done) {
+    
+    dbJapan.japan.find({'top': {$lte:10, $gte:1}}, function(err, docs) {
+        if (docs) {
+            docs.forEach(function(doc, top){
+                dbJapan.japan.update({'title': doc['title']}, {$unset: {gallery_full: 1}})
+            });
+            done(null);
+        } else {
+            done(null);
+        }
+    });
+}
 
 function insertTitle(done) {
     request({
@@ -66,6 +103,39 @@ function insertTitle(done) {
     });
 }
 
+function insertOriginTitle(done) {
+    request({
+        url: 'http://movies.yahoo.co.jp/ranking/',
+        encoding: "utf8",
+        method: "GET"
+    }, function(err, response, body) {
+        var $ = cheerio.load(body);
+        
+        $('#ranklst h3').each(function(index, item){ //fetch japan movie trends
+            originTitle.push($(item).text());
+        });
+        var count = 0;
+        console.log('step1 -------->')
+        async.whilst(
+            function() { return count < title.length},
+            function(callback) {
+                dbJapan.japan.findOne({'title': title[count]}, function(err, doc){
+                    if (doc) {
+                        dbJapan.japan.update({'title': title[count]}, {'$set': {'originTitle': originTitle[count]}}, function(){
+                            count++;
+                            callback(null, count);
+                        });
+                    } 
+                });
+            },
+            function(err, n) {
+                console.log('job1 finish ' + n);
+                done(null);
+            }
+        );  
+    });
+}
+
 function insertPoster(done) {
     request({
         url: 'http://movies.yahoo.co.jp/ranking/',
@@ -73,10 +143,10 @@ function insertPoster(done) {
         method: "GET"
     }, function(err, response, body) {
         var $ = cheerio.load(body);
-        var posterUrl = [];
         $('#yjMain .listview li a').each(function(index, item){
             // console.log($(item).attr('href'));
             posterUrl.push('http://movies.yahoo.co.jp' + $(item).attr('href'));
+            galleryUrl.push('http://movies.yahoo.co.jp' + $(item).attr('href') + 'photo');
         });
         var count = 0;
         async.whilst(
@@ -94,11 +164,9 @@ function insertPoster(done) {
                                 var url = $(item).attr('style').split('url(')[1].split(')')[0].slice(0);
                                 url = url.slice(0, url.length);
                                 console.log(url.trim());
-                                dbJapan.japan.findOne({'title': title[count]}, function(err, doc){
-                                     dbJapan.japan.update({'title': title[count]}, {'$set': {'posterUrl': url.trim()}}, function(){
-                                        count++;
-                                        callback(null, count);
-                                     });
+                                dbJapan.japan.update({'title': title[count]}, {'$set': {'posterUrl': url.trim()}}, function(){
+                                    count++;
+                                    callback(null, count);
                                 });
                             }
                         );
@@ -109,6 +177,82 @@ function insertPoster(done) {
                     done(null);
                 }
         );
+    });
+}
+
+function prepareGalleryPages(done) {
+    var count = 0;
+    async.whilst(
+            function() { return count < galleryUrl.length},
+            function(callback) {
+                request({
+                    url: galleryUrl[count],
+                    encoding: "utf8",
+                    method: "GET"
+                }, function(err, response, body) {
+                    if (err || !body) { count++; callback(null, count);}
+                    var $ = cheerio.load(body);
+                
+                    for (i=1; i<=$('#pctrlst li').length; i++) {
+                        galleryfullPages.push(galleryUrl[count]+'/?page=' + i);
+                    }
+                    count++;
+                    callback(null, count);
+                });
+            },
+            function(err, n) {
+                console.log('job3 finish ' + n);
+                done(null);
+            }
+    );
+}
+
+function GalleryWizard(done) {
+
+    if (!galleryfullPages.length) {
+        done(null);
+        return console.log('Done!!!!');
+    }
+
+    var url = galleryfullPages.pop();
+    console.log(url);
+    var scraper = new trendsGalleryScraper(url);
+    console.log('Requests Left: ' + galleryfullPages.length);
+    scraper.on('error', function (error) {
+      console.log(error);
+      GalleryWizard(done);(done);
+    });
+
+    scraper.on('complete', function (listing) {
+        var title = listing['title'];
+        dbJapan.japan.findAndModify({
+            query: { 'originTitle': title },
+            update: { $push: { gallery_full: { type: 'full', url: listing['picturesUrl']} }},
+            new: true
+        }, function (err, doc, lastErrorObject) {
+            if (doc) {
+                GalleryWizard(done);
+            } else {
+                console.log(listing['title'] + 'not found!');
+                var title = listing['title'].split('�');
+                var foo;
+                title.forEach(function(item, index){
+                    if (item.length > 0)
+                        foo = item;
+                });
+                var query = {'originTitle': new RegExp(foo, 'i') };
+                console.log(query);
+
+                dbJapan.japan.findAndModify({
+                    query: query,
+                    update: { $push: { gallery_full: { type: 'full', url: listing['picturesUrl']} }},
+                    new: true
+                }, function (err, doc, lastErrorObject) {
+                    console.log(doc);
+                    GalleryWizard(done);
+                });
+            }           
+        });
     });
 }
 
