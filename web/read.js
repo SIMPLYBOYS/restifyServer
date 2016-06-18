@@ -30,6 +30,7 @@ var monthList = [
 
 exports.read = function (req, res, next) {
     console.log('from: '+ req.query.from +'\n to: ' + req.query.to + '\n title: ' + req.query.title);
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     var foo = {};
     if (typeof(req.query.title)!= 'undefined') {      
         dbIMDB.imdb.find({'title': req.query.title}, function(err, docs) {
@@ -233,13 +234,24 @@ exports.updatePosition = function(req, res) {
 };
 
 exports.getTrends = function(req, res) {
-    var foo = {};        
-    dbJapan.japan.find({'top': {$lte:10, $gte: 1}}).sort({'top': parseInt(req.query.ascending)},
-     function(err, docs) {
-        console.log(docs)
-        foo['contents'] = docs;
-        res.end(JSON.stringify(foo));
-    });
+    var foo = {};
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
+    if (typeof(req.query.title)!= 'undefined') {      
+        dbJapan.japan.find.find({'title': req.query.title}, function(err, docs) {
+                foo['contents'] = docs;
+                foo['byTitle'] = true;
+                res.end(JSON.stringify(foo));
+        });
+    } else {
+        dbJapan.japan.find({'top': {$lte:10, $gte: 1}}).sort({'top': parseInt(req.query.ascending)},
+         function(err, docs) {
+            console.log(docs)
+            foo['contents'] = docs;
+            foo['byTitle'] = false;
+            res.end(JSON.stringify(foo));
+            // res.json(data, {'content-type': 'application/json; charset=utf-8'}); // also set charset to utf-8
+        });
+    }        
 };
 
 function updatePositionWizard(done) {
