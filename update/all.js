@@ -83,33 +83,54 @@ async.series([
 
     	$('.row_up').each(function(index, item) {
     		up++;
-    		var foo = $(item).find('td').text();
-    		var position = foo.split('↑')[0];
-    		var title = foo.split('↑')[1].slice(1);
-            var delta = foo.split('↑')[1].slice(0,1);
-    		Obj['upItem'].push({'position': position, 'title': title, 'delta': parseInt(delta)});
-    		// console.log(item['parent']['children'].length);
+            var position,
+                title,
+                delta;
+
+            $(item).find('td').each(function(index, item) {
+                if (index == 0)
+                    position = $(item).text();
+                else if (index == 1)
+                    delta = $(item).text().split('↑')[1];
+                else
+                    title = $(item).text();
+            });
+            Obj['upItem'].push({'position': position, 'title': title, 'delta': parseInt(delta)});
     	});
     	
     	$('.row_down').each(function(index, item) {
-    		/*if (index == 0)
-    			console.log(item);*/
+
     		down++;
-    		var foo = $(item).find('td').text();
-    		var position = foo.split('↓')[0];
-    		var title = foo.split('↓')[1].slice(1);
-            var delta = foo.split('↓')[1].slice(0,1);
+            var position,
+                title,
+                delta;
+            $(item).find('td').each(function(index, item) {
+                if (index == 0)
+                    position = $(item).text();
+                else if (index == 1)
+                    delta = $(item).text().split('↓')[1];
+                else
+                    title = $(item).text();
+            });
     		Obj['downItem'].push({'position': position, 'title': title, 'delta': parseInt('-'+delta)});
     		// console.log($(item).find('td').text());
     	});
     	
     	$('.row_new').each(function(index, item) {
     		newIn++;
-    		var foo = $(item).find('td').text();
-    		var position = foo.split('*')[0];
-    		var title = foo.split('*')[1];
+            var position,
+                title,
+                delta;
+
+            $(item).find('td').each(function(index, item) {
+                if (index == 0)
+                    position = $(item).text();
+                else if (index == 1)
+                    delta = $(item).text().split('*')[1];
+                else
+                    title = $(item).text();
+            });
     		Obj['newItem'].push({'position': position, 'title': title});
-    		// console.log($(item).find('td').text());
     	});
         
     	Obj.body = '';
