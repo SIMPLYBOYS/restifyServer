@@ -261,15 +261,40 @@ MovieInformer.prototype.init = function () {
     self.findMovieInfo();
 };
 
+function specialCase(title) {
+  if (title == 'Tôkyô monogatari')
+    return true;
+  else if (title == 'Невероятная история') {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function getImdbId(title) {
+  switch (title) {
+    case 'Tôkyô monogatari':
+      return 'tt0046438';
+      break;
+    case 'Невероятная история':
+      return 'tt2283748'
+      break;
+    default: 
+      console.log('no matching title')
+      break;
+  }
+}
+
 /*
  * Parse html and return an object
 **/
 MovieInformer.prototype.findMovieInfo = function () {
     var self = this;
-    if (self.title.trim() == 'Tôkyô monogatari')
-      var Url = "http://api.myapifilms.com/imdb/idIMDB?idIMDB=tt0046438"+ "&token=" + self.apiToken;
+    var title = self.title.trim();
+    if (specialCase(title))
+      var Url = "http://api.myapifilms.com/imdb/idIMDB?idIMDB=" + getImdbId(title) + "&token=" + self.apiToken;
     else
-      var Url = "http://api.myapifilms.com/imdb/idIMDB?title="+ self.title + "&token=" + self.apiToken;
+      var Url = "http://api.myapifilms.com/imdb/idIMDB?title="+ title + "&token=" + self.apiToken;
     request({
         url: Url,
         encoding: 'utf8',
@@ -279,7 +304,6 @@ MovieInformer.prototype.findMovieInfo = function () {
         console.log(json);
         var movieInfo = JSON.parse(json),
             bar = movieInfo['data']['movies'];
-            // console.log(json);
         self.emit('finish', JSON.stringify(bar));
     });
 };
