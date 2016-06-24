@@ -10,26 +10,35 @@ var youTube = config.YouTube;
 var dbJapan = config.dbJapan;
 var posterUrl = [];
 var galleryUrl = [];
+var creditUrl = [];
 var galleryfullPages = [];
 var title = [];
+var delta = [];
 var originTitle = [];
+var score = [];
+var votes = [];
+var weeks = [];
 var link = [];
 
 exports.updateTrends = function() {
     async.series([
         resetPosition,
         insertTitle,
+        insertRating,
+        inserDelta,
         insertDetail,
         insertPoster,
+        insertRadar,
         insertOriginTitle,
+        insertAvatar,
+        insertTrailer,
         prepareGalleryPages,
         resetGallery,
-        GalleryWizard,
-        insertTrailer
+        GalleryWizard
     ],
     function (err) {
         if (err) console.error(err.stack);
-          console.log('all finished!!');
+          console.log('all jobs for trends update finished!!');
     });
 };
 
@@ -73,7 +82,7 @@ function insertTitle(done) {
             link.push($(item).find('a').attr('href'));
         });
         var count = 0;
-        console.log('step1 -------->')
+        console.log('insertTitle -------->')
         async.whilst(
             function() { return count < title.length},
             function(callback) {
@@ -96,7 +105,7 @@ function insertTitle(done) {
                 });
             },
             function(err, n) {
-                console.log('job1 finish ' + n);
+                console.log('insertTitle finish ' + n);
                 done(null);
             }
         );  
@@ -115,7 +124,7 @@ function insertOriginTitle(done) {
             originTitle.push($(item).text());
         });
         var count = 0;
-        console.log('step1 -------->')
+        console.log('insertOriginTitle -------->')
         async.whilst(
             function() { return count < title.length},
             function(callback) {
@@ -129,7 +138,108 @@ function insertOriginTitle(done) {
                 });
             },
             function(err, n) {
-                console.log('job1 finish ' + n);
+                console.log('insertOriginTitle finish ' + n);
+                done(null);
+            }
+        );  
+    });
+}
+
+function insertRating(done) {
+    request({
+        url: 'http://movies.yahoo.co.jp/ranking/',
+        encoding: "utf8",
+        method: "GET"
+    }, function(err, response, body) {
+        var $ = cheerio.load(body);
+        
+        $('#ranklst .rating-score').each(function(index, item){
+            score.push($(item).text())
+        });
+
+        $('#ranklst .text-xxsmall').each(function(index, item){
+            votes.push($(item).text().slice(1))
+        });
+
+        $('#ranklst .pl1em .label').each(function(index, item){
+            weeks.push($(item).text())
+        });
+
+        var count = 0;
+        console.log('insertRating -------->')
+        async.whilst(
+            function() { return count < title.length},
+            function(callback) {
+                dbJapan.japan.findOne({'title': title[count]}, function(err, doc){
+                    if (doc) {
+                        dbJapan.japan.update({'title': title[count]}, {'$set': {'rating': {
+                            'score' : score[count],
+                            'votes' : votes[count],
+                            'weeks' : weeks[count],
+                        }}}, function(){
+                            count++;
+                            callback(null, count);
+                        });
+                    } 
+                });
+            },
+            function(err, n) {
+                console.log('insertRating finish ' + n);
+                done(null);
+            }
+        );  
+    });
+}
+
+
+
+function inserDelta(done) {
+    request({
+        url: 'http://movie.walkerplus.com/ranking/japan/',
+        encoding: "utf8",
+        method: "GET"
+    }, function(err, response, body) {
+        var $ = cheerio.load(body);
+        
+        $('#rankingMovieList .mwb').each(function(index, item){
+            if ($(item).find('.down').length != 0) {
+                delta.push({
+                    trends: "down",
+                    message: $(item).find('.down span').text()
+                })
+            } else if ($(item).find('.up').length != 0) {
+                delta.push({
+                    trends: "up",
+                    message: $(item).find('.up span').text()
+                })
+            } else {
+                delta.push({
+                    trends: "new",
+                    message: $(item).find('.new span').text()
+                })
+            }
+            
+        });
+
+        var count = 0;
+        console.log('inserDelta -------->');
+        async.whilst(
+            function() { return count < delta.length},
+            function(callback) {
+                console.log(delta[count]);
+                dbJapan.japan.findOne({'title': title[count]}, function(err, doc){
+                    if (doc) {
+                        dbJapan.japan.update({'title': title[count]}, {'$set': {'delta': delta[count]}}, function() {
+                            count++;
+                            callback(null, count);
+                        });
+                    } else {
+                        console.log('doc not found in')
+                    }
+                });
+            },
+            function(err, n) {
+                console.log('inserDelta finish ' + n);
                 done(null);
             }
         );  
@@ -147,6 +257,7 @@ function insertPoster(done) {
             // console.log($(item).attr('href'));
             posterUrl.push('http://movies.yahoo.co.jp' + $(item).attr('href'));
             galleryUrl.push('http://movies.yahoo.co.jp' + $(item).attr('href') + 'photo');
+            creditUrl.push('http://movies.yahoo.co.jp' + $(item).attr('href') + 'credit')
         });
         var count = 0;
         async.whilst(
@@ -201,7 +312,108 @@ function prepareGalleryPages(done) {
                 });
             },
             function(err, n) {
-                console.log('job3 finish ' + n);
+                console.log('prepareGalleryPages finish ' + n);
+                done(null);
+            }
+    );
+}
+
+function insertAvatar(done) {
+    var count = 0;
+    console.log('insertAvatar -------->' + creditUrl.length);
+    async.whilst(
+            function() { return count < creditUrl.length},
+            function(callback) {
+                request({
+                    url: creditUrl[count],
+                    encoding: "utf8",
+                    method: "GET"
+                }, function(err, response, body) {
+                    if (err || !body) { console.log('body not found: ' + creditUrl[count]); count++; callback(null, count);}
+                    var $ = cheerio.load(body);
+                    var bar;
+                    var cast = [];
+                    var Cast,
+                        As,
+                        Link,
+                        Avatar;
+                        
+                    $('.container .listview').each(function(index, item) {
+                        if(index ==0) {
+                            bar = item;
+                        }
+                    });
+
+                    $(bar).each(function(index, item){
+                        $(item).find('.pl1em').each(function(index, item) {
+                            console.log($(item).find('h3').text().trim());
+                            Cast = $(item).find('h3').text().trim();
+                            console.log($(item).find('p').text().trim());
+                            As = $(item).find('p').text().trim();
+                            cast.push({
+                                'cast': Cast,
+                                'as': As
+                            });
+                        });
+                        $(item).find('a').each(function(index, item) {
+                            console.log('http://movies.yahoo.co.jp' + $(item).attr('href'));
+                            Link = 'http://movies.yahoo.co.jp' + $(item).attr('href');
+                            cast[index]['link'] = Link;
+                        }); 
+                        $(item).find('.thumbnail__figure').each(function(index, item){
+                            console.log($(item).attr('style'));
+                            if (typeof($(item).attr('style')) != 'undefined') {
+                                var bar = $(item).attr('style').split('(')[1];
+                                Avatar = bar.slice(0, bar.length-1);
+                            } else {
+                                Avatar = null;
+                            }
+                            cast[index]['avatar'] = Avatar;
+                        });                     
+                    });
+                              
+                    dbJapan.japan.update({'originTitle': originTitle[count]}, {'$set': {'cast': cast}}, function(){
+                        count++;
+                        callback(null, count);
+                    });
+                });
+            },
+            function(err, n) {
+                console.log('insertAvatar finish ' + n);
+                done(null);
+            }
+    );
+}
+
+function insertRadar(done) {
+    var count = 0;
+    async.whilst(
+            function() { return count < posterUrl.length},
+            function(callback) {
+                request({
+                    url: posterUrl[count],
+                    encoding: "utf8",
+                    method: "GET"
+                }, function(err, response, body) {
+                    if (err || !body) { count++; callback(null, count);}
+                    var $ = cheerio.load(body);
+                
+                    var values = $('.rader-chart .rader-chart__figure')[0]['attribs']['data-chart-val-total'].split(',');
+                    var points = []; //物語,配役,演出,映像,音楽 order in points 
+                    values.forEach(function(item, index){
+                        console.log(parseFloat(item));
+                        points.push(item);
+                    });
+                    dbJapan.japan.update({'title': title[count]}, {'$set': {'radar': {
+                        "points" : points
+                    }}}, function(){
+                        count++;
+                        callback(null, count);
+                    });
+                });
+            },
+            function(err, n) {
+                console.log('prepareGalleryPages finish ' + n);
                 done(null);
             }
     );
@@ -272,7 +484,7 @@ function insertTrailer(done) {
             });
         },
         function(err, n) {
-            console.log('job3 finish ' + n);
+            console.log('insertTrailer finish ' + n);
             done(null);
         }
     ); 
@@ -280,7 +492,7 @@ function insertTrailer(done) {
 
 function insertDetail(done) {
     var count = 0;
-        console.log('step2 -------->');
+        console.log('insertDetail -------->');
         async.whilst(
                 function() { return count < title.length},
                 function(callback) {
@@ -304,14 +516,6 @@ function insertDetail(done) {
                                         });
                                     }                                    
                                 });
-                                var cast = [];
-                                $('#castTable tr').each(function(index, item){
-                                    console.log($(item).find('a').text());
-                                    cast.push({
-                                        'cast': $(item).find('a').text(),
-                                        'link': 'http://movie.walkerplus.com' + $(item).find('a').attr('href')
-                                    })
-                                });
 
                                 var data = [];
                                 $('#infoBox table').each(function(index, item){$(item).find('tr').each(
@@ -326,6 +530,9 @@ function insertDetail(done) {
                                 });
 
                                 console.log(data);
+
+                                var radar = $('.rader-chart__figure');
+                                console.log('radar: ' + radar)
 
                                 async.series([
                                     function(Innercallback) {
@@ -347,12 +554,6 @@ function insertDetail(done) {
                                        });
                                     },
                                     function(Innercallback) {
-                                       dbJapan.japan.update({'title': title[count]}, {'$set': {'cast': cast}},
-                                       function() {
-                                            Innercallback(null, 4);
-                                       });
-                                    },
-                                    function(Innercallback) {
                                        dbJapan.japan.update({'title': title[count]}, {'$set': {'data': data}},
                                        function() {
                                             Innercallback(null, 5);
@@ -369,7 +570,7 @@ function insertDetail(done) {
                     });
                 },
                 function(err, n) {
-                    console.log('job2 finish ' + n);
+                    console.log('insertDetail finish ' + n);
                     done(null);
                 }
         );
