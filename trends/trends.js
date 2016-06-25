@@ -11,6 +11,7 @@ var dbJapan = config.dbJapan;
 var posterUrl = [];
 var galleryUrl = [];
 var creditUrl = [];
+var releaseUrl = [];
 var galleryfullPages = [];
 var title = [];
 var delta = [];
@@ -34,7 +35,8 @@ exports.updateTrends = function() {
         insertTrailer,
         prepareGalleryPages,
         resetGallery,
-        GalleryWizard
+        GalleryWizard,
+        InsertReleaseDatePages
     ],
     function (err) {
         if (err) console.error(err.stack);
@@ -316,6 +318,44 @@ function prepareGalleryPages(done) {
                 done(null);
             }
     );
+}
+
+function InsertReleaseDatePages(done) {
+    request({
+        url: 'http://eiga.com/ranking/',
+        encoding: "utf8",
+        method: "GET"
+    }, function(err, response, body) {
+        var $ = cheerio.load(body);
+        var foo = $('table tbody')[0];
+        $(foo).find('em a').each(function(index, item){
+            releaseUrl.push('http://eiga.com'+$(item).attr('href'));
+        });
+        
+        var count = 0;
+        async.whilst(
+                function() { return count < releaseUrl.length},
+                function(callback) {
+                    request({
+                        url: releaseUrl[count],
+                        encoding: "utf8",
+                        method: "GET"
+                    }, function(err, response, body) {
+                        if (err || !body) { count++; callback(null, count);}
+                        var $ = cheerio.load(body);
+                        var date = $('.opn_date').text();
+                        dbJapan.japan.update({'title': title[count]}, {'$set': {'releaseDate': date}}, function(){
+                            count++;
+                            callback(null, count);
+                        });
+                    });
+                },
+                function(err, n) {
+                    console.log('job3 finish ' + n);
+                    done(null);
+                }
+        );
+    });
 }
 
 function insertAvatar(done) {
