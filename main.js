@@ -23,12 +23,15 @@ var moment = require("moment");
 var dbUbike = mongojs('http://52.192.246.11/test', ['ubike']);
 var myapiToken = config.myapiToken;
 var Trailer = require('./Trailer');
-var MovieInfomer = require('./MovieInfomer');
 var Position = require('./update/position');
 var Record = require('./update/record');
 var upComing = require('./update/upcoming');
 var Trends = require('./trends/trends');
 var google = require('google');
+session = require('restify-session')({
+    debug : true,
+    ttl   : 2
+});
 
     
 var server = restify.createServer({
@@ -39,6 +42,7 @@ var server = restify.createServer({
 server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser());
 server.use(restify.bodyParser());
+server.use(session.sessionManager);
 
 youTube = new config.YouTube;
 youTube.setKey(config.YouTubeKey);
@@ -93,6 +97,8 @@ server.get('/imdb_title', Read.getTitle);
 server.get('/imdb_position', Read.getPosition);
 
 server.get('/trends', Read.getTrends);
+
+server.get('/nyTimes', Read.nyTimes);
 
 server.get('/update_imdbPosition', Read.updatePosition);
 
