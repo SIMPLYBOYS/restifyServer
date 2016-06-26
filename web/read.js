@@ -7,6 +7,7 @@ var dbRecord = config.dbRecord;
 var dbJapan = config.dbJapan;
 var myapiToken = config.myapiToken;
 var Updater = require('../update/Updater');
+var nyInformer = require('../nytimes/nyInformer');
 var google = require('google');
 var request = require("request");
 var async = require('async');
@@ -136,6 +137,20 @@ exports.monthList = function(req, res, next) {
             res.end(JSON.stringify(foo));
         }
     );
+};
+
+exports.nyTimes = function(req, res) {
+    var foo = {'contents': []};
+    if (typeof(req.query.url)!= 'undefined') {      
+        console.log(req.query.url);
+
+        var informer = new nyInformer(req.query.url);
+        informer.on('complete', function(result){
+            console.log('complete: ' + result);
+            foo['contents'].push(result);
+            res.end(JSON.stringify(foo));
+        })
+    }
 };
 
 exports.getTitle = function(req, res) {
@@ -331,7 +346,7 @@ exports.google = function (req, res, next) {
         nextCounter += 1
         if (res.next) res.next()
       }
-    })
+    });
 };
 
 exports.myapi = function(req, res, next) {
