@@ -141,6 +141,7 @@ exports.monthList = function(req, res, next) {
 
 exports.nyTimes = function(req, res) {
     var foo = {'contents': []};
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     if (typeof(req.query.url)!= 'undefined') {      
         console.log(req.query.url);
 

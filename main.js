@@ -28,10 +28,6 @@ var Record = require('./update/record');
 var upComing = require('./update/upcoming');
 var Trends = require('./trends/trends');
 var google = require('google');
-session = require('restify-session')({
-    debug : true,
-    ttl   : 2
-});
 
     
 var server = restify.createServer({
@@ -42,7 +38,6 @@ var server = restify.createServer({
 server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser());
 server.use(restify.bodyParser());
-server.use(session.sessionManager);
 
 youTube = new config.YouTube;
 youTube.setKey(config.YouTubeKey);
@@ -441,6 +436,9 @@ job_positionUpdate.start();
 job_fullrecordUpdate.start();
 job_upcomingUpdate.start();
 job_trendsUpdate.start();
+
+
+require('events').EventEmitter.prototype._maxListeners = 100;
  
 server.listen(config.port, function () {
   console.log('%s listening at %s', server.name, server.url);
