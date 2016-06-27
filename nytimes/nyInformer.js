@@ -138,12 +138,20 @@ nyInformer.prototype.fetchInfo = function () {
         }, function(err, response, body) {
                 if (err || !body) { return; }
                 var $ = cheerio.load(body);
-                // foo['contents'].push($('.headline').text());$('.headline').find('.title').text()
                 var story = '';
-                $('.story-body .story-body-text').each(function(index, item){
-                    console.log($(item).text());
-                    story += $(item).text();
-                })
+                console.log($('.story-body').length);
+                if ($('.story-body').length > 0) {
+                  $('.story-body .story-body-text').each(function(index, item){
+                      console.log($(item).text());
+                      story +=  '\n\n' + $(item).text();
+                  })
+                } else {
+                  $('#articleBody p').each(function(index, item) {
+                      console.log($(item).text());
+                      story +=  '\n\n' + $(item).text();
+                  })
+                }
+                
                 // console.log($('.story-body .story-body-text').length);
                 self.emit('loaded', {
                     story: story,
