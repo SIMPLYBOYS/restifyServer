@@ -139,17 +139,23 @@ nyInformer.prototype.fetchInfo = function () {
                 if (err || !body) { return; }
                 var $ = cheerio.load(body);
                 var story = '';
+                var editor = '';
+                var date = '';
                 console.log($('.story-body').length);
                 if ($('.story-body').length > 0) {
                   $('.story-body .story-body-text').each(function(index, item){
                       console.log($(item).text());
                       story +=  '\n\n' + $(item).text();
                   })
+                  editor = 'By ' + $('.byline-author').text();
+                  date = $('.dateline').text();
                 } else {
                   $('#articleBody p').each(function(index, item) {
                       console.log($(item).text());
-                      story +=  '\n\n' + $(item).text();
+                      story += $(item).text();
                   })
+                  editor = 'By ' + $('.byline').text();
+                  date = $('.timestamp').text().trim();
                 }
                 
                 // console.log($('.story-body .story-body-text').length);
@@ -157,7 +163,9 @@ nyInformer.prototype.fetchInfo = function () {
                     story: story,
                     headline: null,
                     image: { src: $('.story-body .image img').attr('data-mediaviewer-src'),
-                             description: $('.caption-text').text()}
+                             description: $('.caption-text').text()},
+                    editor: editor,
+                    date: date
                 });
     });
 };
