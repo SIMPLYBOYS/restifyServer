@@ -3,7 +3,7 @@ var cheerio = require('cheerio');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 var request = require("request");
-var request = request.defaults({jar: true})
+var request = request.defaults({jar: true});
 var mongojs = require('mongojs');
 var config = require('../config');
 var dbJapan = config.dbJapan;
@@ -148,17 +148,16 @@ nyInformer.prototype.fetchInfo = function () {
                       story +=  '\n\n' + $(item).text();
                   })
                   editor = 'By ' + $('.byline-author').text();
-                  date = $('.dateline').text();
+                  date = $('.byline-dateline .dateline').text();
                 } else {
                   $('#articleBody p').each(function(index, item) {
                       console.log($(item).text());
                       story += $(item).text();
                   })
-                  editor = 'By ' + $('.byline').text();
-                  date = $('.timestamp').text().trim();
+                  editor = $('.byline').text();
+                  date = $('.timestamp').text().split(':')[1].trim();
                 }
-                
-                // console.log($('.story-body .story-body-text').length);
+              
                 self.emit('loaded', {
                     story: story,
                     headline: null,
