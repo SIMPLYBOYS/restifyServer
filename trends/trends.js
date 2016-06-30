@@ -36,7 +36,8 @@ exports.updateTrends = function() {
         prepareGalleryPages,
         resetGallery,
         GalleryWizard,
-        InsertReleaseDatePages
+        InsertReleaseDatePages,
+        InsertReView
     ],
     function (err) {
         if (err) console.error(err.stack);
@@ -326,12 +327,12 @@ function InsertReleaseDatePages(done) {
         encoding: "utf8",
         method: "GET"
     }, function(err, response, body) {
+        console.log('InsertReleaseDatePages -------->');
         var $ = cheerio.load(body);
         var foo = $('table tbody')[0];
         $(foo).find('em a').each(function(index, item){
             releaseUrl.push('http://eiga.com'+$(item).attr('href'));
         });
-        
         var count = 0;
         async.whilst(
                 function() { return count < releaseUrl.length},
@@ -351,12 +352,84 @@ function InsertReleaseDatePages(done) {
                     });
                 },
                 function(err, n) {
-                    console.log('job3 finish ' + n);
+                    console.log('InsertReleaseDatePages finish ' + n);
                     done(null);
                 }
         );
     });
 }
+
+function InsertReView(done) {
+    var count = 0;
+    console.log('InsertReView -------->' + releaseUrl.length);
+    async.whilst(
+            function() { return count < releaseUrl.length},
+            function(callback) {
+                request({
+                    url: releaseUrl[count] + 'review',
+                    encoding: "utf8",
+                    method: "GET"
+                }, function(err, response, body) {
+                    if (err || !body) { count++; callback(null, count);}
+                    var $ = cheerio.load(body);
+                    var pages;
+
+                    $('.pg_now b').each(function(index, item) {
+                        if (index == 0) {
+                            pages = parseInt($(item).text());
+                            console.log(Math.floor(pages/20) + 1 + ' pages');
+                        }
+                    });
+
+                    var innerCount = 0;
+                    var reviewer = [];
+                    var name,
+                        avatar,
+                        topic,
+                        text,
+                        point;
+
+                    console.log('<<InsertReView>>');
+                    async.whilst(
+                        function () { console.log('innerCount: ' + innerCount); return innerCount < Math.floor(pages/20)+1; },
+                        function (innercallback) {
+                            $('.reviewBox .review').each(function(index, item) {
+                                console.log();
+                                topic = $(item).find('h3 a').text();
+                                name = $(item).find('.reviewer_m a').text();
+                                point = parseInt($(item).find('.reviewer_m strong').text());
+                                avatar = $(item).find('.reviewer_m img').attr('src');
+                                if ($(item).find('.hide').text() == '') 
+                                    text = $(item).find('p').text();
+                                else 
+                                    text = $(item).find('.hide').text();
+                                reviewer.push({
+                                    name: name,
+                                    avatar: avatar,
+                                    topic: topic,
+                                    text: text
+                                })
+                            });
+
+                            innerCount++;
+                            innercallback(null, innerCount);   
+                        },
+                        function (err, n) {
+                            dbJapan.japan.update({'title': title[count]}, {'$set': {'review': reviewer}}, function(){
+                                count++;
+                                callback(null, count);
+                            });
+                        }
+                    );
+                });
+            },
+            function(err, n) {
+                console.log('insertAvatar finish ' + n);
+                done(null);
+            }
+    );
+}
+
 
 function insertAvatar(done) {
     var count = 0;
