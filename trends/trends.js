@@ -24,7 +24,7 @@ var link = [];
 exports.updateTrends = function() {
     async.series([
         resetPosition,
-        insertTitle,
+        insertTitle,/*,
         insertRating,
         inserDelta,
         insertDetail,
@@ -35,7 +35,7 @@ exports.updateTrends = function() {
         insertTrailer,
         prepareGalleryPages,
         resetGallery,
-        GalleryWizard,
+        GalleryWizard,*/
         InsertReleaseDatePages,
         InsertReView
     ],
@@ -387,7 +387,8 @@ function InsertReView(done) {
                         avatar,
                         topic,
                         text,
-                        point;
+                        point,
+                        date;
 
                     console.log('<<InsertReView>>');
                     async.whilst(
@@ -399,6 +400,7 @@ function InsertReView(done) {
                                 name = $(item).find('.reviewer_m a').text();
                                 point = parseInt($(item).find('.reviewer_m strong').text());
                                 avatar = $(item).find('.reviewer_m img').attr('src');
+                                date = $(item).find('.reviewer_m dt').text().split('/')[1].trim();
                                 if ($(item).find('.hide').text() == '') 
                                     text = $(item).find('p').text();
                                 else 
@@ -408,8 +410,9 @@ function InsertReView(done) {
                                     avatar: avatar,
                                     topic: topic,
                                     text: text,
-                                    point: point
-                                })
+                                    point: point,
+                                    date: date
+                                });
                             });
 
                             innerCount++;
