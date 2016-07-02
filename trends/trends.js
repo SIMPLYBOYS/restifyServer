@@ -407,7 +407,8 @@ function InsertReView(done) {
                                     name: name,
                                     avatar: avatar,
                                     topic: topic,
-                                    text: text
+                                    text: text,
+                                    point: point
                                 })
                             });
 
