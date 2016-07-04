@@ -4,6 +4,7 @@ var cheerio = require("cheerio");
 var moment = require("moment");
 var config = require('../config');
 var Post = require('../web/post');
+var dbIMDB = config.dbIMDB;
 var dbToday = config.dbToday;
 var dbPosition = config.dbPosition;
 var Obj = {
@@ -113,7 +114,6 @@ async.series([
                     title = $(item).text();
             });
     		Obj['downItem'].push({'position': position, 'title': title, 'delta': parseInt('-'+delta)});
-    		// console.log($(item).find('td').text());
     	});
     	
     	$('.row_new').each(function(index, item) {
@@ -190,17 +190,87 @@ async.series([
             message.Down.push(str);
         }
     });
-
     Post.gcmTopic(message, done);
   },
-  // update Imdb database by position database
+  updateInfoTitle,
   function (done) {
   	console.log('final step:')
     done(null);
   }
 ], function (err) {
   if (err) console.error(err.stack);
-
   console.log('all finished!!');
   process.exit(0);
 });
+
+function updateInfoTitle(done) {
+    request({
+        url: 'http://top250.info/charts/?2016/07/04',
+        encoding: "utf8",
+        method: "GET"
+    }, function(err, response, body) {
+        var $ = cheerio.load(body);
+        var movies = [],
+                    top,
+                    title;
+        $('.layout table').each(function(index, item) {
+            if (index == 1) {
+                $(item).find('.row_same').each(function(index, item){
+                    $(item).find('td').each(function(index, item) {
+                        if (index == 0)
+                            top = parseInt($(item).text());
+                        else if (index == 2)
+                            title = $(item).text().split('(')[0].trim();
+                    });
+                    movies.push({
+                        top: top,
+                        title: title
+                    });
+                });
+
+                $(item).find('.row_up').each(function(index, item){
+                    $(item).find('td').each(function(index, item) {
+                        if (index == 0)
+                            top = parseInt($(item).text());
+                        else if (index == 2)
+                            title = $(item).text().split('(')[0].trim();
+                    });
+                    movies.push({
+                        top: top,
+                        title: title
+                    });
+                });
+
+                $(item).find('.row_down').each(function(index, item){
+                    $(item).find('td').each(function(index, item) {
+                        if (index == 0)
+                            top = parseInt($(item).text());
+                        else if (index == 2)
+                            title = $(item).text().split('(')[0].trim();
+                    });
+                    movies.push({
+                        top: top,
+                        title: title
+                    });
+                }); 
+            }       
+        });
+
+        var count = 0;
+        console.log('insertInfoTitle -------->')
+        async.whilst(
+            function() { return count < movies.length},
+            function(callback) {
+                dbIMDB.imdb.update({'top': movies[count]['top']}, {'$set': {'Infotitle': movies[count]['title']}}, function(){
+                    count++;
+                    callback(null, count);
+                });
+            },
+            function(err, n) {
+                console.log('insertInfoTitle finish ' + n);
+                done(null);
+            }
+        );
+        console.log('updateInfoTitle finish');
+    });
+}
