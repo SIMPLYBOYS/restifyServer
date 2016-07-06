@@ -23,7 +23,7 @@ var upComingThumbnailPages = [];
 var upComingPosterPages = [];
 var upComingPosterImageObjs = [];
 var start = parseInt(moment().format('M'));
-var limit = start;
+var limit = start + 4;
 var monthList = [
         "January",
         "February",
@@ -60,13 +60,13 @@ exports.updateupComing = function() {
         prepareThumbnailPages,
         upComingThumbnailWizard,
         prepareGalleryPages,
-        upComingGalleryWizard/*,
+        upComingGalleryWizard,
         generateUpComingTrailerUrls,
         generateUpComingMovieInfo,
         generateUpComingPosterPages,
         upComingDescriptionWizard,
         prepareUpComingPosterUrls,
-        upComingPosterWizard*/
+        upComingPosterWizard
     ],
     function (err) {
         if (err) console.error(err.stack);
@@ -222,66 +222,6 @@ function prepareGalleryPages(done) {
         }
     );
 };
-
-function resetGallery(done) {
-    var count = start;
-    async.whilst(
-        function () { console.log('start: ' + start + 'count: ' + count + 'limit: ' + limit); return count <= limit; },
-        function (callback) {
-            dbUpComing.upComing.findOne({'month': monthList[count-1]}, function(err, doc) {
-                if (doc) {
-                    var innerCount = 0;
-                    console.log('<<prepareGalleryPages>> movies in the month ====> ' + monthList[count-1]);
-                    async.whilst(
-                        function () { console.log('innerCount: ' + innerCount); return innerCount < doc['movies'].length; },
-                        function (innercallback) {
-                            var title = doc['movies'][innerCount]['title'];
-                            title = title.slice(0, title.length-1);
-                            console.log('title: ' + title);
-
-                            if (title == 'Ben-Hur') {
-                                dbIMDB.imdb.findOne({_id: mongojs.ObjectId('5705057233c8ea8e13b62488')}, function(err, item) {
-                                    dbIMDB.imdb.update({_id: mongojs.ObjectId('5705057233c8ea8e13b62488')}, {'$unset': {'gallery_full': 1}
-                                    }, function() {
-                                           innerCount++;
-                                           innercallback(null, innerCount); 
-                                    });
-                                });
-                            } else {
-                                dbIMDB.imdb.findOne({title: title}, function(err, item) {
-                                    console.log(upComingGalleryPages.length);
-                                    console.log(item.hasOwnProperty('gallery_thumbnail'));
-                                    if (!item.hasOwnProperty('gallery_thumbnail')) {
-                                        console.log('---- skip the film without any thumbnail!! -----');
-                                        innerCount++;
-                                        innercallback(null, innerCount);
-                                    } else if (item['gallery_thumbnail'].length >0) {
-                                        dbIMDB.imdb.update({'title': item['title']}, {'$unset': {'gallery_full': 1}
-                                        }, function() {
-                                               innerCount++;
-                                               innercallback(null, innerCount); 
-                                        });    
-                                    }
-                                });
-                            }  
-                        },
-                        function (err, n) {
-                            count++;
-                            callback(null, count);
-                        }
-                    );
-                } else {
-                    console.log('something wrong with the docs in month: ' + monthList[count-1]);
-                    return;
-                }
-            });
-            
-        },
-        function (err, n) {
-            done(null);
-        }
-    );
-}
 
 function generateUpComingMovieInfo(done) {
     var count = start;
@@ -487,7 +427,6 @@ function upComingInitWizard(done) {
   // if the request completed successfully
   // we want to store the results in our database
   scraper.on('complete', function (listing) {
-    // console.log(listing['groups'][0]['month'].split(' ')[0]);
     var month = listing['groups'][0]['month'].split(' ')[0];
     dbUpComing.upComing.findOne({'month': month}, function(err, doc) {
         if (!doc) {
@@ -592,7 +531,6 @@ function upComingThumbnailWizard(done) {
         } else {
             console.log(listing);
             console.log('got complete!');
-
             if (listing['picturesUrl'].length == 0) {
                 upComingThumbnailWizard(done);
                 return console.log('---- skip the film without any thumbnail!! -----');
@@ -650,24 +588,11 @@ function upComingGalleryWizard(done) {
                 }
             });
         } else {
-            /*console.log(listing);
-            console.log('got complete!');*/
             dbIMDB.imdb.update({'title': listing['title']}, { $push: {'gallery_full': { type: 'full', url: listing['picturesUrl']}} }, function() {
                 console.log(listing);
                 console.log('got complete!\n\n');
                 upComingGalleryWizard(done);    
             });
-            // dbIMDB.imdb.findAndModify({
-            //     query: listing['title'],
-            //     update: { $set: {'gallery_full': { type: 'full', url: listing['picturesUrl']}} },
-            // }, function (err, doc, lastErrorObject) {
-            //     if (err)
-            //         console.log(err);
-            //     else {
-            //         console.log('gallery_complete ----> ' + doc['title']);
-            //         upComingGalleryWizard(done);
-            //     }
-            // });
         }
     });
 }

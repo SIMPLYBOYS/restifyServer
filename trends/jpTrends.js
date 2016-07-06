@@ -24,7 +24,7 @@ var link = [];
 exports.updateTrends = function() {
     async.series([
         resetPosition,
-        insertTitle,/*,
+        insertTitle,
         insertRating,
         inserDelta,
         insertDetail,
@@ -35,7 +35,7 @@ exports.updateTrends = function() {
         insertTrailer,
         prepareGalleryPages,
         resetGallery,
-        GalleryWizard,*/
+        GalleryWizard,
         InsertReleaseDatePages,
         InsertReView
     ],
@@ -434,7 +434,6 @@ function InsertReView(done) {
     );
 }
 
-
 function insertAvatar(done) {
     var count = 0;
     console.log('insertAvatar -------->' + creditUrl.length);
@@ -530,7 +529,7 @@ function insertRadar(done) {
                 });
             },
             function(err, n) {
-                console.log('prepareGalleryPages finish ' + n);
+                console.log('insertRadar finish ' + n);
                 done(null);
             }
     );
@@ -592,7 +591,7 @@ function insertTrailer(done) {
         function(callback) {
             dbJapan.japan.findOne({title: title[count]}, function(err, doc) {
                 if (doc) {
-                    new TrendsTrailer(title[count], youTube, count, callback);
+                    new TrendsTrailer('jp', title[count], youTube, count, callback);
                     count++;
                 } else {
                     count++;
@@ -601,7 +600,7 @@ function insertTrailer(done) {
             });
         },
         function(err, n) {
-            console.log('insertTrailer finish ' + n);
+            console.log('insert jp Trailer finish ' + n);
             done(null);
         }
     ); 

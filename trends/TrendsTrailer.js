@@ -5,11 +5,13 @@ var EventEmitter = require('events').EventEmitter;
 var mongojs = require('mongojs');
 var config = require('../config');
 var dbJapan = config.dbJapan;
+var dbKorea = config.dbKorea;
 var STATUS_CODES = http.STATUS_CODES;
 /*
  * Scraper Constructor
 **/
-function TrendsTrailer (title, youTube, innerCount, callback) {
+function TrendsTrailer (country, title, youTube, innerCount, callback) {
+    this.country = country;
     this.title = title;
     this.youTube = youTube;
     this.count = innerCount;
@@ -29,12 +31,21 @@ TrendsTrailer.prototype.init = function () {
     console.log('init trailer! ');
     self.on('finish', function (trailerUrl) {
         console.log(trailerUrl);
-        dbJapan.japan.update({'title': self.title}, {'$set': {'trailerUrl': trailerUrl}
-              }, function() {
-                if (self.done) {
-                  self.done(null, self.count);
-                }  
-        });
+        if (self.country == 'jp') {
+          dbJapan.japan.update({'title': self.title}, {'$set': {'trailerUrl': trailerUrl}
+                }, function() {
+                  if (self.done) {
+                    self.done(null, self.count);
+                  }  
+          });
+        } else if (self.country == 'kr') {
+          dbKorea.korea.update({'title': self.title}, {'$set': {'trailerUrl': trailerUrl}
+                }, function() {
+                  if (self.done) {
+                    self.done(null, self.count);
+                  }  
+          });
+        }
     });
     self.findTrailer();
 };

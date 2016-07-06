@@ -5,6 +5,7 @@ var dbPosition = config.dbPosition;
 var dbToday = config.dbToday;
 var dbRecord = config.dbRecord;
 var dbJapan = config.dbJapan;
+var dbKorea = config.dbKorea;
 var myapiToken = config.myapiToken;
 var Updater = require('../update/Updater');
 var nyInformer = require('../nytimes/nyInformer');
@@ -247,6 +248,27 @@ exports.updatePosition = function(req, res) {
         });
     });
     
+};
+
+exports.krTrends = function(req, res) {
+    console.log('krTrends');
+    var foo = {};
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
+    if (typeof(req.query.title)!= 'undefined') {      
+        dbKorea.korea.find.find({'title': req.query.title}, function(err, docs) {
+                foo['contents'] = docs;
+                foo['byTitle'] = true;
+                res.end(JSON.stringify(foo));
+        });
+    } else {
+        dbKorea.korea.find({'top': {$lte:20, $gte: 1}}).sort({'top': parseInt(req.query.ascending)},
+         function(err, docs) {
+            console.log(docs)
+            foo['contents'] = docs;
+            foo['byTitle'] = false;
+            res.end(JSON.stringify(foo));
+        });
+    }
 };
 
 exports.getTrends = function(req, res) {
