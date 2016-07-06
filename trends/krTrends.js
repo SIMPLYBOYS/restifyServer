@@ -115,52 +115,6 @@ function insertTitle(done) {
     });
 }
 
-function insertRating(done) {
-    console.log('insertRating ---->');
-    request({
-        url: 'http://movies.yahoo.co.jp/ranking/',
-        encoding: "utf8",
-        method: "GET"
-    }, function(err, response, body) {
-        var $ = cheerio.load(body);
-        
-        $('#ranklst .rating-score').each(function(index, item){
-            score.push($(item).text())
-        });
-
-        $('#ranklst .text-xxsmall').each(function(index, item){
-            votes.push($(item).text().slice(1))
-        });
-
-        $('#ranklst .pl1em .label').each(function(index, item){
-            weeks.push($(item).text())
-        });
-
-        var count = 0;
-        async.whilst(
-            function() { return count < title.length},
-            function(callback) {
-                dbJapan.japan.findOne({'title': title[count]}, function(err, doc){
-                    if (doc) {
-                        dbJapan.japan.update({'title': title[count]}, {'$set': {'rating': {
-                            'score' : score[count],
-                            'votes' : votes[count],
-                            'weeks' : weeks[count],
-                        }}}, function(){
-                            count++;
-                            callback(null, count);
-                        });
-                    } 
-                });
-            },
-            function(err, n) {
-                console.log('insertRating finish ' + n);
-                done(null);
-            }
-        );  
-    });
-}
-
 function insertPoster(done) {
     console.log('insertPoster ---->');
     var count = 0,
@@ -444,7 +398,7 @@ function insertDetail(done) {
                                     type,
                                     country,
                                     story,
-                                    point,
+                                    rating,
                                     galleryfullPages,
                                     gallerySize;
 
@@ -463,7 +417,7 @@ function insertDetail(done) {
 
                                 story = $('.desc_movie').text().trim();
 
-                                point = parseFloat($('.subject_movie .raking_grade .emph_grade').text());
+                                rating = parseFloat($('.subject_movie .raking_grade .emph_grade').text());
 
                                 gallerySize = parseInt($('#photoTotalSize').text());
                                 var foo = $('.wrap_slide')[0];
@@ -476,7 +430,7 @@ function insertDetail(done) {
                                         runTime: runTime,
                                         type: type,
                                         country: country,
-                                        point: point,
+                                        rating: rating,
                                         story: story
                                     }},function() {
                                         count++;
