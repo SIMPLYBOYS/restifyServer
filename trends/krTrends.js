@@ -33,7 +33,6 @@ exports.updateTrends = function() {
         insertVotes,
         insertTrailer,
         prepareGalleryPages,
-        insertPoster,
         resetGallery,
         GalleryWizard
     ],
@@ -175,21 +174,32 @@ function prepareGalleryPages(done) {
                             method: "GET"
                         }, function(err, response, body) {
                             var $ = cheerio.load(body),
-                                title;
+                                title,
+                                posterUrl;
+
                             thumbnailPages.push({
                                 detailUrl:'http://movie.naver.com/movie/bi/mi/photo.nhn' + $('._MoreBtn')[0]['attribs']['href'].slice(1).split('.nhn')[1],
                                 gallerySize: parseInt($('._MoreBtn em').text())
                             });
+
                             $('.h_movie a').each(function(index, item) {
                                 if (index == 0)
                                     title = $(item).text().trim();
                             })
-                            posterPages.push({
+
+                            posterUrl = $('.poster img').attr('src');
+
+                            console.log(posterUrl);
+
+                            dbKorea.korea.update({title: title}, {$set: {posterUrl: posterUrl}}, function(){
+                                Innercount++;
+                                innercallback(null, Innercount);
+                            });
+
+                            /*posterPages.push({
                                 detailUrl: 'http://movie.naver.com/movie/bi/mi/photoViewPopup.nhn?movieCode=' + $('._MoreBtn')[0]['attribs']['href'].split("=")[1].split('&')[0],
                                 title: title
-                            });
-                            Innercount++;
-                            innercallback(null, Innercount);
+                            });*/  
                         });     
                     },
                     function (err, n) {
