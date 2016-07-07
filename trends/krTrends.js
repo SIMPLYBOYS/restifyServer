@@ -258,7 +258,8 @@ function prepareCastPages(done) {
             }, function(err, response, body) {
                 finalCastPages.push({
                     castUrl: response['request']['uri']['href'],
-                    title: cast['title']
+                    title: cast['title'],
+                    rating: cast['rating']
                 })
                 count++;
                 callback(null, count);
@@ -287,8 +288,11 @@ function insertCast(done) {
             }, function(err, response, body) {
                 var $ = cheerio.load(body);
                 var foo = $('.on .num_review').text();
-                votes = parseInt(foo.slice(foo.indexOf('수')+1, foo.length-1));
-                dbKorea.korea.update({title: cast['title']}, {$set: {votes: votes}}, function(){
+                votes = foo.slice(foo.indexOf('수')+1, foo.length-1);
+                dbKorea.korea.update({title: cast['title']}, {$set: {rating: {
+                    score: cast['rating'],
+                    votes: votes
+                }}}, function(){
                     count++;
                     callback(null, count);
                 });
@@ -387,10 +391,6 @@ function insertDetail(done) {
                             }, function(err, response, body) {
                                 if (err || !body) { count++; callback(null, count);}
                                 var $ = cheerio.load(body);
-                                castPages.push({
-                                    castUrl: response['request']['headers']['referer'],
-                                    title: title[count]
-                                });
                                 var originTitle = $('.txt_origin').text(),
                                     genre,
                                     releaseDate,
@@ -423,6 +423,12 @@ function insertDetail(done) {
                                 var foo = $('.wrap_slide')[0];
                                 var photoListUrl = 'http://movie.daum.net' + $(foo).find('.link_related').attr('href');
 
+                                castPages.push({
+                                    castUrl: response['request']['headers']['referer'],
+                                    title: title[count],
+                                    rating: rating
+                                });
+
                                 dbKorea.korea.update({'title': title[count]}, {'$set': {
                                         originTitle: originTitle,
                                         genre: genre,
@@ -430,7 +436,6 @@ function insertDetail(done) {
                                         runTime: runTime,
                                         type: type,
                                         country: country,
-                                        rating: rating,
                                         story: story
                                     }},function() {
                                         count++;
