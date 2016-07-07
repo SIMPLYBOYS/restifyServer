@@ -13,6 +13,7 @@ var creditUrl = [];
 var releaseUrl = [];
 var galleryfullPages = [];
 var castPages = [];
+var finalVotesPages = [];
 var finalCastPages = [];
 var title = [];
 var delta = [];
@@ -29,6 +30,7 @@ exports.updateTrends = function() {
         insertDetail,
         prepareCastPages,
         insertCast,
+        insertVotes,
         insertTrailer,
         prepareGalleryPages,
         insertPoster,
@@ -267,7 +269,44 @@ function prepareCastPages(done) {
         },
         function (err, n) {
             console.log('prepareCastPages finished!');
-            console.log(finalCastPages);
+            finalVotesPages = JSON.parse(JSON.stringify(finalCastPages));
+            console.log('finalVotesPages:');
+            console.log(finalVotesPages);
+            done(null);
+        }
+    );
+}
+
+function insertVotes(done) {
+    console.log('insertVotes -------->');
+    var count = 0,
+        cast;
+    async.whilst(
+        function () { return count < 10 },
+        function (callback) {
+            cast = finalVotesPages.pop();
+            request({
+                url: cast['castUrl'].split('?')[0]+'/grade?'+cast['castUrl'].split('?')[1],    //http://movie.daum.net/moviedb/grade?movieId=88533&type=netizen&page=2
+                encoding: "utf8",
+                method: "GET"
+            }, function(err, response, body) {
+                var $ = cheerio.load(body);
+                var foo = $('.on .num_review').text();
+                votes = foo.slice(foo.indexOf('수')+1, foo.length-1);
+
+                //TODO review info
+                console.log('insert votes --->' + cast['title']);
+                dbKorea.korea.update({title: cast['title']}, {$set: {rating: {
+                    score: cast['rating'],
+                    votes: votes
+                }}}, function(){
+                    count++;
+                    callback(null, count);
+                });
+            });
+        },
+        function (err, n) {
+            console.log('insertVotes finished!');
             done(null);
         }
     );
@@ -281,18 +320,37 @@ function insertCast(done) {
         function () { return count < 10 },
         function (callback) {
             cast = finalCastPages.pop();
+            console.log(cast['castUrl'].split('main?')[0]+'/crew?'+cast['castUrl'].split('?')[1]);
             request({
-                url: cast['castUrl'].split('?')[0]+'/grade?'+cast['castUrl'].split('?')[1],    //http://movie.daum.net/moviedb/grade?movieId=88533&type=netizen&page=2
+                url: cast['castUrl'].split('main?')[0]+'/crew?'+cast['castUrl'].split('main?')[1], 
                 encoding: "utf8",
                 method: "GET"
             }, function(err, response, body) {
-                var $ = cheerio.load(body);
-                var foo = $('.on .num_review').text();
-                votes = foo.slice(foo.indexOf('수')+1, foo.length-1);
-                dbKorea.korea.update({title: cast['title']}, {$set: {rating: {
-                    score: cast['rating'],
-                    votes: votes
-                }}}, function(){
+                var $ = cheerio.load(body),
+                    staff = [],
+                    Cast = [];
+
+                $('.movie_join li').each(function(index, item){
+                    if (index == 0) {
+                        staff.push({
+                            'staff': $(item).find('.emph_point').text(),
+                            'link' : 'http://movie.daum.net' + $(item).find('a').attr('href')
+                        });
+                    } else {
+                        console.log($(item).find('.emph_point').text());
+                        Cast.push({
+                            cast: $(item).find('.emph_point').text(),
+                            as: null,
+                            link: 'http://movie.daum.net' + $(item).find('a').attr('href'),
+                            avatar: $(item).find('.join_img img').attr('src')
+                        })
+                    }                    
+                });
+
+                dbKorea.korea.update({title: cast['title']}, {$set: {
+                    cast: Cast,
+                    staff: staff
+                }}, function(){
                     count++;
                     callback(null, count);
                 });
