@@ -15,6 +15,7 @@ var galleryfullPages = [];
 var castPages = [];
 var finalVotesPages = [];
 var finalCastPages = [];
+var finalReviewPages = [];
 var title = [];
 var delta = [];
 var originTitle = [];
@@ -25,14 +26,15 @@ var link = [];
 
 exports.updateTrends = function() {
     async.series([
-        /*resetPosition,
+        resetPosition,
         insertTitle,
         insertDetail,
         prepareCastPages,
-        insertCast,
+        // insertCast,
         insertVotes,
-        insertTrailer,*/
-        prepareGalleryPages/*,
+        insertReview/*,
+        insertTrailer,
+        prepareGalleryPages,
         resetGallery,
         GalleryWizard*/
     ],
@@ -280,8 +282,6 @@ function prepareCastPages(done) {
         function (err, n) {
             console.log('prepareCastPages finished!');
             finalVotesPages = JSON.parse(JSON.stringify(finalCastPages));
-            console.log('finalVotesPages:');
-            console.log(finalVotesPages);
             done(null);
         }
     );
@@ -295,16 +295,20 @@ function insertVotes(done) {
         function () { return count < 10 },
         function (callback) {
             cast = finalVotesPages.pop();
+            var url = cast['castUrl'].split('?')[0]+'/grade?'+cast['castUrl'].split('?')[1];
             request({
-                url: cast['castUrl'].split('?')[0]+'/grade?'+cast['castUrl'].split('?')[1],    //http://movie.daum.net/moviedb/grade?movieId=88533&type=netizen&page=2
+                url: url,   
                 encoding: "utf8",
                 method: "GET"
             }, function(err, response, body) {
                 var $ = cheerio.load(body);
                 var foo = $('.on .num_review').text();
                 votes = foo.slice(foo.indexOf('수')+1, foo.length-1);
-
-                //TODO review info
+                finalReviewPages.push({
+                    castUrl: cast['castUrl'].split('?')[0] + '/grade?' + cast['castUrl'].split('?')[1],
+                    votes: parseInt(votes),
+                    title: cast['title']
+                });
                 console.log('insert votes --->' + cast['title']);
                 dbKorea.korea.update({title: cast['title']}, {$set: {rating: {
                     score: cast['rating'],
@@ -317,6 +321,70 @@ function insertVotes(done) {
         },
         function (err, n) {
             console.log('insertVotes finished!');
+            done(null);
+        }
+    );
+}
+
+function insertReview(done) {
+    console.log('insertReview -------->');
+    var count = 0,
+        cast;
+    async.whilst(
+        function () { return count < 10 },
+        function (callback) {
+            var innerCount = 0,
+                reviewer = [],
+                name,
+                avatar,
+                topic,
+                text,
+                point,
+                date,
+                url;
+            review = finalReviewPages.pop();
+            async.whilst(
+                function () { console.log('innerCount: ' + innerCount); return innerCount < Math.ceil(parseInt(review['votes'])/10); },
+                function (innercallback) {  
+                    url = review['castUrl'].split('/main')[0] + review['castUrl'].split('/main')[1] + '&type=netizen&page=' + (innerCount+1);
+                    console.log('reviewUrl: '+ url);
+                    request({
+                        url: url,   
+                        encoding: "utf8",
+                        method: "GET"
+                    }, function(err, response, body) {
+                        var $ = cheerio.load(body);
+                        $('.review_info').each(function(index, item){
+                            console.log($(item).find('.link_profile').text());
+                            name = $(item).find('.link_profile').text();
+                            text = $(item).find('.desc_review').text().trim();
+                            point = $(item).find('.emph_grade').text().trim();
+                            date = $(item).find('.info_append').text().trim().split(',')[0];
+                            reviewer.push({
+                                name: name,
+                                avatar: null,
+                                topic: null,
+                                text: text,
+                                point: point,
+                                date: date
+                            });
+                        });
+                        innerCount++;
+                        innercallback(null, innerCount);  
+                    });
+                },
+                function (err, n) {
+                    console.log(review['title'] + '-------->');
+                    console.log(reviewer);
+                    dbKorea.korea.update({'title': review['title']}, {'$set': {'review': reviewer}}, function(){
+                        count++;
+                        callback(null, count);
+                    });
+                }
+            );
+        },
+        function (err, n) {
+            console.log('insertReview finished!');
             done(null);
         }
     );
