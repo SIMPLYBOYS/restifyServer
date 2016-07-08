@@ -24,7 +24,7 @@ var link = [];
 exports.updateTrends = function() {
     async.series([
         resetPosition,
-        insertTitle,
+        insertTitle,/*
         insertRating,
         inserDelta,
         insertDetail,
@@ -35,7 +35,7 @@ exports.updateTrends = function() {
         insertTrailer,
         prepareGalleryPages,
         resetGallery,
-        GalleryWizard,
+        GalleryWizard,*/
         InsertReleaseDatePages,
         InsertReView
     ],
@@ -392,31 +392,38 @@ function InsertReView(done) {
 
                     console.log('<<InsertReView>>');
                     async.whilst(
-                        function () { console.log('innerCount: ' + innerCount); return innerCount < Math.floor(pages/20)+1; },
+                        function () { console.log('innerCount: ' + innerCount); return innerCount < Math.ceil(pages/20); },
                         function (innercallback) {
-                            $('.reviewBox .review').each(function(index, item) {
-                                console.log();
-                                topic = $(item).find('h3 a').text();
-                                name = $(item).find('.reviewer_m a').text();
-                                point = parseInt($(item).find('.reviewer_m strong').text());
-                                avatar = $(item).find('.reviewer_m img').attr('src');
-                                date = $(item).find('.reviewer_m dt').text().split('/')[1].trim();
-                                if ($(item).find('.hide').text() == '') 
-                                    text = $(item).find('p').text();
-                                else 
-                                    text = $(item).find('.hide').text();
-                                reviewer.push({
-                                    name: name,
-                                    avatar: avatar,
-                                    topic: topic,
-                                    text: text,
-                                    point: point,
-                                    date: date
+                            request({
+                                url: releaseUrl[count] + 'review/all/' + (innerCount+1),
+                                encoding: "utf8",
+                                method: "GET"
+                            }, function(err, response, body) {
+                                if (err || !body) { innerCount++; innercallback(null, innerCount);}
+                                var $ = cheerio.load(body);
+                                $('.reviewBox .review').each(function(index, item) {
+                                    console.log();
+                                    topic = $(item).find('h3 a').text();
+                                    name = $(item).find('.reviewer_m a').text();
+                                    point = parseInt($(item).find('.reviewer_m strong').text());
+                                    avatar = $(item).find('.reviewer_m img').attr('src');
+                                    date = $(item).find('.reviewer_m dt').text().split('/')[1].trim();
+                                    if ($(item).find('.hide').text() == '') 
+                                        text = $(item).find('p').text();
+                                    else 
+                                        text = $(item).find('.hide').text();
+                                    reviewer.push({
+                                        name: name,
+                                        avatar: avatar,
+                                        topic: topic,
+                                        text: text,
+                                        point: point,
+                                        date: date
+                                    });
                                 });
-                            });
-
-                            innerCount++;
-                            innercallback(null, innerCount);   
+                                innerCount++;
+                                innercallback(null, innerCount);   
+                            });     
                         },
                         function (err, n) {
                             dbJapan.japan.update({'title': title[count]}, {'$set': {'review': reviewer}}, function(){
@@ -428,7 +435,7 @@ function InsertReView(done) {
                 });
             },
             function(err, n) {
-                console.log('insertAvatar finish ' + n);
+                console.log('InsertReView finish ' + n);
                 done(null);
             }
     );
