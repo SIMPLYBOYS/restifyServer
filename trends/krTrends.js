@@ -27,14 +27,14 @@ exports.updateTrends = function() {
     async.series([
         resetPosition,
         insertTitle,
-        insertDetail,
+        insertDetail/*,
         prepareCastPages,
         insertCast,
         insertVotes,
         insertTrailer,
         prepareGalleryPages,
         resetGallery,
-        GalleryWizard
+        GalleryWizard*/
     ],
     function (err) {
         if (err) console.error(err.stack);
@@ -351,7 +351,7 @@ function insertCast(done) {
                             cast: $(item).find('.emph_point').text(),
                             as: null,
                             link: 'http://movie.daum.net' + $(item).find('a').attr('href'),
-                            avatar: $(item).find('.join_img img').attr('src')
+                            avatar: $(item).find('.join_img img').attr('src') == '' ? 'http://image.eiga.k-img.com/images/profile/noimg/100.png?1423551130' : $(item).find('.join_img img').attr('src') 
                         })
                     }                    
                 });
@@ -464,8 +464,9 @@ function insertDetail(done) {
                                     runTime,
                                     type,
                                     country,
-                                    story,
+                                    story = "",
                                     rating,
+                                    mainInfo,
                                     galleryfullPages,
                                     gallerySize,
                                     data = [];
@@ -503,7 +504,13 @@ function insertDetail(done) {
                                     data: runTime
                                 });
 
-                                story = $('.desc_movie').text().trim();
+                                $('.desc_movie p').each(function(index, item){
+                                    console.log($(item).text());
+                                    if (index == 0)
+                                        mainInfo = $(item).text().trim();
+                                    else
+                                        story = $(item).text().trim();
+                                })
 
                                 rating = parseFloat($('.subject_movie .raking_grade .emph_grade').text());
 
@@ -524,6 +531,7 @@ function insertDetail(done) {
                                         runTime: runTime,
                                         type: type,
                                         country: country,
+                                        mainInfo: mainInfo,
                                         story: story,
                                         data: data
                                     }},function() {
