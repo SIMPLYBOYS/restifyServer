@@ -25,14 +25,14 @@ var link = [];
 
 exports.updateTrends = function() {
     async.series([
-        resetPosition,
+        /*resetPosition,
         insertTitle,
-        insertDetail/*,
+        insertDetail,
         prepareCastPages,
         insertCast,
         insertVotes,
-        insertTrailer,
-        prepareGalleryPages,
+        insertTrailer,*/
+        prepareGalleryPages/*,
         resetGallery,
         GalleryWizard*/
     ],
@@ -177,8 +177,10 @@ function prepareGalleryPages(done) {
                                 title,
                                 posterUrl;
 
+                            // console.log('http://movie.naver.com/movie/bi/mi/photo.nhn' + $('._MoreBtn')[0]['attribs']['href'].slice(1).split('.nhn')[1]);
+
                             thumbnailPages.push({
-                                detailUrl:'http://movie.naver.com/movie/bi/mi/photo.nhn' + $('._MoreBtn')[0]['attribs']['href'].slice(1).split('.nhn')[1],
+                                detailUrl:'http://movie.naver.com/movie/bi/mi/photo.nhn' + $('._MoreBtn')[0]['attribs']['href'].slice(1).split('#')[0].split('.nhn')[1],
                                 gallerySize: parseInt($('._MoreBtn em').text())
                             });
 
@@ -188,7 +190,6 @@ function prepareGalleryPages(done) {
                             })
 
                             posterUrl = $('.poster img').attr('src').split('=')[0] + '=m665_443_2';
-                            console.log(posterUrl);
 
                             dbKorea.korea.update({title: title}, {$set: {posterUrl: posterUrl}}, function(){
                                 Innercount++;
