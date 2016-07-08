@@ -187,8 +187,7 @@ function prepareGalleryPages(done) {
                                     title = $(item).text().trim();
                             })
 
-                            posterUrl = $('.poster img').attr('src');
-
+                            posterUrl = $('.poster img').attr('src').split('=')[0] + '=m665_443_2';
                             console.log(posterUrl);
 
                             dbKorea.korea.update({title: title}, {$set: {posterUrl: posterUrl}}, function(){
@@ -468,7 +467,12 @@ function insertDetail(done) {
                                     story,
                                     rating,
                                     galleryfullPages,
-                                    gallerySize;
+                                    gallerySize,
+                                    data = [];
+
+                                    data.push({
+                                        data: originTitle
+                                    });
 
                                 $('.list_movie').find('dd').each(function(index, item){
                                     if (index == 0)
@@ -481,6 +485,22 @@ function insertDetail(done) {
                                         type = foo[1];
                                         country = foo[2].trim();
                                     }
+                                });
+
+                                data.push({
+                                    data: releaseDate.split('.')[0]
+                                });
+
+                                data.push({
+                                    data: country
+                                });
+
+                                data.push({
+                                    data: null  //studio office or film company
+                                });
+
+                                data.push({
+                                    data: runTime
                                 });
 
                                 story = $('.desc_movie').text().trim();
@@ -504,7 +524,8 @@ function insertDetail(done) {
                                         runTime: runTime,
                                         type: type,
                                         country: country,
-                                        story: story
+                                        story: story,
+                                        data: data
                                     }},function() {
                                         count++;
                                         console.log(title[count] + ' updated!');
