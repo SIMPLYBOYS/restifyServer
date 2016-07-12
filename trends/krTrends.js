@@ -536,10 +536,8 @@ function insertDetail(done) {
                                     story = "",
                                     rating,
                                     mainInfo,
-                                    galleryfullPages,
                                     gallerySize,
                                     data = [];
-
                                     data.push({
                                         data: originTitle
                                     });
