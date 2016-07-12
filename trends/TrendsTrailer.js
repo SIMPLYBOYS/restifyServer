@@ -6,6 +6,7 @@ var mongojs = require('mongojs');
 var config = require('../config');
 var dbJapan = config.dbJapan;
 var dbKorea = config.dbKorea;
+var dbFrance = config.dbFrance;
 var STATUS_CODES = http.STATUS_CODES;
 /*
  * Scraper Constructor
@@ -40,6 +41,13 @@ TrendsTrailer.prototype.init = function () {
           });
         } else if (self.country == 'kr') {
           dbKorea.korea.update({'title': self.title}, {'$set': {'trailerUrl': trailerUrl}
+                }, function() {
+                  if (self.done) {
+                    self.done(null, self.count);
+                  }  
+          });
+        } else if (self.country == 'fr') {
+          dbFrance.france.update({'title': self.title}, {'$set': {'trailerUrl': trailerUrl}
                 }, function() {
                   if (self.done) {
                     self.done(null, self.count);

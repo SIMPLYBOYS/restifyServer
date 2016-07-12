@@ -33,14 +33,14 @@ exports.updateTrends = function() {
         resetPosition,
         insertTitle,
         insertDetail,
-        // insertCast,
-        // insertCastAvatar,
-        insertReview/*,
+        insertCast,
+        insertCastAvatar,
+        insertReview,
         insertTrailer,
         prepareGalleryPages,
         insertPoster,
         resetGallery,
-        GalleryWizard*/
+        GalleryWizard
     ],
     function (err) {
         if (err) console.error(err.stack);
@@ -430,9 +430,9 @@ function insertTrailer(done) {
     async.whilst(
         function() { return count < title.length},
         function(callback) {
-            dbKorea.korea.findOne({title: title[count]}, function(err, doc) {
+            dbFrance.france.findOne({title: title[count]}, function(err, doc) {
                 if (doc) {
-                    new TrendsTrailer('kr', title[count], youTube, count, callback);
+                    new TrendsTrailer('fr', title[count], youTube, count, callback);
                     count++;
                 } else {
                     count++;
