@@ -28,6 +28,7 @@ var Record = require('./update/record');
 var upComing = require('./update/upcoming');
 var jpTrends = require('./trends/jpTrends');
 var krTrends = require('./trends/krTrends');
+var frTrends = require('./trends/frTrends');
 var google = require('google');
 
 var server = restify.createServer({
@@ -94,6 +95,8 @@ server.get('/imdb_position', Read.getPosition);
 server.get('/trends', Read.getTrends);
 
 server.get('/krTrends', Read.krTrends);
+
+server.get('/frTrends', Read.frTrends);
 
 server.get('/nyTimes', Read.nyTimes);
 
@@ -444,12 +447,17 @@ var job_krTrendsUpdate = new cronJob(config.krTrendsUpdate, function() {
     krTrends.updateTrends();
 });
 
+var job_frTrendsUpdate = new cronJob(config.frTrendsUpdate, function() {
+    frTrends.updateTrends();
+});
+
 job_recordUpdate.start();
 job_positionUpdate.start();
 job_fullrecordUpdate.start();
 job_upcomingUpdate.start();
 job_jpTrendsUpdate.start();
 job_krTrendsUpdate.start();
+job_frTrendsUpdate.start();
 
 require('events').EventEmitter.prototype._maxListeners = 100;
  
