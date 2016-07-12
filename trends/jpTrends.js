@@ -85,7 +85,7 @@ function insertTitle(done) {
             link.push($(item).find('a').attr('href'));
         });
         var count = 0;
-        console.log('insertTitle -------->')
+        console.log('insertTitle -------->');
         async.whilst(
             function() { return count < title.length},
             function(callback) {
@@ -127,7 +127,7 @@ function insertOriginTitle(done) {
             originTitle.push($(item).text());
         });
         var count = 0;
-        console.log('insertOriginTitle -------->')
+        console.log('insertOriginTitle -------->');
         async.whilst(
             function() { return count < title.length},
             function(callback) {
@@ -651,7 +651,6 @@ function insertDetail(done) {
                                         }
                                     });
                                 });
-
                                 console.log(data);
 
                                 var radar = $('.rader-chart__figure');
