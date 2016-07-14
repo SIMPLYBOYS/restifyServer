@@ -49,8 +49,8 @@ exports.updatePosition = function() {
             //type A 
             if (docs['newItem']) {
                 docs['newItem'].forEach(function(item, index) {
-                    console.log(item['title'] + '-------> creating!');
-                     newMovies.push({'title': item['title'].split('(')[0].trim(),
+                    console.log(item['title'] + '-------> push to creating pool');
+                     newMovies.push({'title': item['title'],
                         'position': item['position']
                      });
                 })
@@ -127,7 +127,7 @@ function updatePositionWizard(done) {
     var item = updateMovies.pop();
     console.log('updatePositionWizard');
     console.log(item);
-    var updater = new Updater(item.title.trim(), item.position, 'delta', item.delta);
+    var updater = new Updater(item.title, item.position, 'delta', item.delta);
     console.log('Requests Left: ' + updateMovies.length);
     updater.on('error', function (error) {
       console.log(error);
@@ -148,18 +148,7 @@ function createNewMovieWizard(done) {
     }
     console.log('newMovies: '+ newMovies);
     var item = newMovies.pop();
-    if (item['title'].indexOf(',') != -1) {
-        var bar = item['title'].split(',');
-        console.log('\n\n----->' + bar[1] + ' ' + bar[0] + '\n\n');
-        item['title'] = bar[1] + ' ' + bar[0];
-        if (item['title'].indexOf('Paris'))
-            item['title'] = 'Paris, Texas';
-        if (item['title'].indexOf('Notti Cabiria'))
-            item['title'] = 'Le notti di Cabiria';
-        var creater = new Creater(item.title.trim(), item.position);
-    } else {
-        var creater = new Creater(item.title.trim(), item.position);
-    }
+    var creater = new Creater(item.title, item.position);
 
     console.log('Requests Left: ' + newMovies.length);
     creater.on('error', function (error) {

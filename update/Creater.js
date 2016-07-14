@@ -17,8 +17,8 @@ var updateThumbnail = [];
  * Scraper Constructor
 **/
 function Creater (title, position) {
-    this.title = title;
-    this.position = position;
+    this.title = title.split('(')[0].trim();
+    this.position = parseInt(position);
     this.init();
 }
 /*
@@ -84,7 +84,6 @@ Creater.prototype.createMovie = function () {
         rating = $('.lister-list tr .imdbRating strong');
         year = $('.lister-list tr .titleColumn .secondaryInfo');
         detailUrl = $('.titleColumn a');
-
     
         /*if (that.title == 'PK') {
             console.log('\n\n-------- 2016 0520 title --------- : ' + imdb_baseUrl + detailUrl[245]['attribs']['href']);
@@ -100,18 +99,15 @@ Creater.prototype.createMovie = function () {
 
         // console.log('\n\n-------- 2016 0520 title --------- : ' + imdb_baseUrl + detailUrl[that.position-1]['attribs']['href']);
         console.log('\n\n-------- 2016 0520 title --------- : ' + $(title[that.position-1]).text() + '\n' + that.title);
-        if (that.title == 'Дети небес')
-            that.title = 'Bacheha-Ye aseman';
-
         dbIMDB.imdb.insert({
             'top': parseInt(that.position), 
-            'title': that.title,
+            'title': $(title[that.position-1]).text(),
             'year': $(year[that.position-1]).text().slice(1,5),
             'rating': $(rating[that.position-1]).text(),
             'description': title[that.position-1]['attribs']['title'],
-            'detailUrl': imdb_baseUrl + detailUrl[that.position-1]['attribs']['href']
+            'detailUrl': imdb_baseUrl + detailUrl[that.position-1]['attribs']['href'],
+            'Infotitle': that.title
         });
-
         done(null);
     });
   },
