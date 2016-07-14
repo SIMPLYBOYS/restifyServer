@@ -32,15 +32,15 @@ exports.updateTrends = function() {
     async.series([
         resetPosition,
         insertTitle,
-        insertDetail,
+        insertDetail,/*
         insertCast,
-        insertCastAvatar,
-        insertReview,
+        insertCastAvatar,*/
+        insertReview/*,
         insertTrailer,
         prepareGalleryPages,
         insertPoster,
         resetGallery,
-        GalleryWizard
+        GalleryWizard*/
     ],
     function (err) {
         if (err) console.error(err.stack);
@@ -232,6 +232,7 @@ function insertReview(done) {
                             else
                                 name = $(item).find('.meta-title span')[1]['children'][0]['data'];
                             point = $(item).find('.rating .stareval-note')[0]['attribs']['content'];
+                            console.log('point: ' + point.split(',')[0]);
                             date = $(item).find('.rating .light')[1]['children'][0]['data'].split('le')[1].trim();
                             
                             if ($(item).find('p').length == 1)
@@ -245,7 +246,7 @@ function insertReview(done) {
                                 avatar: avatar,
                                 topic: null,
                                 text: text,
-                                point: point,
+                                point: typeof(point)!== 'undefined' ? point.split(',')[0]+'.'+point.split(',')[1] : 0,
                                 date: date
                             });
                         });
