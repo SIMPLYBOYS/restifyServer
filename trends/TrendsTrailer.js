@@ -63,7 +63,7 @@ TrendsTrailer.prototype.init = function () {
 **/
 TrendsTrailer.prototype.findTrailer = function (html) {
     var self = this;
-    youTube.search(self.title, 2, function(error, result) {
+    youTube.search(this.title+' trailer', 2, function(error, result) {
       if (error) {
         console.log(error);
       } else {
