@@ -11,7 +11,7 @@ exports.updateRecord = function() {
         function (done) {
             dbIMDB.imdb.find({'top': {$lte:250, $gte:1}}, function(err, docs) {
                 docs.forEach(function(doc, top){
-                    updateRecords.push({'title': doc['title'], 'position': doc['top']});
+                    updateRecords.push({'title': doc['Infotitle'], 'position': doc['top']});
                 });
                 done(null);
             });
@@ -36,7 +36,7 @@ function updateRecordWizard(done) {
     
     var item = updateRecords.pop();
     var record = true;
-    var updater = new Updater(item.title.trim(), item.position, 'record', record);
+    var updater = new Updater(item.title, item.position, 'record', record);
 
     console.log('updatePositionWizard');
     console.log(item);

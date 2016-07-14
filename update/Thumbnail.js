@@ -100,9 +100,9 @@ Thumbnail.prototype.parsePage = function (html) {
   console.log('title ====> ' + title);
 
   return model = {
-    title: title,
-    picturesUrl: picturesUrl
-  };
+    type: 'full',
+    url: picturesUrl
+  }; 
 };
 
 module.exports = Thumbnail;

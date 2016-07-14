@@ -466,7 +466,8 @@ var findposition = function(token) {
 function updateThumbnailWizard(doc, gallery, done) {
     if (!updateThumbnail.length) {
         doc["gallery_full"] = gallery;
-        dbIMDB.imdb.update({'title': doc['title']}, doc);
+        dbIMDB.imdb.update({
+            'title': doc['title']}, doc);
         done(null);
         return console.log('Done!!!!');
     }
