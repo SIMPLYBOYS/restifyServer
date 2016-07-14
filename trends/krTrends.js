@@ -30,13 +30,13 @@ exports.updateTrends = function() {
         insertTitle,
         insertDetail,
         prepareCastPages,
-        // insertCast,
+        insertCast,
         insertVotes,
-        insertReview/*,
+        insertReview,
         insertTrailer,
         prepareGalleryPages,
         resetGallery,
-        GalleryWizard*/
+        GalleryWizard
     ],
     function (err) {
         if (err) console.error(err.stack);
@@ -543,6 +543,7 @@ function insertDetail(done) {
                                     });
 
                                 $('.list_movie').find('dd').each(function(index, item){
+                                    console.log($(item).text().trim());
                                     if (index == 0)
                                         genre = $(item).text().trim();
                                     else if (index == 1)
@@ -551,8 +552,9 @@ function insertDetail(done) {
                                         var foo = $(item).text().trim().split(',');
                                         runTime = foo[0];
                                         type = foo[1];
-                                        country = foo[2].trim();
-                                    }
+                                    } 
+                                    else if (index == 3) 
+                                        country = $(item).text().trim();
                                 });
 
                                 data.push({
@@ -572,7 +574,6 @@ function insertDetail(done) {
                                 });
 
                                 $('.desc_movie p').each(function(index, item){
-                                    console.log($(item).text());
                                     if (index == 0)
                                         mainInfo = $(item).text().trim();
                                     else
