@@ -127,24 +127,7 @@ function updatePositionWizard(done) {
     var item = updateMovies.pop();
     console.log('updatePositionWizard');
     console.log(item);
-    if (item['title'].indexOf(',') != -1) {
-        var bar = item['title'].split(',');
-        console.log('\n\n----->' + bar[1] + ' ' + bar[0] + '\n\n');
-        if (bar[1].trim() == 'The' || bar[1].trim() == 'A')
-            item['title'] = bar[1] + ' ' + bar[0];
-        else if (item['title'] !== 'Lock, Stock and Two Smoking Barrels' && item['title'] !== 'Monsters, Inc.') {
-            if (bar[1].trim() == 'La' && bar[0].trim() == 'Battaglia di Algeri')
-                item['title'] = 'La battaglia di Algeri';
-            else if (bar[1].trim() == 'Le' && bar[0].trim() == 'Notti di Cabiria')
-                item['title'] = 'Le notti di Cabiria';
-            else    
-                item['title'] = bar[1] + ' ' + bar[0].toLowerCase();
-        }
-        var updater = new Updater(item.title.trim(), item.position,'delta', item.delta);
-    } else  {
-        var updater = new Updater(item.title.trim(), item.position, 'delta', item.delta);
-    }
-
+    var updater = new Updater(item.title.trim(), item.position, 'delta', item.delta);
     console.log('Requests Left: ' + updateMovies.length);
     updater.on('error', function (error) {
       console.log(error);

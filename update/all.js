@@ -192,7 +192,7 @@ async.series([
     });
     Post.gcmTopic(message, done);
   },
-  updateInfoTitle,
+  // updateInfoTitle,
   function (done) {
   	console.log('final step:')
     done(null);
