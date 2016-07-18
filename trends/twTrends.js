@@ -102,7 +102,11 @@ function insertTitle(done) {
                         $(item).find('a')[0]['children'][0]['data']
                     });
                     title.push($(item).find('a')[0]['children'][0]['data']);
-                    originTitle.push($(item).find('a')[1]['children'][0]['data']);
+                    console.log($(item).find('a')[1]['children'].length);
+                    if ($(item).find('a')[1]['children'].length == 1)
+                        originTitle.push($(item).find('a')[1]['children'][0]['data']);
+                    else 
+                        originTitle.push('');
                 }
             });
         });
