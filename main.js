@@ -29,6 +29,7 @@ var upComing = require('./update/upcoming');
 var jpTrends = require('./trends/jpTrends');
 var krTrends = require('./trends/krTrends');
 var frTrends = require('./trends/frTrends');
+var twTrends = require('./trends/twTrends');
 var google = require('google');
 
 var server = restify.createServer({
@@ -96,6 +97,8 @@ server.get('/trends', Read.getTrends);
 
 server.get('/krTrends', Read.krTrends);
 
+server.get('/twTrends', Read.twTrends);
+
 server.get('/frTrends', Read.frTrends);
 
 server.get('/nyTimes', Read.nyTimes);
@@ -150,9 +153,8 @@ server.get("/contacts", function (req, res, next) {
     return next();
 });
 
- // db.videos.aggregate([{$unwind: "$sessions"},{$project:{ page_id: 1, item_name: "$sessions.hashtag", last_updated_utc:1 }}])
-
- server.get("/videos", function (req, res, next) {
+// db.videos.aggregate([{$unwind: "$sessions"},{$project:{ page_id: 1, item_name: "$sessions.hashtag", last_updated_utc:1 }}])
+server.get("/videos", function (req, res, next) {
     dbVideos.videos.find(function (err, videos) {
         res.writeHead(200, {
             'Content-Type': 'application/json; charset=utf-8'
@@ -451,6 +453,20 @@ var job_frTrendsUpdate = new cronJob(config.frTrendsUpdate, function() {
     frTrends.updateTrends();
 });
 
+var job_twTrendsUpdate = new cronJob(config.twTrendsUpdate, function() {
+    twTrends.updateTrends();
+});
+
+/*var job_twTrendsUpdate = new cronJob(config.recordUpdate, function () {
+  console.log('开始执行定时更新任务');
+  var update = spawn(process.execPath, [localPath.resolve(__dirname, 'trends/twTrends.js')]);
+  update.stdout.pipe(process.stdout);
+  update.stderr.pipe(process.stderr);
+  update.on('close', function (code) {
+    console.log('finish jobs，code=%d', code);
+  });
+});*/
+
 job_recordUpdate.start();
 job_positionUpdate.start();
 job_fullrecordUpdate.start();
@@ -458,6 +474,7 @@ job_upcomingUpdate.start();
 job_jpTrendsUpdate.start();
 job_krTrendsUpdate.start();
 job_frTrendsUpdate.start();
+job_twTrendsUpdate.start();
 
 require('events').EventEmitter.prototype._maxListeners = 100;
  
