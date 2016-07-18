@@ -3,6 +3,7 @@ var mongojs = require('mongojs');
 var dbIMDB = mongojs('test', ['imdb']);
 var dbJapan = mongojs('test', ['japan']);
 var dbKorea = mongojs('test', ['korea']);
+var dbTaiwan = mongojs('test', ['taiwan']);
 var dbFrance = mongojs('test', ['france']);
 var dbUpComing = mongojs('test', ['upComing']);
 var dbRecord = mongojs('test', ['records']);
@@ -26,6 +27,7 @@ exports.GCMKey = GCMKey;
 exports.dbJapan = dbJapan;
 exports.dbKorea = dbKorea;
 exports.dbFrance = dbFrance;
+exports.dbTaiwan = dbTaiwan;
 
 /*var mysql = require('mysql');
 exports.db = mysql.createConnection({
@@ -48,9 +50,11 @@ exports.upcomingUpdate = '25 30 8 * * *';
 
 exports.fullrecordUpdate = '10 30 7 * * *';
 
-exports.jpTrendsUpdate = '45 55 12 * * 1';
+exports.jpTrendsUpdate = '45 10 10 * * 1';
 
-exports.krTrendsUpdate = '45 44 3 * * *';
+exports.krTrendsUpdate = '25 30 10 * * *';
 
-exports.frTrendsUpdate = '55 11 3 * * *';
+exports.frTrendsUpdate = '55 50 10 * * *';
+
+exports.twTrendsUpdate = '45 10 11 * * *';
 
