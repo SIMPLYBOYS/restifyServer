@@ -101,7 +101,7 @@ Creater.prototype.createMovie = function () {
         console.log('\n\n-------- 2016 0520 title --------- : ' + $(title[that.position-1]).text() + '\n' + that.title);
         dbIMDB.imdb.insert({
             'top': parseInt(that.position), 
-            'title': $(title[that.position-1]).text(),
+            'title': that.title,
             'year': $(year[that.position-1]).text().slice(1,5),
             'rating': $(rating[that.position-1]).text(),
             'description': title[that.position-1]['attribs']['title'],

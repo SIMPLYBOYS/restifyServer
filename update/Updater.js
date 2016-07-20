@@ -15,6 +15,7 @@ function Updater (title, position, type, value) {
     this.title = title;
     this.position = position;
     this.type = type;
+
     switch (type) {
       case 'record':
         this.record = value; 
@@ -22,7 +23,7 @@ function Updater (title, position, type, value) {
       case 'delta':
         this.delta = value;
     }
-    
+
     this.init();
 }
 /*
@@ -151,7 +152,8 @@ Updater.prototype.updateRecord = function () {
                   }
               }
 
-              dbRecord.records.update({'Infotitle': that.title}, {'$set': {'records': records}}, function() {
+              dbRecord.records.update({title: that.title}, {'$set': {'records': records}}, function() {
+                  console.log('records: ' + records.length);
                   that.emit('updated', that.title);
               });
         });
