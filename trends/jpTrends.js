@@ -150,7 +150,6 @@ function insertPoster(done) {
         function (callback) {
             poster = posterPages.pop(); 
             console.log(poster['title'] + '---->');
-            console.log(poster['detailUrl']);
             request({
                 url: poster['detailUrl'],
                 encoding: "utf8",
@@ -372,8 +371,7 @@ function insertDetail(done) {
                 function() { return count < title.length},
                 function(callback) {
                     dbJapan.japan.findOne({'title': title[count]}, function(err, doc){
-                        if (doc) {       
-                            console.log(doc['detailUrl']);                    
+                        if (doc) {                    
                             request({
                                 url: doc['detailUrl'],
                                 encoding: "utf8",
@@ -441,13 +439,14 @@ function insertDetail(done) {
                                         title: doc['title']
                                     });
 
-                                });
+                                });                               
 
                                 dbJapan.japan.update({'title': title[count]}, {$set: {
                                     cast: cast,
                                     staff: staff,
                                     story: story,
                                     data: data,
+                                    originTitle: data[0]['data'].indexOf('原題') == 0 ? data[0]['data'].split('原題')[1].trim() : null,
                                     releaseDate: releaseDate,
                                     rating: {
                                         score : rating,
