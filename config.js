@@ -11,7 +11,7 @@ var dbPosition = mongojs('test', ['position']);
 var dbToday = mongojs('test', ['today']);
 var myapiToken = '632ce305-f516-4ccb-8f32-4e0fb1ad412a';
 var YouTube = require('youtube-node');
-var YouTubeKey = 'AIzaSyB1OOSpTREs85WUMvIgJvLTZKye4BVsoFU';
+var YouTubeKey = 'AIzaSyCpHbHblbj_6zfA1AeKsuaxB4ZuoTffVKw';
 var GCMKey = 'AIzaSyCpHbHblbj_6zfA1AeKsuaxB4ZuoTffVKw';
 // var dbContact = mongojs('http://52.192.246.11/test', ['contact']);
 
@@ -48,13 +48,13 @@ exports.positionUpdate = '5 15 7 * * *';
 
 exports.upcomingUpdate = '25 30 8 * * *';
 
-exports.fullrecordUpdate = '10 30 7 * * *';
+exports.fullrecordUpdate = '15 30 7 * * *';
 
-exports.jpTrendsUpdate = '45 10 10 * * 1';
+exports.jpTrendsUpdate = '25 56 13 * * *';
 
 exports.krTrendsUpdate = '25 30 10 * * *';
 
 exports.frTrendsUpdate = '55 50 10 * * *';
 
-exports.twTrendsUpdate = '45 10 11 * * *';
+exports.twTrendsUpdate = '15 40 11 * * *';
 
