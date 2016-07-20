@@ -402,7 +402,7 @@ function insertCountry(done) {
 }
 
 function insertCast(done) {
-    console.log('insertCountry -------->');
+    console.log('insertCast -------->');
     var count = 0;
     async.whilst(
         function() { return count < title.length},
@@ -483,7 +483,7 @@ function insertCast(done) {
             });
         },
         function(err, n) {
-            console.log('insertCountry finish ' + n);
+            console.log('insertCast finish ' + n);
             done(null);
         }
     );
