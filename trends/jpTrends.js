@@ -29,13 +29,13 @@ exports.updateTrends = function() {
     async.series([
         resetPosition,
         insertTitle,
-        insertDetail,
+        insertDetail/*,
         insertPoster,
         insertCastAvatar,
         insertTrailer,
         resetGallery,
         insertGallery,
-        InsertReView
+        InsertReView*/
     ],
     function (err) {
         if (err) console.error(err.stack);
@@ -386,9 +386,11 @@ function insertDetail(done) {
                                     staff = [],
                                     cast = [],
                                     releaseDate,
+                                    originTitle = null,
                                     name = '',
                                     votes,
                                     as = '',
+                                    token,
                                     link;
 
                                 story = $('.outline p').text();
@@ -408,10 +410,31 @@ function insertDetail(done) {
                                 });
 
                                 $('.dataBox table tr').each(function(index, item){
+                                    token = $(item).text().trim()
                                     data.push({
-                                        data: $(item).text().trim()
+                                            data: token
                                     });
                                 });
+
+                                data.forEach(function(item, index) {
+                                    if (index == 0 && item['data'].indexOf('原題') == 0) {
+                                        originTitle = item['data'].split('原題')[1].trim();
+                                        data = data.slice(1);
+                                    } else {
+                                        if (item['data'].split(' ').length == 1)
+                                            item['data'] = item['data'].split(' ')[0].trim(); 
+                                        else
+                                            item['data'] = item['data'].split(' ')[1].trim(); 
+                                    }  
+                                });
+
+                                console.log(data);
+
+                                if (data.length == 5) {
+                                  data.push({
+                                    data: null
+                                  });
+                                }
 
                                 staff.push({
                                     staff: $('.staffBox dl a span').text(),
@@ -446,7 +469,7 @@ function insertDetail(done) {
                                     staff: staff,
                                     story: story,
                                     data: data,
-                                    originTitle: data[0]['data'].indexOf('原題') == 0 ? data[0]['data'].split('原題')[1].trim() : null,
+                                    originTitle: originTitle,
                                     releaseDate: releaseDate,
                                     rating: {
                                         score : rating,
