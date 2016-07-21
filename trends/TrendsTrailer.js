@@ -63,6 +63,11 @@ TrendsTrailer.prototype.init = function () {
           });
         }
     });
+    self.on('fail', function(){
+      if (self.done) {
+        self.done(null, self.count);
+      }  
+    });
     self.findTrailer();
 };
 
@@ -75,15 +80,19 @@ TrendsTrailer.prototype.findTrailer = function (html) {
       if (error) {
         console.log(error);
       } else {
-        result['items'].forEach(
-          function loop (item, index) {
-            if (loop.stop) { return; }
-            if (item['id']['videoId']) {
-              // console.log(item['id']['videoId']);
-              self.emit('finish', 'https://www.youtube.com/watch?v=' + item['id']['videoId']);
-              loop.stop = true;
-            }
-        });
+        if (result['items'].length > 0) {
+          result['items'].forEach(
+            function loop (item, index) {
+              if (loop.stop) { return; }
+              if (item['id']['videoId']) {
+                // console.log(item['id']['videoId']);
+                self.emit('finish', 'https://www.youtube.com/watch?v=' + item['id']['videoId']);
+                loop.stop = true;
+              }
+          });
+        } else {
+          self.emit('fail', null);
+        }
       }
     });
 };
