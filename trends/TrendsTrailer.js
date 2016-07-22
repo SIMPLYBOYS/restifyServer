@@ -8,6 +8,7 @@ var dbJapan = config.dbJapan;
 var dbKorea = config.dbKorea;
 var dbFrance = config.dbFrance;
 var dbTaiwan = config.dbTaiwan;
+var dbUSA = config.dbUSA;
 var STATUS_CODES = http.STATUS_CODES;
 /*
  * Scraper Constructor
@@ -56,6 +57,13 @@ TrendsTrailer.prototype.init = function () {
           });
         } else if (self.country == 'tw') {
           dbTaiwan.taiwan.update({'title': self.title}, {'$set': {'trailerUrl': trailerUrl}
+                }, function() {
+                  if (self.done) {
+                    self.done(null, self.count);
+                  }  
+          });
+        } else if (self.country == 'us') {
+          dbUSA.usa.update({'title': self.title}, {'$set': {'trailerUrl': trailerUrl}
                 }, function() {
                   if (self.done) {
                     self.done(null, self.count);

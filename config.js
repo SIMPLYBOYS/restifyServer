@@ -4,6 +4,7 @@ var dbIMDB = mongojs('test', ['imdb']);
 var dbJapan = mongojs('test', ['japan']);
 var dbKorea = mongojs('test', ['korea']);
 var dbTaiwan = mongojs('test', ['taiwan']);
+var dbUSA = mongojs('test', ['usa']);
 var dbFrance = mongojs('test', ['france']);
 var dbUpComing = mongojs('test', ['upComing']);
 var dbRecord = mongojs('test', ['records']);
@@ -24,6 +25,7 @@ exports.dbPosition = dbPosition;
 exports.YouTube = YouTube;
 exports.YouTubeKey = YouTubeKey;
 exports.GCMKey = GCMKey;
+exports.dbUSA = dbUSA;
 exports.dbJapan = dbJapan;
 exports.dbKorea = dbKorea;
 exports.dbFrance = dbFrance;
@@ -50,11 +52,13 @@ exports.upcomingUpdate = '25 30 8 * * *';
 
 exports.fullrecordUpdate = '15 30 7 * * *';
 
-exports.jpTrendsUpdate = '25 56 13 * * *';
+exports.jpTrendsUpdate = '25 50 13 * * *';
 
-exports.krTrendsUpdate = '25 30 10 * * *';
+exports.krTrendsUpdate = '25 30 9 * * *';
 
 exports.frTrendsUpdate = '55 50 10 * * *';
 
 exports.twTrendsUpdate = '15 40 11 * * *';
+
+exports.usTrendsUpdate = '45 0 12 * * *';
 

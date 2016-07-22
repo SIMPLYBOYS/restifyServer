@@ -8,6 +8,7 @@ var dbJapan = config.dbJapan;
 var dbKorea = config.dbKorea;
 var dbFrance = config.dbFrance;
 var dbTaiwan = config.dbTaiwan;
+var dbUSA = config.dbUSA;
 var myapiToken = config.myapiToken;
 var Updater = require('../update/Updater');
 var nyInformer = require('../nytimes/nyInformer');
@@ -264,6 +265,27 @@ exports.krTrends = function(req, res) {
         });
     } else {
         dbKorea.korea.find({'top': {$lte:20, $gte: 1}}).sort({'top': parseInt(req.query.ascending)},
+         function(err, docs) {
+            console.log(docs)
+            foo['contents'] = docs;
+            foo['byTitle'] = false;
+            res.end(JSON.stringify(foo));
+        });
+    }
+};
+
+exports.usTrends = function(req, res) {
+    console.log('dbUSA');
+    var foo = {};
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
+    if (typeof(req.query.title)!= 'undefined') {      
+        dbUSA.usa.find.find({'title': req.query.title}, function(err, docs) {
+                foo['contents'] = docs;
+                foo['byTitle'] = true;
+                res.end(JSON.stringify(foo));
+        });
+    } else {
+        dbUSA.usa.find({'top': {$lte:10, $gte: 1}}).sort({'top': parseInt(req.query.ascending)},
          function(err, docs) {
             console.log(docs)
             foo['contents'] = docs;
