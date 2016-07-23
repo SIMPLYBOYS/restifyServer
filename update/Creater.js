@@ -241,7 +241,6 @@ Creater.prototype.createMovie = function () {
         });      
   },
   function (done) {
-        //TODO addGalleryUrlWizard refrence step 7
         console.log('\n\n-------- 2016 0520 step5 ---------' + that.title);
         dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
           if (doc) {
@@ -262,7 +261,6 @@ Creater.prototype.createMovie = function () {
                             if (err || !body)
                                 return;
                             var $ = cheerio.load(body);
-                            var gallery_length = $('.page_list a').length/2+1;
                             var url = $('.media_index_thumb_list a img');
                             var detailUrl = $('.media_index_thumb_list a');
                                                    

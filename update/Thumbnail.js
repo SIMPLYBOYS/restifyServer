@@ -91,8 +91,8 @@ Thumbnail.prototype.parsePage = function (html) {
   picturesUrl = $('.photo img').attr('src');
 
   if (typeof(picturesUrl) == 'undefined') {
-    foo = $('#imageJson').text();
-    bar = JSON.parse(foo);
+    var foo = $('#imageJson').text();
+    var bar = JSON.parse(foo);
     bar.mediaViewerModel.allImages[position-1]['src']
     picturesUrl = bar.mediaViewerModel.allImages[position-1]['src'];
   }

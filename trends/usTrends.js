@@ -144,7 +144,8 @@ function insertPoster(done) {
                      var posterUrl = item['src'];
                      dbUSA.usa.update({'title': poster['title']}, {'$set': {'posterUrl': posterUrl}}, function() {
                         console.log('posterUrl: ' + posterUrl);
-                        done(null);
+                        count++;
+                        callback(null, count);
                      });
                    }
                 });
@@ -271,11 +272,19 @@ function insertReview(done) {
                     text.forEach(function(item, index) {
                         reviewer[index]['text'] = item
                     });
-                    console.log(JSON.stringify(reviewer));
-                    dbUSA.usa.update({'title': review['title']}, {'$set': {'review': reviewer}}, function(){
-                        count++;
-                        callback(null, count);
-                    });
+                    // console.log(JSON.stringify(reviewer));
+
+                    dbUSA.usa.find({'title': review['title']}, function(err, docs) {
+                        if (docs['review'].length > 0) {
+                            count++;
+                            callback(null, count);
+                        } else {
+                            dbUSA.usa.update({'title': review['title']}, {'$set': {'review': reviewer}}, function(){
+                                count++;
+                                callback(null, count);
+                            });
+                        }
+                    });          
                 }
             );
         },
@@ -326,15 +335,23 @@ function insertCast(done) {
                     }
                 });
 
-                dbUSA.usa.update({title: cast['title']}, {$set: {
-                    cast: Cast
-                }}, function(){
-                    count++;
-                    callback(null, count);
-                });
+                dbUSA.usa.findOne({title: cast['title'], function(err, docs) {
+                    if (docs['cast'].length > 0) {
+                        count++;
+                        callback(null, count);
+                    } else {
+                        dbUSA.usa.update({title: cast['title']}, {$set: {
+                            cast: Cast
+                        }}, function(){
+                            count++;
+                            callback(null, count);
+                        });
+                    }
+                }}
             });
         },
         function (err, n) {
+            // avatarUrl = avatarUrl.slice(0,444); TODO breakpoint 
             console.log(avatarUrl);
             console.log('insertCast finished!');
             done(null);
