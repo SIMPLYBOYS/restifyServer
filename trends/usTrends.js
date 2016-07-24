@@ -273,17 +273,9 @@ function insertReview(done) {
                         reviewer[index]['text'] = item
                     });
                     // console.log(JSON.stringify(reviewer));
-
-                    dbUSA.usa.find({'title': review['title']}, function(err, docs) {
-                        if (docs['review'].length > 0) {
-                            count++;
-                            callback(null, count);
-                        } else {
-                            dbUSA.usa.update({'title': review['title']}, {'$set': {'review': reviewer}}, function(){
-                                count++;
-                                callback(null, count);
-                            });
-                        }
+                    dbUSA.usa.update({'title': review['title']}, {'$set': {'review': reviewer}}, function() {
+                        count++;
+                        callback(null, count);
                     });          
                 }
             );
@@ -335,7 +327,7 @@ function insertCast(done) {
                     }
                 });
 
-                dbUSA.usa.findOne({title: cast['title'], function(err, docs) {
+                dbUSA.usa.findOne({title: cast['title']}, function(err, docs) {
                     if (docs['cast'].length > 0) {
                         count++;
                         callback(null, count);
@@ -347,7 +339,7 @@ function insertCast(done) {
                             callback(null, count);
                         });
                     }
-                }}
+                });
             });
         },
         function (err, n) {
@@ -585,25 +577,41 @@ function insertDetail(done) {
                                 });
 
                                 var hash = $('.slate_wrapper .poster img')[0];
-                                hash = hash['attribs']['src'].split('images')[1].split('._V1')[0].slice(3);
-                                if (hash.indexOf('@')!= -1) {
-                                    hash = hash.split('@')[0];
-                                }
 
-                                posterPages.push({
-                                    detailUrl: 'http://www.imdb.com'+$('.slate_wrapper .poster a')[0]['attribs']['href'],
-                                    posterHash: hash,
-                                    title: doc['title']
-                                });
+                                if (typeof(hash)!='undefined') {
+                                    hash = hash['attribs']['src'].split('images')[1].split('._V1')[0].slice(3);
+
+                                    if (hash.indexOf('@')!= -1) {
+                                        hash = hash.split('@')[0];
+                                    }
+
+                                    posterPages.push({
+                                        detailUrl: 'http://www.imdb.com'+$('.slate_wrapper .poster a')[0]['attribs']['href'],
+                                        posterHash: hash,
+                                        title: doc['title']
+                                    });
+                                } else {
+                                    obj = $('.minPosterWithPlotSummaryHeight .poster img')[0];
+                                    hash = obj['attribs']['src'].split('images')[1].split('._V1')[0].slice(3);
+
+                                    if (hash.indexOf('@')!= -1) {
+                                        hash = hash.split('@')[0];
+                                    }
+
+                                    var detailUrl = obj['attribs']['src'];
+
+                                    posterPages.push({
+                                        detailUrl: 'http://www.imdb.com'+$('.minPosterWithPlotSummaryHeight .poster a')[0]['attribs']['href'],
+                                        posterHash: hash,
+                                        title: doc['title']
+                                    });
+                                }
 
                                 GalleryPages.push({
                                     photoUrl: 'http://www.imdb.com'+$('.combined-see-more a')[1]['attribs']['href'],
                                     page: Math.ceil(parseInt($('.combined-see-more a').text().split('photos')[0])/48),
                                     title: title[count]
                                 });
-
-                                console.log(JSON.stringify(posterPages));
-                                console.log(JSON.stringify(finalReviewPages));
                 
                                 dbUSA.usa.update({'title': title[count]}, {'$set': {
                                         originTitle: null,
@@ -630,7 +638,9 @@ function insertDetail(done) {
                     });
                 },
                 function(err, n) {
-                    console.log('finalCastPages --> \n\n' + JSON.stringify(finalCastPages));
+                    console.log('posterPages --> ' + JSON.stringify(posterPages));
+                    console.log('finalReviewPages --> ' + JSON.stringify(finalReviewPages));
+                    console.log('finalCastPages --> ' + JSON.stringify(finalCastPages));
                     console.log('insertDetail finish ' + n);
                     done(null);
                 }
