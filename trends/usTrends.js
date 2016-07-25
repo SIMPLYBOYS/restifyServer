@@ -328,7 +328,7 @@ function insertCast(done) {
                 });
 
                 dbUSA.usa.findOne({title: cast['title']}, function(err, docs) {
-                    if (docs['cast'].length > 0) {
+                    if (typeof(docs['cast'])!='undefined') {
                         count++;
                         callback(null, count);
                     } else {
@@ -358,6 +358,7 @@ function insertCastAvatar(done) {
         return console.log('insertCastAvatar Done!!!!');
     }
     var avatar = avatarUrl.pop();
+    console.log('avatarPages left: '+avatarUrl.length);
     var scraper = new usCastAvatarScraper(avatar);
     scraper.on('error', function (error) {
       console.log(error);

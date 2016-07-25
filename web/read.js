@@ -1,4 +1,5 @@
 var config = require('../config');
+var url = require('url');
 var dbIMDB = config.dbIMDB;
 var dbUpComing = config.dbUpComing;
 var dbPosition = config.dbPosition;
@@ -50,9 +51,6 @@ exports.read = function (req, res, next) {
             foo['byTitle'] = false;
             var missing = 0;
             for (var i=0; i<docs.length; i++) {
-                // console.log(docs[i]['readMore']['page']);
-                // console.log(docs[i]['detailContent']['country']);
-            
                 if (typeof(docs[i]['cast']) == 'undefined') {
                     missing++;
                     console.log(docs[i]['title'] + '\n' + docs[i]['top']);
@@ -71,8 +69,6 @@ exports.read = function (req, res, next) {
             for (var i=0; i<docs.length; i++) {
                 if (typeof(docs[i]['description']) == 'undefined')
                     bar.push(docs[i]['title']);
-                    // console.log(docs[i]['title']);
-                // console.log(docs[i]['posterUrl']);
             }
             res.end(JSON.stringify(foo));
         });
@@ -162,12 +158,10 @@ exports.getTitle = function(req, res) {
     var foo = {'contents': []};
     dbIMDB.imdb.find({'top': {$lte:250, $gte: 1}}).sort({'top':1}, function(err, docs){
         for (var i=0; i<docs.length; i++) {
-            // console.log(docs[i]['title']);
             foo['contents'].push(docs[i]['title']);
         }
         dbIMDB.imdb.find({releaseDate: {$gte: parseInt(20160501), $lte: parseInt(20161031)}}).sort({'releaseDate': 1}, function(err, docs){
             for (var j=0; j<docs.length; j++) {
-                // console.log(docs[j]['title']);
                 foo['contents'].push(docs[j]['title']);
             }
             res.end(JSON.stringify(foo));
@@ -184,74 +178,6 @@ exports.getPosition = function(req, res) {
         res.end(JSON.stringify(docs));
      });
 }
-
-exports.updatePosition = function(req, res) {
-    
-    dbPosition.position.find({date: moment().format('l')}, function(err, doc) {
-        
-        doc = doc[0];
-        
-        if (!doc)
-            res.end('fail and finished!!');
-
-        async.series([
-          function (done) {
-            console.log(doc);
-            //type A 
-            if (doc['newItem']) {
-                doc['newItem'].forEach(function(item, index) {
-                     updateMovies.push({'title': item['title'].split('(')[0].trim(),
-                        'position': item['position']
-                     });
-                     //TODO before update the item need to insert hole bunch of data
-                })
-                done(null);
-            } else {
-                done(null);
-            }
-          },
-          function (done) {
-            //type B
-            if (doc['upItem']) {
-                doc['upItem'].forEach(function(item, index) {
-                    console.log(item['title'].split('(')[0].trim());
-                    updateMovies.push({'title': item['title'].split('(')[0].trim(),
-                        'position': item['position']
-                    });
-                })
-                done(null);
-            } else {
-                done(null);
-            }
-          },
-          function (done) {
-            //type C
-            if (doc['downItem']) {
-                doc['downItem'].forEach(function(item, index) {
-                    console.log(item['title'].split('(')[0].trim());
-                    updateMovies.push({'title': item['title'].split('(')[0].trim(),
-                        'position': item['position']
-                    });
-                })
-                done(null);
-            } else {
-                done(null);
-            }
-          },
-          function (done) {
-            var total = updateMovies.length;
-            for (var i = 0; i < total+1; i++) {
-              updatePositionWizard(done);
-            }
-          }
-        ], function (err) {
-          if (err) console.error(err.stack);
-          console.log('all finished!!');
-          res.end('all finished!!');
-        });
-    });
-    
-};
 
 exports.krTrends = function(req, res) {
     console.log('krTrends');
@@ -279,21 +205,37 @@ exports.usTrends = function(req, res) {
     var foo = {};
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     if (typeof(req.query.title)!= 'undefined') {      
-        dbUSA.usa.find.find({'title': req.query.title}, function(err, docs) {
+        dbUSA.usa.find.find({'title': req.query.title}, {review:0}, function(err, docs) {
                 foo['contents'] = docs;
                 foo['byTitle'] = true;
                 res.end(JSON.stringify(foo));
         });
     } else {
-        dbUSA.usa.find({'top': {$lte:10, $gte: 1}}).sort({'top': parseInt(req.query.ascending)},
+        dbUSA.usa.find({'top': {$lte:10, $gte: 1}}, {review:0}).sort({'top': parseInt(req.query.ascending)},
          function(err, docs) {
-            console.log(docs)
+            console.log(docs);
             foo['contents'] = docs;
             foo['byTitle'] = false;
             res.end(JSON.stringify(foo));
         });
     }
 };
+
+exports.usTrendsReview = function(req, res) {
+    console.log(req.query.title.slice(1, req.query.title.length-1));
+    var foo = {};
+    var start = parseInt(req.query.start);
+    var end = start + 10;
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});   
+    dbUSA.usa.find({title: req.query.title.slice(1, req.query.title.length-1)}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+      function(err, doc) {
+        console.log(doc[0]['review']);
+        foo['title'] = doc[0]['title'];
+        foo['review'] = doc[0]['review'].slice(start,end);
+        foo['byTitle'] = false;
+        res.end(JSON.stringify(foo));
+    });
+}
 
 exports.twTrends = function(req, res) {
     console.log('dbTaiwan');

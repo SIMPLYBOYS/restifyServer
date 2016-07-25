@@ -104,9 +104,9 @@ server.get('/frTrends', Read.frTrends);
 
 server.get('/usTrends', Read.usTrends);
 
-server.get('/nyTimes', Read.nyTimes);
+server.get('/usTrendsReview', Read.usTrendsReview);
 
-server.get('/update_imdbPosition', Read.updatePosition);
+server.get('/nyTimes', Read.nyTimes);
 
 server.get('/gcm', Post.gcmTopic_t);
 
