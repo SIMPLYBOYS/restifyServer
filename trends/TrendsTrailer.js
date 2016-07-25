@@ -84,7 +84,8 @@ TrendsTrailer.prototype.init = function () {
 **/
 TrendsTrailer.prototype.findTrailer = function (html) {
     var self = this;
-    youTube.search(this.title+' trailer', 2, function(error, result) {
+    var query = self.country == 'tw' ? ' 預告' : ' trailer';
+    youTube.search(this.title+query, 2, function(error, result) {
       if (error) {
         console.log(error);
       } else {

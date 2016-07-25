@@ -94,13 +94,21 @@ server.get('/imdb_title', Read.getTitle);
 
 server.get('/imdb_position', Read.getPosition);
 
-server.get('/trends', Read.getTrends);
+server.get('/jpTrends', Read.jpTrends);
+
+server.get('/jpTrendsReview', Read.jpTrendsReview);
 
 server.get('/krTrends', Read.krTrends);
 
+server.get('/krTrendsReview', Read.krTrendsReview);
+
 server.get('/twTrends', Read.twTrends);
 
+server.get('/twTrendsReview', Read.twTrendsReview);
+
 server.get('/frTrends', Read.frTrends);
+
+server.get('/frTrendsReview', Read.frTrendsReview);
 
 server.get('/usTrends', Read.usTrends);
 

@@ -184,13 +184,13 @@ exports.krTrends = function(req, res) {
     var foo = {};
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     if (typeof(req.query.title)!= 'undefined') {      
-        dbKorea.korea.find.find({'title': req.query.title}, function(err, docs) {
+        dbKorea.korea.find.find({'title': req.query.title}, {review:0}, function(err, docs) {
                 foo['contents'] = docs;
                 foo['byTitle'] = true;
                 res.end(JSON.stringify(foo));
         });
     } else {
-        dbKorea.korea.find({'top': {$lte:20, $gte: 1}}).sort({'top': parseInt(req.query.ascending)},
+        dbKorea.korea.find({'top': {$lte:20, $gte: 1}}, {review:0}).sort({'top': parseInt(req.query.ascending)},
          function(err, docs) {
             console.log(docs)
             foo['contents'] = docs;
@@ -199,6 +199,23 @@ exports.krTrends = function(req, res) {
         });
     }
 };
+
+exports.krTrendsReview = function(req, res) {
+    console.log(req.query.title);
+    var foo = {};
+    var start = parseInt(req.query.start);
+    var end = start + 10;
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});   
+    dbKorea.korea.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+      function(err, doc) {
+        // console.log(doc[0]['review']);
+        foo['title'] = doc[0]['title'];
+        foo['review'] = doc[0]['review'].slice(start,end);
+        foo['byTitle'] = false;
+        foo['size'] = doc[0]['review'].length;
+        res.end(JSON.stringify(foo));
+    });
+}
 
 exports.usTrends = function(req, res) {
     console.log('dbUSA');
@@ -222,17 +239,18 @@ exports.usTrends = function(req, res) {
 };
 
 exports.usTrendsReview = function(req, res) {
-    console.log(req.query.title.slice(1, req.query.title.length-1));
+    console.log(req.query.title);
     var foo = {};
     var start = parseInt(req.query.start);
     var end = start + 10;
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});   
-    dbUSA.usa.find({title: req.query.title.slice(1, req.query.title.length-1)}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+    dbUSA.usa.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
       function(err, doc) {
-        console.log(doc[0]['review']);
+        // console.log(doc[0]['review']);
         foo['title'] = doc[0]['title'];
         foo['review'] = doc[0]['review'].slice(start,end);
         foo['byTitle'] = false;
+        foo['size'] = doc[0]['review'].length;
         res.end(JSON.stringify(foo));
     });
 }
@@ -242,13 +260,13 @@ exports.twTrends = function(req, res) {
     var foo = {};
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     if (typeof(req.query.title)!= 'undefined') {      
-        dbTaiwan.taiwan.find.find({'title': req.query.title}, function(err, docs) {
+        dbTaiwan.taiwan.find.find({'title': req.query.title}, {review:0}, function(err, docs) {
                 foo['contents'] = docs;
                 foo['byTitle'] = true;
                 res.end(JSON.stringify(foo));
         });
     } else {
-        dbTaiwan.taiwan.find({'top': {$lte:20, $gte: 1}}, {detailUrl: 0}).limit(20).sort({'top': parseInt(req.query.ascending)},
+        dbTaiwan.taiwan.find({'top': {$lte:20, $gte: 1}}, {review: 0, detailUrl: 0}).limit(20).sort({'top': parseInt(req.query.ascending)},
          function(err, docs) {
             console.log(docs)
             foo['contents'] = docs;
@@ -257,19 +275,36 @@ exports.twTrends = function(req, res) {
         });
     }
 };
+
+exports.twTrendsReview = function(req, res) {
+    console.log(req.query.title);
+    var foo = {};
+    var start = parseInt(req.query.start);
+    var end = start + 10;
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});   
+    dbTaiwan.taiwan.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+      function(err, doc) {
+        // console.log(doc[0]['review']);
+        foo['title'] = doc[0]['title'];
+        foo['review'] = doc[0]['review'].slice(start,end);
+        foo['byTitle'] = false;
+        foo['size'] = doc[0]['review'].length;
+        res.end(JSON.stringify(foo));
+    });
+}
 
 exports.frTrends = function(req, res) {
     console.log('frTrends');
     var foo = {};
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     if (typeof(req.query.title)!= 'undefined') {      
-        dbFrance.france.find.find({'title': req.query.title}, function(err, docs) {
+        dbFrance.france.find.find({'title': req.query.title}, {review:0}, function(err, docs) {
                 foo['contents'] = docs;
                 foo['byTitle'] = true;
                 res.end(JSON.stringify(foo));
         });
     } else {
-        dbFrance.france.find({'top': {$lte:9, $gte: 1}}).sort({'top': parseInt(req.query.ascending)},
+        dbFrance.france.find({'top': {$lte:9, $gte: 1}}, {review:0}).sort({'top': parseInt(req.query.ascending)},
          function(err, docs) {
             console.log(docs)
             foo['contents'] = docs;
@@ -279,7 +314,24 @@ exports.frTrends = function(req, res) {
     }
 };
 
-exports.getTrends = function(req, res) {
+exports.frTrendsReview = function(req, res) {
+    console.log(req.query.title.slice(1, req.query.title.length-1));
+    var foo = {};
+    var start = parseInt(req.query.start);
+    var end = start + 10;
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});   
+    dbFrance.france.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+      function(err, doc) {
+        // console.log(doc[0]['review']);
+        foo['title'] = doc[0]['title'];
+        foo['review'] = doc[0]['review'].slice(start,end);
+        foo['byTitle'] = false;
+        foo['size'] = doc[0]['review'].length;
+        res.end(JSON.stringify(foo));
+    });
+}
+
+exports.jpTrends = function(req, res) {
     var foo = {};
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     if (typeof(req.query.title)!= 'undefined') {      
@@ -289,7 +341,7 @@ exports.getTrends = function(req, res) {
                 res.end(JSON.stringify(foo));
         });
     } else {
-        dbJapan.japan.find({'top': {$lte:10, $gte: 1}}).sort({'top': parseInt(req.query.ascending)},
+        dbJapan.japan.find({'top': {$lte:10, $gte: 1}}, {review:0}).sort({'top': parseInt(req.query.ascending)},
          function(err, docs) {
             console.log(docs)
             foo['contents'] = docs;
@@ -299,6 +351,23 @@ exports.getTrends = function(req, res) {
         });
     }        
 };
+
+exports.jpTrendsReview = function(req, res) {
+    console.log(req.query.title);
+    var foo = {};
+    var start = parseInt(req.query.start);
+    var end = start + 10;
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});   
+    dbJapan.japan.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+      function(err, doc) {
+        // console.log(doc[0]['review']);
+        foo['title'] = doc[0]['title'];
+        foo['review'] = doc[0]['review'].slice(start,end);
+        foo['byTitle'] = false;
+        foo['size'] = doc[0]['review'].length;
+        res.end(JSON.stringify(foo));
+    });
+}
 
 function updatePositionWizard(done) {
     if (!updateMovies.length) {
