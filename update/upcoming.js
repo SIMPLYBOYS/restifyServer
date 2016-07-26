@@ -6,7 +6,9 @@ var myapiToken = config.myapiToken;
 var Updater = require('../update/Updater');
 var Scraper = require('../crawler/Scraper');
 var Trailer = require('../Trailer');
+var usCastAvatarScraper = require('../crawler/usCastAvatarScraper');
 var MovieInfomer = require('../MovieInfomer');
+var cheerio = require('cheerio');
 var upComingReadMoreScraper = require('../crawler/upComingReadMoreScraper');
 var upComingGalleryThumbnailScraper = require('../crawler/upComingGalleryThumbnailScraper');
 var upComingPosterDescriptionScraper = require('../crawler/upComingPosterDescriptionScraper');
@@ -16,14 +18,17 @@ var request = require("request");
 var async = require('async');
 var moment = require("moment");
 var youTube = new config.YouTube;
+var finalReviewPages = [];
+var finalCastPages = [];
 var upComingPages = [];
+var avatarUrl = [];
 var upComingDetailPages = [];
 var upComingGalleryPages = [];
 var upComingThumbnailPages = [];
 var upComingPosterPages = [];
 var upComingPosterImageObjs = [];
 var start = parseInt(moment().format('M'));
-var limit = start + 4;
+var limit = start;
 var monthList = [
         "January",
         "February",
@@ -56,6 +61,9 @@ exports.updateupComing = function() {
         },
         upComingInitWizard,
         prepareDetailPages,
+        prepareCastPages,
+        insertCast,
+        insertCastAvatar,
         upComingDetailWizard,
         prepareThumbnailPages,
         upComingThumbnailWizard,
@@ -75,6 +83,7 @@ exports.updateupComing = function() {
 };
 
 function prepareDetailPages(done) {
+    console.log('prepareDetailPages --->');
     var count = start;
     async.whilst(
         function () { console.log('start: ' + start + 'count: ' + count + 'limit: ' + limit); return count <= limit; },
@@ -94,13 +103,168 @@ function prepareDetailPages(done) {
             });             
         },
         function (err, n) {
+            console.log('prepareDetailPages done!');
             done(null);
         }
     );
 };
 
+function prepareCastPages(done) {
+    var count = start;
+    console.log('prepareCastPages --->');
+    async.whilst(
+        function () { console.log('start: ' + start + 'count: ' + count + 'limit: ' + limit); return count <= limit; },
+        function (callback) {
+            console.log('month: ' + monthList[count-1]);
+            dbUpComing.upComing.findOne({'month': monthList[count-1]}, function(err, doc) {
+                if (doc) {
+                    InnerCount = 0;
+                    async.whilst(
+                        function() { return InnerCount < doc['movies'].length},
+                        function(innercallback) {
+                            var title = doc['movies'][InnerCount]['title'];
+                            title = title.slice(0, title.length-1);
+                            finalCastPages.push({
+                                castUrl: doc['movies'][InnerCount]['detailUrl'].split('?')[0]+'fullcredits?ref_=tt_cl_sm#cast',
+                                title: title
+                            });
+                            InnerCount++;
+                            innercallback(null, InnerCount);
+                        },
+                        function(err, n) {
+                            count++;
+                            callback(null, count);
+                        }
+                    );
+                } else {
+                    console.log('something wrong with the docs in month: ' + monthList[count-1]);
+                    return;
+                }
+            });  
+        },
+        function (err, n) {
+            console.log('prepareCastPages done!');
+            done(null);
+        }
+    );
+};
+
+function insertCast(done) {
+    console.log('insertCast -------->');
+    var count = 0,
+        end = finalCastPages.length,
+        cast,
+        as = null,
+        name,
+        link,
+        Cast;
+    async.whilst(
+        function () { return count < end; },
+        function (callback) {
+            cast = finalCastPages.pop();
+            Cast = [];
+            request({
+                url: cast['castUrl'], 
+                encoding: "utf8",
+                method: "GET"
+            }, function(err, response, body) {
+                var $ = cheerio.load(body);
+                console.log(cast['title']+' --->');
+                $('.cast_list tr').each(function(index, item) {
+                    if (index > 0) {
+                        name = $(item).find('.itemprop span').text();
+                        link = 'http://www.imdb.com'+$(item).find('.primary_photo a').attr('href');
+                        avatarUrl.push({
+                            link: link,
+                            cast: name,
+                            title: cast['title']
+                        });
+                        if (typeof($(item).find('.character a')[0])!='undefined')
+                            as = $(item).find('.character a').text().trim();
+                        Cast.push({
+                            cast: name,
+                            as: as,
+                            link: link,
+                            avatar: null
+                        });
+                    }
+                });
+
+                dbIMDB.imdb.findOne({title: cast['title']}, function(err, docs) {
+                    if (typeof(docs['cast'])!='undefined') {
+                        count++;
+                        callback(null, count);
+                    } else {
+                        dbIMDB.imdb.update({title: cast['title']}, {$set: {
+                            cast: Cast,
+                            review: finalReviewPages
+                        }}, function(){
+                            count++;
+                            callback(null, count);
+                        });
+                    }
+                });
+            });
+        },
+        function (err, n) {
+            // avatarUrl = avatarUrl.slice(0,444); TODO breakpoint 
+            console.log(avatarUrl);
+            console.log('insertCast finished!');
+            done(null);
+        }
+    );
+}
+
+function insertCastAvatar(done) {
+    console.log('insertCastAvatar --->');
+    if (!avatarUrl.length) {
+        done(null);
+        return console.log('insertCastAvatar Done!!!!');
+    }
+    var avatar = avatarUrl.pop();
+    console.log('avatarPages left: ' + avatarUrl.length);
+    var scraper = new usCastAvatarScraper(avatar);
+    scraper.on('error', function (error) {
+      console.log(error);
+      insertCastAvatar(done);
+    });
+
+    scraper.on('complete', function (listing) {
+        var title = listing['title'];
+        console.log(listing['picturesUrl']);
+        dbIMDB.imdb.findAndModify({
+            query: { 'title': title , 'cast.cast': listing['cast']},
+            update: { $set: { 'cast.$.avatar': listing['picturesUrl']} },
+            new: true
+        }, function (err, doc, lastErrorObject) {
+            if (doc) {
+                insertCastAvatar(done);
+            } else {
+                console.log(listing['title'] + 'not found!');
+                var title = listing['title'].split('�');
+                var foo;
+                title.forEach(function(item, index){
+                    if (item.length > 0)
+                        foo = item;
+                });
+                var query = {'originTitle': new RegExp(foo, 'i') };
+                console.log(query);
+                dbIMDB.imdb.findAndModify({
+                    query: { 'title': title , 'cast.cast': listing['cast']},
+                    update: { $set: { 'cast.$.avatar': listing['picturesUrl']} },
+                    new: true
+                }, function (err, doc, lastErrorObject) {
+                    console.log(doc);
+                    insertCastAvatar(done);
+                });
+            }           
+        });
+    });
+}
+
 function prepareThumbnailPages(done) {
     var count = start;
+    console.log('prepareThumbnailPages --->');
     async.whilst(
         function () { console.log('start: ' + start + 'count: ' + count + 'limit: ' + limit); return count <= limit; },
         function (callback) {
@@ -151,6 +315,7 @@ function prepareThumbnailPages(done) {
             });  
         },
         function (err, n) {
+            console.log('prepareThumbnailPages done!');
             done(null);
         }
     );
@@ -158,6 +323,7 @@ function prepareThumbnailPages(done) {
 
 function prepareGalleryPages(done) {
     var count = start;
+    console.log('prepareGalleryPages --->');
     async.whilst(
         function () { console.log('start: ' + start + 'count: ' + count + 'limit: ' + limit); return count <= limit; },
         function (callback) {
@@ -218,12 +384,14 @@ function prepareGalleryPages(done) {
             
         },
         function (err, n) {
+            console.log('prepareGalleryPages done!');
             done(null);
         }
     );
 };
 
 function generateUpComingMovieInfo(done) {
+    console.log('generateUpComingMovieInfo --->');
     var count = start;
     async.whilst(
         function () { console.log('start: ' + start + 'count: ' + count + 'limit: ' + limit); return count <= limit; },
@@ -252,6 +420,7 @@ function generateUpComingMovieInfo(done) {
             });
         },
         function (err, n) {
+            console.log('generateUpComingMovieInfo done!');
             count++;
             done(null);
         }
@@ -259,7 +428,7 @@ function generateUpComingMovieInfo(done) {
 }
 
 function generateUpComingTrailerUrls(done) {
-
+    console.log('generateUpComingTrailerUrls --->');
     var count = start;
     async.whilst(
         function () { console.log('start: ' + start + 'count: ' + count + 'limit: ' + limit); return count <= limit; },
@@ -295,6 +464,7 @@ function generateUpComingTrailerUrls(done) {
 }
 
 function generateUpComingPosterPages(done) {
+    console.log('generateUpComingPosterPages --->');
     var count = start;
     async.whilst(
         function () { console.log('start: ' + start + 'count: ' + count + 'limit: ' + limit); return count <= limit; },
@@ -349,6 +519,7 @@ function generateUpComingPosterPages(done) {
 }
 
 function prepareUpComingPosterUrls(done) {
+    console.log('prepareUpComingPosterUrls --->');
     var count = start;
     async.whilst(
         function () { console.log('start: ' + start + 'count: ' + count + 'limit: ' + limit); return count <= limit; },
@@ -403,16 +574,18 @@ function prepareUpComingPosterUrls(done) {
             });
         },
         function (err, n) {
+            console.log('prepareUpComingPosterUrls done!');
             done(null);
         }
     );
 }
 
 function upComingInitWizard(done) {
+   console.log('upComingInitWizard --->');
   // if the Pages array is empty, we are Done!!
   if (!upComingPages.length) {
     done(null);
-    return console.log('Done!!!!');
+    return console.log('upComingInitWizard Done!!!!');
   }
   var url = upComingPages.pop();
   var scraper = new Scraper(url);
@@ -448,16 +621,18 @@ function upComingInitWizard(done) {
 }
 
 function upComingDetailWizard(done) {
-
+    console.log('upComingDetailWizard --->');
     if (!upComingDetailPages.length) {
         done(null);
-        return console.log('Done!!!!');
+        console.log('finalReviewPages --> ' + JSON.stringify(finalReviewPages));
+        return console.log('upComingDetailWizard Done!!!!');
     }
 
     var url = upComingDetailPages.pop();
     console.log(url);
     var scraper = new upComingReadMoreScraper(url);
     console.log('Requests Left: ' + upComingDetailPages.length);
+
     scraper.on('error', function (error) {
       console.log(error);
       upComingDetailWizard(done);
@@ -466,6 +641,9 @@ function upComingDetailWizard(done) {
     scraper.on('complete', function (listing) {
         console.log(listing);
         console.log('got complete!');
+
+        finalReviewPages.push(listing['review']);
+
         if (listing['title'] == 'Ben-Hur') {
             dbIMDB.imdb.findAndModify({
                 query: { _id: mongojs.ObjectId('5705057233c8ea8e13b62488')},
@@ -499,10 +677,10 @@ function upComingDetailWizard(done) {
 }
 
 function upComingThumbnailWizard(done) {
-
+    console.log('upComingThumbnailWizard --->');
     if (!upComingThumbnailPages.length) {
         done(null);
-        return console.log('Done!!!!');
+        return console.log('upComingThumbnailWizard Done!!!!');
     }
 
     var url = upComingThumbnailPages.pop();
@@ -555,10 +733,10 @@ function upComingThumbnailWizard(done) {
 }
 
 function upComingGalleryWizard(done) {
-
+    console.log('upComingGalleryWizard --->');
     if (!upComingGalleryPages.length) {
         done(null);
-        return console.log('Done!!!!');
+        return console.log('upComingGalleryWizard Done!!!!');
     }
 
     console.log('<<upComingGalleryWizard>>');
@@ -598,9 +776,10 @@ function upComingGalleryWizard(done) {
 }
 
 function upComingDescriptionWizard(done) {
+    console.log('upComingDescriptionWizard --->');
     if (!upComingPosterPages.length) {
         done(null);
-        return console.log('Done!!!!');
+        return console.log('upComingDescriptionWizard Done!!!!');
     }
 
     var url = upComingPosterPages.pop();
@@ -621,35 +800,12 @@ function upComingDescriptionWizard(done) {
                 function(callback) {
                     dbIMDB.imdb.findAndModify({
                         query: { '_id': mongojs.ObjectId('5705057233c8ea8e13b62488') },
-                        update: { '$set': {'description': listing['description']} },
-                        new: false
-                    }, function (err, doc, lastErrorObject) {
-                        if (err)
-                          console.log(err);
-                        else {
-                          console.log('update ----> ' + doc['title']);
-                          callback(null, 'one');
-                        }
-                    });
-                },
-                function(callback) {
-                    dbIMDB.imdb.findAndModify({
-                        query: { '_id': mongojs.ObjectId('5705057233c8ea8e13b62488') },
-                        update: { '$set': {'posterUrl': listing['url']}},
-                        new: false
-                    }, function (err, doc, lastErrorObject) {
-                        if (err)
-                          console.log(err);
-                        else {
-                          console.log('update ----> ' + doc['title']);
-                          callback(null, 'one');
-                        }
-                    });
-                },
-                function(callback) {
-                    dbIMDB.imdb.findAndModify({
-                        query: { '_id': mongojs.ObjectId('5705057233c8ea8e13b62488') },
-                        update: { '$set': {'posterHash': listing['hash']}},
+                        update: { $set: {
+                                description: listing['description'],
+                                posterUrl: listing['url'],
+                                posterHash: listing['hash']
+                            } 
+                        },
                         new: false
                     }, function (err, doc, lastErrorObject) {
                         if (err)
@@ -668,30 +824,16 @@ function upComingDescriptionWizard(done) {
         } else {
             async.series([
                 function(callback) {
-                    dbIMDB.imdb.update({'title': listing['title']}, {'$set': {'description': listing['description']}},
+                    dbIMDB.imdb.update({'title': listing['title']}, {
+                        $set: {
+                            description: listing['description'],
+                            posterUrl: listing['url'],
+                            posterHash: listing['hash']
+                        }
+                    },
                     function() {
-                        callback(null, 'one');
+                        callback(null, 1);
                     });
-                },
-                function(callback) {
-                    if (listing.hasOwnProperty('url')) {
-                        dbIMDB.imdb.update({'title': listing['title']}, {'$set': {'posterUrl': listing['url']}},
-                        function() {
-                            callback(null, 'two');
-                        });
-                    } else {
-                        callback(null, 'two');
-                    }
-                },
-                function(callback) {
-                    if (listing.hasOwnProperty('hash')) {
-                        dbIMDB.imdb.update({'title': listing['title']}, {'$set': {'posterHash': listing['hash']}},
-                        function() {
-                            callback(null, 'three');
-                        });
-                    } else {
-                        callback(null, 'three');
-                    } 
                 }
             ],
             // optional callback
@@ -703,10 +845,10 @@ function upComingDescriptionWizard(done) {
 }
 
 function upComingPosterWizard(done) {
-
+    console.log('upComingPosterWizard --->');
     if (!upComingPosterImageObjs.length) {
         done(null);
-        return console.log('Done!!!!');
+        return console.log('upComingPosterWizard Done!!!!');
     }
 
     var obj = upComingPosterImageObjs.pop();
