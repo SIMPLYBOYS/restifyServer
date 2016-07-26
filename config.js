@@ -48,11 +48,13 @@ exports.recordUpdate = '15 10 7 * * *';
 
 exports.positionUpdate = '5 15 7 * * *';
 
-exports.upcomingUpdate = '25 30 8 * * *';
+exports.reviewUpdate = '35 50 0 * * *';
+
+exports.upcomingUpdate = '15 30 8 * * *';
 
 exports.fullrecordUpdate = '15 30 7 * * *';
 
-exports.jpTrendsUpdate = '25 50 13 * * *';
+exports.jpTrendsUpdate = '15 50 13 * * *';
 
 exports.krTrendsUpdate = '25 30 9 * * *';
 
@@ -60,5 +62,5 @@ exports.frTrendsUpdate = '55 50 10 * * *';
 
 exports.twTrendsUpdate = '15 40 11 * * *';
 
-exports.usTrendsUpdate = '45 0 12 * * *';
+exports.usTrendsUpdate = '15 0 12 * * *';
 

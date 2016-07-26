@@ -3,6 +3,7 @@ var cheerio = require('cheerio');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 var STATUS_CODES = http.STATUS_CODES;
+
 /*
  * Scraper Constructor
 **/
@@ -31,7 +32,7 @@ upComingReadMoreScraper.prototype.init = function () {
 upComingReadMoreScraper.prototype.loadWebPage = function () {
   var self = this;
   // console.log('\n\nLoading ' + website);
-  console.log('loading ' + 'http:\/\/' + self.url);
+  console.log('loading ' + self.url);
   http.get(self.url, function (res) {
     var body = '';
     if(res.statusCode !== 200) {
@@ -88,7 +89,7 @@ upComingReadMoreScraper.prototype.parsePage = function (html) {
   var path = 'http://www.imdb.com' + url;
   var foo = $('.combined-see-more a')[1]['children'];
   var page = $(foo[0]).text();
-  console.log('page: '+page);
+
   page = Math.ceil(parseInt(page.split("photos")[0]) / 48);
 
   return model = {

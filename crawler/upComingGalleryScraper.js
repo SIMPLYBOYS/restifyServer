@@ -89,8 +89,8 @@ upComingGalleryScraper.prototype.parsePage = function (html) {
     position = self.url.split('ukn_')[1];
   }
 
-  if (title == '')
-    title = $('title').text().split('(')[0].trim();
+  // if (title == '')
+  title = $('title').text().split('(')[0].trim();
 
   picturesUrl = $('.photo img').attr('src');
 

@@ -25,6 +25,7 @@ var myapiToken = config.myapiToken;
 var Trailer = require('./Trailer');
 var Position = require('./update/position');
 var Record = require('./update/record');
+var Review = require('./update/review');
 var upComing = require('./update/upcoming');
 var jpTrends = require('./trends/jpTrends');
 var krTrends = require('./trends/krTrends');
@@ -452,6 +453,10 @@ var job_upcomingUpdate = new cronJob(config.upcomingUpdate, function() {
     upComing.updateupComing();
 });
 
+var job_reviewUpdate = new cronJob(config.reviewUpdate, function() {
+    Review.updateReview();
+});
+
 var job_jpTrendsUpdate = new cronJob(config.jpTrendsUpdate, function() {
     jpTrends.updateTrends();
 });
@@ -491,6 +496,7 @@ job_krTrendsUpdate.start();
 job_frTrendsUpdate.start();
 job_twTrendsUpdate.start();
 job_usTrendsUpdate.start();
+job_reviewUpdate.start();
 
 require('events').EventEmitter.prototype._maxListeners = 100;
  
