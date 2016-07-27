@@ -51,7 +51,7 @@ usCastAvatarScraper.prototype.loadWebPage = function () {
           if (err || !body) { 
              console.log(err.code);
              console.log(err);
-              self.emit('error', null);
+              self.emit('error', err);
               return;
           }
           self.emit('loaded', body);

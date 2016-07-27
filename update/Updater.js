@@ -108,15 +108,15 @@ Updater.prototype.updateCastReview = function () {
               console.log('insertCast ----> ' + that['title']);
               $('.cast_list tr').each(function(index, item) {
                   if (index > 0) {
-                      name = $(item).find('.itemprop span').text();
-                      link = 'http://www.imdb.com'+$(item).find('.primary_photo a').attr('href');
+                      var name = $(item).find('.itemprop span').text();
+                      var link = 'http://www.imdb.com'+$(item).find('.primary_photo a').attr('href');
                       avatarUrl.push({
                           link: link,
                           cast: name,
                           title: castItem['title']
                       });
                       if (typeof($(item).find('.character a')[0])!='undefined')
-                          as = $(item).find('.character a').text().trim();
+                          var as = $(item).find('.character a').text().trim();
                       Cast.push({
                           cast: name,
                           as: as,
@@ -227,7 +227,7 @@ Updater.prototype.updateCastReview = function () {
                             if (index%2 ==0) {
                                 topic = $(item).find('h2').text().trim();
                                 avatar = $(item).find('img')[0]['attribs']['src'];
-                                name = $(item).find('a')[1]['children'][0]['data'];
+                                name = typeof($(item).find('a')[1]) != 'undefined' ? ['children'][0]['data'] : null;
 
                                 if (typeof($(item).find('img')[1])!='undefined')
                                     point = parseInt($(item).find('img')[1]['attribs']['alt'].split('/')[0]);
