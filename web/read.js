@@ -78,6 +78,23 @@ exports.read = function (req, res, next) {
     }
 };
 
+exports.imdbReview = function(req, res) {
+    console.log(req.query.title);
+    var foo = {};
+    var start = parseInt(req.query.start);
+    var end = start + 10;
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});   
+    dbKorea.korea.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+      function(err, doc) {
+        // console.log(doc[0]['review']);
+        foo['title'] = doc[0]['title'];
+        foo['review'] = doc[0]['review'].slice(start,end);
+        foo['byTitle'] = false;
+        foo['size'] = doc[0]['review'].length;
+        res.end(JSON.stringify(foo));
+    });
+}
+
 exports.upComing = function(req, res, next) {
 
     if (typeof(req.query.month) != 'undefined') {

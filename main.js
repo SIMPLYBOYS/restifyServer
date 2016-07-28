@@ -87,6 +87,8 @@ server.get('/myapi', Read.myapi);
 
 server.get('/imdb_records', Read.getRecords);
 
+server.get('/imdbReview', Read.imdbReview);
+
 server.get('/today', Read.getToday);
 
 server.get('/imdb', Read.read);
