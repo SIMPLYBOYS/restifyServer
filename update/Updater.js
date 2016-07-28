@@ -54,8 +54,10 @@ Updater.prototype.init = function () {
         break;
       case 'delta':
         this.updateMovie();
+        break;
       case 'cast':
         this.updateCastReview();
+        break;
     } 
 };
 
@@ -254,7 +256,7 @@ Updater.prototype.updateCastReview = function () {
                                 text.push($(item).text().trim());
                         });
 
-                        console.log(text);
+                        // console.log(text);
                         innerCount+=10;
                         innercallback(null, innerCount);  
                     });
