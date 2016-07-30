@@ -84,7 +84,7 @@ exports.imdbReview = function(req, res) {
     var start = parseInt(req.query.start);
     var end = start + 10;
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});   
-    dbKorea.korea.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+    dbIMDB.imdb.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
       function(err, doc) {
         // console.log(doc[0]['review']);
         foo['title'] = doc[0]['title'];
