@@ -164,7 +164,8 @@ nyInformer.prototype.fetchInfo = function () {
                     image: { src: $('.story-body .image img').attr('data-mediaviewer-src'),
                              description: $('.caption-text').text()},
                     editor: editor,
-                    date: date
+                    date: date,
+                    url: self.url
                 });
     });
 };
