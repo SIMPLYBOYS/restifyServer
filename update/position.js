@@ -63,9 +63,7 @@ exports.updatePosition = function() {
             //type B
             if (docs['upItem']) {
                 docs['upItem'].forEach(function(item, index) {
-                    if (item['title'] == 'Sunrise (1927)')
-                        item['title'] = 'Sunrise: A Song of Two Humans';
-                    console.log(item['title'].split('(')[0].trim());
+                    // console.log(item['title'].split('(')[0].trim());
                     updateMovies.push({'title': item['title'].split('(')[0].trim(),
                         'position': item['position'],
                         'delta': item['delta']
@@ -80,9 +78,7 @@ exports.updatePosition = function() {
             //type C
             if (docs['downItem']) {
                 docs['downItem'].forEach(function(item, index) {
-                    if (item['title'] == 'Sunrise (1927)')
-                        item['title'] = 'Sunrise: A Song of Two Humans';
-                    console.log(item['title'].split('(')[0].trim());
+                    // console.log(item['title'].split('(')[0].trim());
                     updateMovies.push({'title': item['title'].split('(')[0].trim(),
                         'position': item['position'],
                         'delta': item['delta']
