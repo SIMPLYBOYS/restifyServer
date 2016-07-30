@@ -8,6 +8,7 @@ var EventEmitter = require('events').EventEmitter;
 var usCastAvatarScraper = require('../crawler/usCastAvatarScraper');
 var dbIMDB = config.dbIMDB;
 var dbRecord = config.dbRecord;
+var dbReview = config.dbReview;
 var async = require('async');
 var STATUS_CODES = http.STATUS_CODES;
 /*
@@ -263,13 +264,14 @@ Updater.prototype.updateCastReview = function () {
                 },
                 function (err, n) {
                     console.log(review['title'] + '-------->');
+                    
                     text.forEach(function(item, index) {
                         reviewer[index]['text'] = item
                     });
-                    // console.log(JSON.stringify(reviewer));
-                    dbIMDB.imdb.update({'title': review['title']}, {'$set': {'review': reviewer}}, function() {
+
+                    dbRecord.review.update({'title': review['title']}, {$set: {review: reviewer}}, function() {
                         callback(null);
-                    });          
+                    });        
                 }
             );
       }

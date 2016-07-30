@@ -8,6 +8,7 @@ var dbUSA = mongojs('test', ['usa']);
 var dbFrance = mongojs('test', ['france']);
 var dbUpComing = mongojs('test', ['upComing']);
 var dbRecord = mongojs('test', ['records']);
+var dbReview = mongojs('test', ['reviews']);
 var dbPosition = mongojs('test', ['position']);
 var dbToday = mongojs('test', ['today']);
 var myapiToken = '632ce305-f516-4ccb-8f32-4e0fb1ad412a';
@@ -18,6 +19,7 @@ var GCMKey = 'AIzaSyCpHbHblbj_6zfA1AeKsuaxB4ZuoTffVKw';
 
 exports.myapiToken = myapiToken;
 exports.dbRecord = dbRecord;
+exports.dbReview = dbReview;
 exports.dbUpComing = dbUpComing;
 exports.dbIMDB = dbIMDB;
 exports.dbToday = dbToday;
@@ -48,7 +50,7 @@ exports.recordUpdate = '15 10 7 * * *';
 
 exports.positionUpdate = '5 15 7 * * *';
 
-exports.reviewUpdate = '35 50 0 * * *';
+exports.reviewUpdate = '55 50 0 * * *';
 
 exports.upcomingUpdate = '15 30 8 * * *';
 
