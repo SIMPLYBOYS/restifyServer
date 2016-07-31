@@ -97,6 +97,7 @@ Updater.prototype.updateCastReview = function () {
                       });
                     }
                   });
+                  
                   callback(null);
             });
           });
@@ -141,7 +142,6 @@ Updater.prototype.updateCastReview = function () {
                   }
               });
         });
-      },
       function(callback) { 
         if (!avatarUrl.length) {
             callback(null);
@@ -254,7 +254,7 @@ Updater.prototype.updateCastReview = function () {
                          
                         $('#tn15content p').each(function(index, item) {
                             if($(item).text().indexOf('***') !=0 && $(item).text() !='Add another review')
-                                text.push($(item).text().trim());
+                                text.push($(item).text().trim().replace(/\n/g,''));
                         });
 
                         // console.log(text);
@@ -264,14 +264,25 @@ Updater.prototype.updateCastReview = function () {
                 },
                 function (err, n) {
                     console.log(review['title'] + '-------->');
-                    
+
                     text.forEach(function(item, index) {
                         reviewer[index]['text'] = item
                     });
 
-                    dbRecord.review.update({'title': review['title']}, {$set: {review: reviewer}}, function() {
-                        callback(null);
-                    });        
+                    dbIMDB.imdb.findOne({title: review['title']}, function(err, doc) {
+                        if (doc) {
+                            dbReview.reviews.insert({
+                                'title': doc['title']
+                            }, function() {
+                                dbReview.reviews.update({'title': doc['title']}, {$set: {review: reviewer}}, function() {
+                                    callback(null);
+                                });
+                            });
+                        } else {
+                            console.log(that.title + ' not found!');
+                            callback(null);
+                        }
+                    });               
                 }
             );
       }
