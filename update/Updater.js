@@ -142,6 +142,7 @@ Updater.prototype.updateCastReview = function () {
                   }
               });
         });
+      },
       function(callback) { 
         if (!avatarUrl.length) {
             callback(null);
