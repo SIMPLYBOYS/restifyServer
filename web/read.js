@@ -9,6 +9,7 @@ var dbJapan = config.dbJapan;
 var dbKorea = config.dbKorea;
 var dbFrance = config.dbFrance;
 var dbTaiwan = config.dbTaiwan;
+var dbReview = config.dbReview;
 var dbUSA = config.dbUSA;
 var myapiToken = config.myapiToken;
 var Updater = require('../update/Updater');
@@ -84,9 +85,8 @@ exports.imdbReview = function(req, res) {
     var start = parseInt(req.query.start);
     var end = start + 10;
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});   
-    dbIMDB.imdb.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+    dbReview.reviews.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
       function(err, doc) {
-        // console.log(doc[0]['review']);
         foo['title'] = doc[0]['title'];
         foo['review'] = doc[0]['review'].slice(start,end);
         foo['byTitle'] = false;
