@@ -5,6 +5,8 @@ var request = require("request");
 var async = require('async');
 var moment = require("moment");
 var Updater = require('../update/Updater');
+var youTube = config.youTube;
+var Trailer = require('../Trailer');
 var updateMovies = [];
 
 exports.updateReview = function() {
@@ -19,20 +21,23 @@ exports.updateReview = function() {
             }
             callback(null);
           });
-      },
+      },/*
       function(callback) {
       	updateCastWizard(callback);
+      },*/
+      function(callback) {
+        updateTrailerWizard(callback);
       }
   ],
   function(err, results) {
-      console.log('updateCastReview finished!');
+      console.log('updateReview finished!');
   });
 };
 
 function updateCastWizard(done) {
     if (!updateMovies.length) {
         done(null);
-        return console.log('Done!!!!');
+        return console.log('updateCastWizard Done!!!!');
     }
 
     var item = updateMovies.pop();
@@ -56,5 +61,21 @@ function updateCastWizard(done) {
                 updateCastWizard(done);
             });
         }
+    });
+}
+
+function updateTrailerWizard(done) {
+    if (!updateMovies.length) {
+        done(null);
+        return console.log('updateTrailerWizard Done!!!!');
+    }
+
+    var item = updateMovies.pop();
+
+    dbIMDB.imdb.findOne({title: item['title']}, function(err, doc) {
+        if (!doc.hasOwnProperty('trailerUrl')) {
+          new Trailer(item.title, youTube, 0, null);
+        }
+        updateTrailerWizard(done);
     });
 }
