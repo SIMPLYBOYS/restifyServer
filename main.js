@@ -27,6 +27,7 @@ var Position = require('./update/position');
 var Record = require('./update/record');
 var Review = require('./update/review');
 var upComing = require('./update/upcoming');
+var Genre = require('./genre/genre');
 var jpTrends = require('./trends/jpTrends');
 var krTrends = require('./trends/krTrends');
 var frTrends = require('./trends/frTrends');
@@ -443,6 +444,10 @@ var job_recordUpdate = new cronJob(config.recordUpdate, function () {
   });*/
 });
 
+var job_genreUpdate = new cronJob(config.genreUpdate, function() {
+    Genre.updateGenres('animation');
+});
+
 var job_positionUpdate = new cronJob(config.positionUpdate, function() {
     Position.updatePosition();
 });
@@ -499,6 +504,7 @@ job_frTrendsUpdate.start();
 job_twTrendsUpdate.start();
 job_usTrendsUpdate.start();
 job_reviewUpdate.start();
+job_genreUpdate.start();
 
 require('events').EventEmitter.prototype._maxListeners = 100;
  

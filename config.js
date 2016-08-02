@@ -46,23 +46,25 @@ exports.db = mysql.createConnection({
 exports.port = 80;
 
 // update record
-exports.recordUpdate = '15 10 7 * * *';
+exports.genreUpdate = '15 31 1 * * *';
+
+exports.recordUpdate = '35 10 7 * * *';
 
 exports.positionUpdate = '5 15 7 * * *';
 
-exports.reviewUpdate = '55 50 0 * * *';
+exports.reviewUpdate = '35 40 7 * * *';
 
-exports.upcomingUpdate = '15 30 8 * * *';
+exports.upcomingUpdate = '25 40 9 * * 1';
 
-exports.fullrecordUpdate = '15 30 7 * * *';
+exports.fullrecordUpdate = '15 30 8 * * *';
 
 exports.jpTrendsUpdate = '15 50 13 * * *';
 
-exports.krTrendsUpdate = '25 30 9 * * *';
+exports.krTrendsUpdate = '25 30 10 * * *';
 
-exports.frTrendsUpdate = '55 50 10 * * *';
+exports.frTrendsUpdate = '55 50 11 * * *';
 
-exports.twTrendsUpdate = '15 40 11 * * *';
+exports.twTrendsUpdate = '15 40 12 * * *';
 
-exports.usTrendsUpdate = '15 0 12 * * *';
+exports.usTrendsUpdate = '45 50 14 * * *';
 
