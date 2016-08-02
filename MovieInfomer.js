@@ -303,8 +303,12 @@ MovieInformer.prototype.findMovieInfo = function () {
         if(err || !json) { return; }
         console.log(json);
         var movieInfo = JSON.parse(json),
-            bar = movieInfo['data']['movies'];
-        self.emit('finish', JSON.stringify(bar));
+            bar = movieInfo.hasOwnProperty('data') ? movieInfo['data']['movies'] : null;
+
+        if (!bar)
+          self.done(null, self.count);
+        else
+          self.emit('finish', JSON.stringify(bar));
     });
 };
 
