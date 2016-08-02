@@ -152,8 +152,8 @@ function prepareCastPages(done) {
 function insertCast(done) {
     console.log('insertCast -------->');
     var count = 0,
-        end = finalCastPages.length,
         cast,
+        end = finalCastPages.length,
         as = null,
         name,
         link,
@@ -190,8 +190,8 @@ function insertCast(done) {
                     }
                 });
 
-                dbIMDB.imdb.findOne({title: cast['title']}, function(err, docs) {
-                    if (typeof(docs['cast'])!='undefined') {
+                dbIMDB.imdb.findOne({title: cast['title']}, function(err, doc) {
+                    if (doc.hasOwnProperty('cast')) {
                         count++;
                         callback(null, count);
                     } else {
@@ -550,8 +550,7 @@ function prepareUpComingPosterUrls(done) {
                             } else {
                                 dbIMDB.imdb.findOne({title: title}, function(err, item) {
                                     console.log(item['posterUrl']);
-                                    console.log(upComingPosterImageObjs.length);
-                                    if (typeof(item['posterUrl']) != 'undefined') {
+                                    if (typeof(item['posterUrl']) != 'undefined' || item['posterUrl'] != null) {
                                         upComingPosterImageObjs.push({
                                             url: item['posterUrl'], 
                                             hash: item['posterHash']
@@ -852,6 +851,11 @@ function upComingPosterWizard(done) {
     }
 
     var obj = upComingPosterImageObjs.pop();
+
+    if (!obj.url) {
+        return upComingPosterWizard(done)
+    }
+
     var scraper = new upComingPosterScraper(obj);
     console.log('Requests Left: ' + upComingPosterImageObjs.length);
     scraper.on('error', function (error) {
