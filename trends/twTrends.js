@@ -85,28 +85,29 @@ function insertTitle(done) {
             link = [],
             foo;
         
-        $('table tr').each(function(index, item){
-            $(item).find('td').each(function(index, item){
-                if(index ==2) {
-                    foo = $(item).find('a')[0]['attribs']['href'].split('*')[1];
-                    link.push(foo);
-                    galleryPages.push({
-                        galleryUrl: foo.split('_')[0] + '_photos.html' + foo.split('_')[1].split('.html')[1],
-                        title: typeof($(item).find('a')[0]['children'][0]['data']) != 'undefined' ? $(item).find('a')[0]['children'][0]['data'] : 
-                        $(item).find('a')[1]['children'][0]['data']/*,
-                        originTitle: $(item).find('a')[1]['children'][0]['data']*/
-                    });
-                    finalReviewPages.push({
-                        reviewUrl: foo.split('_')[0] + '_review.html' + foo.split('_')[1].split('.html')[1],
-                        title: typeof($(item).find('a')[0]['children'][0]['data']) == 'undefined' ? $(item).find('a')[1]['children'][0]['data'] :
-                        $(item).find('a')[0]['children'][0]['data']
-                    });
-                    title.push($(item).find('a')[0]['children'][0]['data']);
-                    console.log($(item).find('a')[1]['children'].length);
-                    if ($(item).find('a')[1]['children'].length == 1)
-                        originTitle.push($(item).find('a')[1]['children'][0]['data']);
-                    else 
-                        originTitle.push('');
+        $('table tr').each(function(index, item) {
+            $(item).find('td').each(function(index, item) {
+                if (index == 2) {
+                    if (typeof($(item).find('a')[0])!='undefined') {
+                        foo = $(item).find('a')[0]['attribs']['href'].split('*')[1];
+                        link.push(foo);
+                        galleryPages.push({
+                            galleryUrl: foo.split('_')[0] + '_photos.html' + foo.split('_')[1].split('.html')[1],
+                            title: typeof($(item).find('a')[0]['children'][0]['data']) != 'undefined' ? $(item).find('a')[0]['children'][0]['data'] :
+                            $(item).find('a')[1]['children'][0]['data']
+                        });
+                        finalReviewPages.push({
+                            reviewUrl: foo.split('_')[0] + '_review.html' + foo.split('_')[1].split('.html')[1],
+                            title: typeof($(item).find('a')[0]['children'][0]['data']) == 'undefined' ? $(item).find('a')[1]['children'][0]['data'] :
+                            $(item).find('a')[0]['children'][0]['data']
+                        });
+                        title.push($(item).find('a')[0]['children'][0]['data']);
+                        console.log($(item).find('a')[1]['children'].length);
+                        if ($(item).find('a')[1]['children'].length == 1)
+                            originTitle.push($(item).find('a')[1]['children'][0]['data']);
+                        else
+                            originTitle.push('');
+                    }
                 }
             });
         });
@@ -159,6 +160,12 @@ function insertGalleryPages(done) {
             console.log(gallery['gallerySize']+' pages');
             var galleryfullPages = [];
             var innerCount = 0;
+
+            if (typeof(gallery['gallerySize'])=='undefined') {
+                count++;
+                return callback(null, count);
+            }
+
             async.whilst(
                 function () { console.log('innerCount: ' + innerCount); return innerCount < Math.ceil(gallery['gallerySize']/20); },
                 function (innercallback) {
@@ -357,6 +364,12 @@ function insertCountry(done) {
     async.whilst(
         function() { return count < 20},
         function(callback) {
+
+            if (typeof(title[count]) == 'undefined') {
+                count++;
+                callback(null, count);
+            }
+
             dbTaiwan.taiwan.findOne({'title': title[count]}, function(err, doc){
                 if (doc) {    
                     if (!doc.hasOwnProperty('boxoffice')) {count++; callback(null, count);return;}
@@ -407,7 +420,13 @@ function insertCast(done) {
     async.whilst(
         function() { return count < title.length},
         function(callback) {
-            dbTaiwan.taiwan.findOne({'title': title[count]}, function(err, doc){
+
+            if (typeof(title[count]) == 'undefined') {
+                count++;
+                callback(null, count);
+            }
+
+            dbTaiwan.taiwan.findOne({'title': title[count]}, function(err, doc) {
                 if (doc) {    
                     if (!doc.hasOwnProperty('castUrl')) {count++; callback(null, count);return;}
                     request({
@@ -608,6 +627,9 @@ function insertDetail(done) {
                                         callback(null, count);
                                 });
                             });
+                        } else {
+                            count++;
+                            callback(null, count);
                         }
                     });
                 },
