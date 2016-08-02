@@ -82,7 +82,7 @@ upComingReadMoreScraper.prototype.parsePage = function (html) {
   // console.log('title: ' + bar);
   console.log($('.combined-see-more a').length + ' title: ' + bar);
   
-  if ($('.combined-see-more a').length == 1)
+  if ($('.combined-see-more a').length <= 1)
     return model = {title: title, url: "", page: 0};
 
   var url = $('.combined-see-more a')[1]['attribs']['href'];
