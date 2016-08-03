@@ -60,10 +60,12 @@ function initScrape(done) {
             }, function(err, response, body) {
                 var $ = cheerio.load(body);
                 var top, link, title;
+                // console.log('page '+(count+1)+'\n\n');
                 $('.lister-list .lister-item').each(function(index, item) {
                     link = 'http://www.imdb.com'+$(item).find('.lister-item-image a').attr('href');
                     top = parseInt($(item).find('.lister-item-header .lister-item-index').text().split('.')[0]);
                     title = $(item).find('.lister-item-header a').text().trim();
+                    console.log('title: '+title);
                     movieObj.push({
                         title: title,
                         top: top,
@@ -85,9 +87,10 @@ function initScrape(done) {
 function insertPoster(done) {
     console.log('insertPoster ---->');
     var count = 0,
+        end = posterPages.length;
         poster;
     async.whilst(
-        function () { return count < movieObj.length; },
+        function () { return count < end; },
         function (callback) {
             poster = posterPages.pop(); 
             console.log(poster['title'] + '---->');
@@ -122,9 +125,10 @@ function insertPoster(done) {
 function prepareGalleryPages(done) {
     console.log('prepareGalleryPages -------->');
     var count = 0,
+        end = GalleryPages.length;
         gallery;
     async.whilst(
-        function () { return count < movieObj.length; },
+        function () { return count < end; },
         function (callback) {
             var innerCount = 0;
             gallery = GalleryPages.pop(); 
@@ -170,9 +174,10 @@ function prepareGalleryPages(done) {
 function insertReview(done) {
     console.log('insertReview -------->');
     var count = 0,
+        end = finalReviewPages.length,
         cast;
     async.whilst(
-        function () { return count < movieObj.length; },
+        function () { return count < end; },
         function (callback) {
             var innerCount = 0,
                 reviewer = [],
@@ -200,7 +205,8 @@ function insertReview(done) {
                             if (index%2 ==0) {
                                 topic = $(item).find('h2').text().trim();
                                 avatar = $(item).find('img')[0]['attribs']['src'];
-                                name = $(item).find('a')[1]['children'][0]['data'];
+                                console.log($(item).find('a')[1]['children'].length);
+                                name = $(item).find('a')[1]['children'].length != 0 ? $(item).find('a')[1]['children'][0]['data'] : '';
 
                                 if (typeof($(item).find('img')[1])!='undefined')
                                     point = parseInt($(item).find('img')[1]['attribs']['alt'].split('/')[0]);
@@ -229,7 +235,6 @@ function insertReview(done) {
                     });
                 },
                 function (err, n) {
-                    console.log(review['title'] + '-------->');
                     text.forEach(function(item, index) {
                         reviewer[index]['text'] = item
                     });
@@ -240,6 +245,7 @@ function insertReview(done) {
                                 title: doc['title']
                             }, function() {
                                 dbReview.reviews.update({'title': doc['title']}, {$set: {review: reviewer}}, function() {
+                                    console.log(review['title'] + 'finished insert review');
                                     callback(null);
                                 });
                             });
@@ -590,13 +596,15 @@ function insertDetail(done) {
                             });
                         }
 
-                        GalleryPages.push({
-                            photoUrl: 'http://www.imdb.com'+$('.combined-see-more a')[1]['attribs']['href'],
-                            page: Math.ceil(parseInt($('.combined-see-more a').text().split('photos')[0])/48),
-                            title: movieObj[count]['title']
-                        });
+                        if ($('.combined-see-more a').length!=0) {
+                            GalleryPages.push({
+                                photoUrl: 'http://www.imdb.com'+$('.combined-see-more a')[1]['attribs']['href'],
+                                page: Math.ceil(parseInt($('.combined-see-more a').text().split('photos')[0])/48),
+                                title: movieObj[count]['title']
+                            });
+                        }
 
-                        /*dbIMDB.imdb.findOne({title: movieObj[count]['title']}, function(err, docs) {
+                        dbIMDB.imdb.findOne({title: movieObj[count]['title']}, function(err, docs) {
                             if (!docs) {
                                 dbIMDB.imdb.insert({
                                     title: movieObj[count]['title'],
@@ -641,9 +649,7 @@ function insertDetail(done) {
                                     callback(null, count);
                                 });
                             }
-                        });*/
-                        count++;
-                        callback(null, count);
+                        });
                     });
                 },
                 function(err, n) {
