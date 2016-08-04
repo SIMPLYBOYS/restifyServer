@@ -4,7 +4,7 @@ var cheerio = require("cheerio");
 var request = require("request");
 var async = require('async');
 var moment = require("moment")
-var TrendsTrailer = require('../trends/TrendsTrailer');
+var Trailer = require('../Trailer');
 var trendsGalleryScraper = require('../crawler/trendsUsGalleryScraper');
 var usCastAvatarScraper = require('../crawler/usCastAvatarScraper');
 var youTube = config.YouTube;
@@ -438,7 +438,7 @@ function insertTrailer(done) {
         function(callback) {
             dbIMDB.imdb.findOne({title: movieObj[count]['title']}, function(err, doc) {
                 if (doc) {
-                    new TrendsTrailer('us', movieObj[count]['title'], youTube, count, callback);
+                    new Trailer(movieObj[count]['title'], youTube, count, callback);
                     count++;
                 } else {
                     count++;
@@ -447,7 +447,7 @@ function insertTrailer(done) {
             });
         },
         function(err, n) {
-            console.log('insert kr Trailer finish ' + n);
+            console.log('insert Trailer finish ' + n);
             done(null);
         }
     ); 
@@ -551,27 +551,27 @@ function insertDetail(done) {
                             votes;
 
                         $('.titleReviewBarItem').each(function(index, item) {
-                            if (length == 2) {
-                                if ($(item).find('.subText a').length == 2) {
-                                    console.log($(item).find('.subText a')[0]['attribs']['href']);
-                                    reviewUrl = movieObj[count]['link'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'];
-                                    votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim());
-                                } 
+                            if (length == 2 && $(item).find('.subText a').length == 2) {
+                                console.log($(item).find('.subText a')[0]['attribs']['href']);
+                                reviewUrl = movieObj[count]['link'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'];
+                                votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim());
                             } else if (index == 1 && length == 3) {
                                 reviewUrl = movieObj[count]['link'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'];
                                 votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim()); 
-                            } else if (length == 1) {
+                            } else if (length == 1 && $(item).find('.subText a').length != 0) {
                                 reviewUrl = movieObj[count]['link'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'];
                                 votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim()); 
                             }
                         });
 
-                        finalReviewPages.push({
-                            reviewUrl: reviewUrl,
-                            title: movieObj[count]['title'],
-                            votes: votes
-                        });
-
+                        if (typeof(review) !='undefined') {
+                                finalReviewPages.push({
+                                reviewUrl: reviewUrl,
+                                title: movieObj[count]['title'],
+                                votes: votes
+                            });
+                        }
+                        
                         finalCastPages.push({
                             castUrl: movieObj[count]['link'].split('?')[0]+'fullcredits?ref_=tt_cl_sm#cast',
                             title: movieObj[count]['title']
@@ -593,19 +593,22 @@ function insertDetail(done) {
                             });
                         } else {
                             obj = $('.minPosterWithPlotSummaryHeight .poster img')[0];
-                            hash = obj['attribs']['src'].split('images')[1].split('._V1')[0].slice(3);
 
-                            if (hash.indexOf('@')!= -1) {
-                                hash = hash.split('@')[0];
-                            }
+                            if (typeof(obj) != 'undefined') {
+                                hash = obj['attribs']['src'].split('images')[1].split('._V1')[0].slice(3);
 
-                            var detailUrl = obj['attribs']['src'];
+                                if (hash.indexOf('@')!= -1) {
+                                    hash = hash.split('@')[0];
+                                }
 
-                            posterPages.push({
-                                detailUrl: 'http://www.imdb.com'+$('.minPosterWithPlotSummaryHeight .poster a')[0]['attribs']['href'],
-                                posterHash: hash,
-                                title: movieObj[count]['title']
-                            });
+                                var detailUrl = obj['attribs']['src'];
+
+                                posterPages.push({
+                                    detailUrl: 'http://www.imdb.com'+$('.minPosterWithPlotSummaryHeight .poster a')[0]['attribs']['href'],
+                                    posterHash: hash,
+                                    title: movieObj[count]['title']
+                                });
+                            }  
                         }
 
                         if ($('.combined-see-more a').length!=0) {
