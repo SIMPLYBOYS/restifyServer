@@ -76,7 +76,7 @@ upComingPosterDescriptionScraper.prototype.parsePage = function (html) {
 
     // console.log('director: ' + director.length + '\n' + 'stars: ' + stars.length);
     
-    description = director[0] + ' (dir.), ';stars.length
+    description = director[0] + ' (dir.), ';
 
     for(var i=0; i< stars.length-1; i++)
       description += stars[i];
