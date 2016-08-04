@@ -54,23 +54,29 @@ function initScrape(done) {
         function () { return count < 20; },
         function (callback) {
             request({
-                url: 'http://www.imdb.com/search/title?genres='+genreType+'&page='+(count+1)+'&sort=boxoffice_gross_us',
+                url: 'http://www.imdb.com/search/title?genres='+genreType+'&title_type=feature&page='+(count+1)+'&sort=boxoffice_gross_us&ref_=adv_nxt',
                 encoding: "utf8",
                 method: "GET"
             }, function(err, response, body) {
                 var $ = cheerio.load(body);
-                var top, link, title;
+                var top, link, title, description;
                 // console.log('page '+(count+1)+'\n\n');
                 $('.lister-list .lister-item').each(function(index, item) {
                     link = 'http://www.imdb.com'+$(item).find('.lister-item-image a').attr('href');
                     top = parseInt($(item).find('.lister-item-header .lister-item-index').text().split('.')[0]);
                     title = $(item).find('.lister-item-header a').text().trim();
+                    
+                    $(item).find('p').each(function(index, item){
+                        if (item['attribs']['class'] == '')
+                            description = $(item).find('a').text();
+                    });
                     console.log('title: '+title);
                     movieObj.push({
                         title: title,
                         top: top,
-                        link: link
-                    })
+                        link: link,
+                        description: description
+                    });
                 });
                 count++;
                 callback(null, count);
@@ -87,7 +93,7 @@ function initScrape(done) {
 function insertPoster(done) {
     console.log('insertPoster ---->');
     var count = 0,
-        end = posterPages.length;
+        end = posterPages.length,
         poster;
     async.whilst(
         function () { return count < end; },
@@ -125,7 +131,7 @@ function insertPoster(done) {
 function prepareGalleryPages(done) {
     console.log('prepareGalleryPages -------->');
     var count = 0,
-        end = GalleryPages.length;
+        end = GalleryPages.length,
         gallery;
     async.whilst(
         function () { return count < end; },
@@ -380,7 +386,7 @@ function GalleryWizard(done) {
     console.log('GalleryWizard --->');
     if (!GalleryfullPages.length) {
         done(null);
-        return console.log('Done!!!!');
+        return console.log('insert Gallery Done!!!!');
     }
 
     var gallery = GalleryfullPages.pop();
@@ -416,7 +422,7 @@ function GalleryWizard(done) {
                     update: { $push: { gallery_full: { type: 'full', url: listing['picturesUrl']} }},
                     new: true
                 }, function (err, doc, lastErrorObject) {
-                    console.log(doc);
+                    // console.log(doc);
                     GalleryWizard(done);
                 });
             }           
@@ -545,10 +551,16 @@ function insertDetail(done) {
                             votes;
 
                         $('.titleReviewBarItem').each(function(index, item) {
-                            if (index == 0 && length == 2) {
-                                reviewUrl = movieObj[count]['link'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'];
-                                votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim());   
+                            if (length == 2) {
+                                if ($(item).find('.subText a').length == 2) {
+                                    console.log($(item).find('.subText a')[0]['attribs']['href']);
+                                    reviewUrl = movieObj[count]['link'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'];
+                                    votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim());
+                                } 
                             } else if (index == 1 && length == 3) {
+                                reviewUrl = movieObj[count]['link'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'];
+                                votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim()); 
+                            } else if (length == 1) {
                                 reviewUrl = movieObj[count]['link'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'];
                                 votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim()); 
                             }
@@ -615,6 +627,7 @@ function insertDetail(done) {
                                     type: type,
                                     country: country,
                                     mainInfo: mainInfo,
+                                    description: movieObj[count]['description'],
                                     staff: staff,
                                     rating: {
                                         score: rating,
@@ -636,6 +649,7 @@ function insertDetail(done) {
                                     type: type,
                                     country: country,
                                     mainInfo: mainInfo,
+                                    description: movieObj[count]['description'],
                                     staff: staff,
                                     rating: {
                                         score: rating,
