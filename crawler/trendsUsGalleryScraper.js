@@ -89,6 +89,10 @@ trendsUsGalleryScraper.prototype.parsePage = function (html) {
     position = self.url.split('prd_')[1];
   }
 
+  if (typeof(position) == 'undefined') {
+    position = self.url.split('ukn_')[1];
+  }
+
   // title = $('.parent a').text();
 
   // if (title == '')
@@ -98,7 +102,7 @@ trendsUsGalleryScraper.prototype.parsePage = function (html) {
 
   if (typeof(picturesUrl) == 'undefined') {
     var foo = $('#imageJson').text();
-    console.log(foo);
+    // console.log(foo);
     var bar = JSON.parse(foo);
     bar.mediaViewerModel.allImages[position-1]['src']
     picturesUrl = bar.mediaViewerModel.allImages[position-1]['src'];
