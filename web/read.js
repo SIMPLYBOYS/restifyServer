@@ -175,11 +175,20 @@ exports.getTitle = function(req, res) {
     var foo = {'contents': []};
     dbIMDB.imdb.find({'top': {$lte:250, $gte: 1}}).sort({'top':1}, function(err, docs){
         for (var i=0; i<docs.length; i++) {
-            foo['contents'].push(docs[i]['title']);
+            foo['contents'].push({
+                title: docs[i]['title'],
+                description: docs[i]['description'],
+                posterUrl: docs[i]['posterUrl']
+            });
         }
-        dbIMDB.imdb.find({releaseDate: {$gte: parseInt(20160501), $lte: parseInt(20161031)}}).sort({'releaseDate': 1}, function(err, docs){
+        res.end(JSON.stringify(foo));
+        dbIMDB.imdb.find({releaseDate: {$gte: 20160701, $lte: 20161031}}).sort({'releaseDate': 1}, function(err, docs){
             for (var j=0; j<docs.length; j++) {
-                foo['contents'].push(docs[j]['title']);
+                foo['contents'].push({
+                    title: docs[j].hasOwnProperty('title') ? docs[j]['title'] : '',
+                    description: docs[j].hasOwnProperty('description') ? docs[j]['description']: '',
+                    posterUrl: docs[j].hasOwnProperty('posterUrl') ? docs[j]['posterUrl'] : ''
+                });
             }
             res.end(JSON.stringify(foo));
         });
