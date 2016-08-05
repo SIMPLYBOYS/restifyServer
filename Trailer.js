@@ -43,6 +43,11 @@ Trailer.prototype.init = function () {
           });
         }
     });
+    slef.on('not_found', function(title) {
+      console.log(title+' trailer not found')
+      if (self.done)
+        self.done(null);
+    })
     self.findTrailer();
 };
 
@@ -51,11 +56,14 @@ Trailer.prototype.init = function () {
 **/
 Trailer.prototype.findTrailer = function (html) {
     var self = this;
-    youTube.search(this.title, 2, function(error, result) {
+    youTube.search(this.title+' official trailer', 2, function(error, result) {
       if (error) {
          console.log(error);
       } else {
-         self.emit('finish', 'https://www.youtube.com/watch?v=' + result['items'][0]['id']['videoId']);
+         if (result['items'].length > 0)
+          self.emit('finish', 'https://www.youtube.com/watch?v=' + result['items'][0]['id']['videoId']);
+         else
+          self.emit('not_found', this.title);
       }
     });
 };

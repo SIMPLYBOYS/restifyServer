@@ -54,7 +54,7 @@ function initScrape(done) {
         function () { return count < 20; },
         function (callback) {
             request({
-                url: 'http://www.imdb.com/search/title?genres='+genreType+'&title_type=feature&page='+(count+1)+'&sort=boxoffice_gross_us&ref_=adv_nxt',
+                url: 'http://www.imdb.com/search/title?genres='+genreType+'&page='+(count+1)+'&sort=boxoffice_gross_us&ref_=adv_nxt',
                 encoding: "utf8",
                 method: "GET"
             }, function(err, response, body) {
@@ -436,9 +436,10 @@ function insertTrailer(done) {
     async.whilst(
         function() { return count < movieObj.length},
         function(callback) {
-            dbIMDB.imdb.findOne({title: movieObj[count]['title']}, function(err, doc) {
+            var title = movieObj[count]['originTitle'] == "" ? movieObj[count]['title'] : movieObj[count]['originTitle']
+            dbIMDB.imdb.findOne({title: title}, function(err, doc) {
                 if (doc) {
-                    new Trailer(movieObj[count]['title'], youTube, count, callback);
+                    new Trailer(title, youTube, count, callback);
                     count++;
                 } else {
                     count++;
@@ -486,6 +487,8 @@ function insertDetail(done) {
                             gallerySize,
                             data = [];
 
+                        movieObj[count]['originTitle'] = originTitle;
+
                         year = $('#titleYear a').text();
                         type = $('.subtext meta').attr('content');
                         runTime = $('.subtext time').text().trim();
@@ -521,6 +524,8 @@ function insertDetail(done) {
                             else if ($(item).text().trim().indexOf('Country') == 0)
                                 country = $(item).text().trim().split(':')[1].split('|')[0].trim();
                         });
+
+                        console.log('budget: ' + budget + ' cross: ' + cross);
 
                         $('.txt-block .itemprop').each(function(index, item) {
                             studio.push($(item).text());
@@ -611,7 +616,7 @@ function insertDetail(done) {
                             }  
                         }
 
-                        if ($('.combined-see-more a').length!=0) {
+                        if ($('.combined-see-more a').length > 1) {
                             GalleryPages.push({
                                 photoUrl: 'http://www.imdb.com'+$('.combined-see-more a')[1]['attribs']['href'],
                                 page: Math.ceil(parseInt($('.combined-see-more a').text().split('photos')[0])/48),
@@ -622,12 +627,14 @@ function insertDetail(done) {
                         dbIMDB.imdb.findOne({title: movieObj[count]['title']}, function(err, docs) {
                             if (!docs) {
                                 dbIMDB.imdb.insert({
-                                    title: movieObj[count]['title'],
+                                    title: movieObj[count]['originTitle'] == "" ? movieObj[count]['title'] : movieObj[count]['originTitle'],
                                     originTitle: originTitle,
                                     genre: genre,
                                     releaseDate: releaseDate,
                                     runTime: runTime,
                                     type: type,
+                                    budget: budget,
+                                    cross: cross,
                                     country: country,
                                     mainInfo: mainInfo,
                                     description: movieObj[count]['description'],
@@ -645,12 +652,15 @@ function insertDetail(done) {
                                 });
                             } else {
                                 dbIMDB.imdb.update({'title': movieObj[count]['title']}, {'$set': {
+                                    title: movieObj[count]['originTitle'] == "" ? movieObj[count]['title'] : movieObj[count]['originTitle'],
                                     originTitle: originTitle,
                                     genre: genre,
                                     releaseDate: releaseDate,
                                     runTime: runTime,
                                     type: type,
                                     country: country,
+                                    budget: budget,
+                                    cross: cross,
                                     mainInfo: mainInfo,
                                     description: movieObj[count]['description'],
                                     staff: staff,
