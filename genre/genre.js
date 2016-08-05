@@ -454,6 +454,25 @@ function insertTrailer(done) {
     ); 
 }
 
+function dataClean(done) {
+    var count = 0;
+        console.log('dataClean -------->');
+        async.whilst(
+                function() { return count < movieObj.length; },
+                function(callback) {
+                    console.log(movieObj[count]['title']);
+                    dbIMDB.imdb.find({title: movieObj[count]['title']}, function(err, docs) {
+                        console.log('length of '+movieObj[count]['title'] +': ========>' + docs.length);
+                        count++;
+                        callback(null, count);
+                    });
+                },
+                function(err, n) {
+                    done(null);
+                }
+        );
+}
+
 function insertDetail(done) {
     var count = 0;
         console.log('insertDetail -------->');
@@ -624,10 +643,12 @@ function insertDetail(done) {
                             });
                         }
 
-                        dbIMDB.imdb.findOne({title: movieObj[count]['title']}, function(err, docs) {
-                            if (!docs) {
+                        var title = movieObj[count]['originTitle'] == "" ? movieObj[count]['title'] : movieObj[count]['originTitle'];
+
+                        dbIMDB.imdb.findOne({title: title}, function(err, doc) {
+                            if (!doc) {
                                 dbIMDB.imdb.insert({
-                                    title: movieObj[count]['originTitle'] == "" ? movieObj[count]['title'] : movieObj[count]['originTitle'],
+                                    title: title,
                                     originTitle: originTitle,
                                     genre: genre,
                                     releaseDate: releaseDate,
@@ -651,8 +672,8 @@ function insertDetail(done) {
                                     callback(null, count);
                                 });
                             } else {
-                                dbIMDB.imdb.update({'title': movieObj[count]['title']}, {'$set': {
-                                    title: movieObj[count]['originTitle'] == "" ? movieObj[count]['title'] : movieObj[count]['originTitle'],
+                                dbIMDB.imdb.update({'title': title}, {'$set': {
+                                    title: title,
                                     originTitle: originTitle,
                                     genre: genre,
                                     releaseDate: releaseDate,
