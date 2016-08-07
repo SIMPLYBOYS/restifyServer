@@ -6,6 +6,7 @@ var myapiToken = config.myapiToken;
 var dbIMDB = config.dbIMDB;
 var youTube = config.youTube;
 var dbRecord = config.dbRecord;
+var dbReview = config.dbReview;
 var async = require('async');
 var request = require("request");
 var MovieInfomer = require('../MovieInfomer');
@@ -155,11 +156,25 @@ function insertReview(done) {
                     text.forEach(function(item, index) {
                         reviewer[index]['text'] = item
                     });
-                    // console.log(JSON.stringify(reviewer));
-                    dbIMDB.imdb.update({'title': review['title']}, {'$set': {'review': reviewer}}, function() {
-                        count++;
-                        callback(null, count);
-                    });          
+
+                    // console.log(JSON.stringify(reviewer));  
+                    dbIMDB.imdb.findOne({title: review['title']}, function(err, doc) {
+                        if (doc) {
+                            dbReview.reviews.insert({
+                                title: doc['title']
+                            }, function() {
+                                dbReview.reviews.update({'title': doc['title']}, {$set: {review: reviewer}}, function() {
+                                    console.log(review['title'] + 'finished insert review');
+                                    count++;
+                                    callback(null);
+                                });
+                            });
+                        } else {
+                            console.log(review['title'] + ' not found!');
+                            count++;
+                            callback(null);
+                        }
+                    });       
                 }
             );
         },
