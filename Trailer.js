@@ -43,7 +43,7 @@ Trailer.prototype.init = function () {
           });
         }
     });
-    slef.on('not_found', function(title) {
+    self.on('not_found', function(title) {
       console.log(title+' trailer not found')
       if (self.done)
         self.done(null);
@@ -56,7 +56,7 @@ Trailer.prototype.init = function () {
 **/
 Trailer.prototype.findTrailer = function (html) {
     var self = this;
-    youTube.search(this.title+' official trailer', 2, function(error, result) {
+    youTube.search(this.title+' trailer', 2, function(error, result) {
       if (error) {
          console.log(error);
       } else {
