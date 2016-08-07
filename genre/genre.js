@@ -533,7 +533,7 @@ function insertDetail(done) {
                         runTime = $('.subtext time').text().trim();
                         mainInfo = $('.summary_text').text().trim();
                         story = $('.article .inline p').text().split('Written by')[0].trim();
-                        rating = parseInt($('.imdbRating .ratingValue strong span').text());
+                        rating = parseFloat($('.imdbRating .ratingValue strong span').text());
                         votes = parseInt($('.imdbRating a').text());
                         
                         var end = $('.subtext a').length;
