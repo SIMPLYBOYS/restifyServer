@@ -203,6 +203,12 @@ function insertReview(done) {
                 date,
                 url;
             review = finalReviewPages.pop();
+
+            if (typeof(review['votes']) == 'undefined') {
+                console.log(review['title']+ ' no reviews!!');
+                callback(null);
+            }
+
             async.whilst(
                 function () { console.log('innerCount: ' + innerCount); return innerCount < parseInt(review['votes']); },
                 function (innercallback) {  
@@ -244,6 +250,7 @@ function insertReview(done) {
                             if($(item).text().indexOf('***') !=0 && $(item).text() !='Add another review')
                                 text.push($(item).text().trim());
                         });
+
                         innerCount+=10;
                         innercallback(null, innerCount);  
                     });
@@ -253,8 +260,14 @@ function insertReview(done) {
                         reviewer[index]['text'] = item
                     });
                     // console.log(JSON.stringify(reviewer));
-                    dbIMDB.imdb.findOne({title: review['title']}, function(err, doc) {
+
+                    dbReview.reviews.findOne({title: review['title']}, function(err, doc) {
                         if (doc) {
+                            dbReview.reviews.update({'title': doc['title']}, {$set: {review: reviewer}}, function() {
+                                console.log(review['title'] + 'finished insert review');
+                                callback(null);
+                            });
+                        } else {
                             dbReview.reviews.insert({
                                 title: doc['title']
                             }, function() {
@@ -263,11 +276,8 @@ function insertReview(done) {
                                     callback(null);
                                 });
                             });
-                        } else {
-                            console.log(review['title'] + ' not found!');
-                            callback(null);
                         }
-                    });          
+                    });        
                 }
             );
         },
