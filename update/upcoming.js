@@ -3,7 +3,6 @@ var mongojs = require('mongojs');
 var dbIMDB = config.dbIMDB;
 var dbUpComing = config.dbUpComing;
 var myapiToken = config.myapiToken;
-var Updater = require('../update/Updater');
 var Scraper = require('../crawler/Scraper');
 var Trailer = require('../Trailer');
 var usCastAvatarScraper = require('../crawler/usCastAvatarScraper');
