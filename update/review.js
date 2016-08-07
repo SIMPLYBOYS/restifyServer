@@ -24,10 +24,13 @@ exports.updateReview = function() {
       },/*
       function(callback) {
       	updateCastWizard(callback);
-      },*/
+      },
       function(callback) {
         updateTrailerWizard(callback);
-      }
+      },*/
+      function(callback) {
+        updateVoteWizard(callback);
+      },
   ],
   function(err, results) {
       console.log('updateReview finished!');
@@ -77,5 +80,29 @@ function updateTrailerWizard(done) {
           new Trailer(item.title, youTube, 0, null);
         }
         updateTrailerWizard(done);
+    });
+}
+
+function updateVoteWizard(done) {
+  if (!updateMovies.length) {
+        done(null);
+        return console.log('updateVoteWizard Done!!!!');
+    }
+
+    var item = updateMovies.pop();
+
+    dbIMDB.imdb.findOne({title: item['title']}, function(err, doc) {
+        var updater = new Updater(item['title'], null, 'vote', null);
+        console.log('Requests Left: ' + updateMovies.length);
+
+        updater.on('error', function (error) {
+          console.log(error);
+          updateVoteWizard(done);
+        });
+
+        updater.on('complete', function (listing) {
+            console.log(listing + ' got complete!');
+            updateVoteWizard(done);
+        });     
     });
 }

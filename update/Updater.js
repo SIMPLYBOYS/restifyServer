@@ -59,6 +59,8 @@ Updater.prototype.init = function () {
       case 'cast':
         this.updateCastReview();
         break;
+      case 'vote':
+        this.updateVote();
     } 
 };
 
@@ -291,6 +293,37 @@ Updater.prototype.updateCastReview = function () {
   function(err, results) {
       that.emit('updated', that.title);  
       console.log('updateCastReview finished!');
+  });
+};
+
+Updater.prototype.updateVote = function () {
+  var that = this;
+  console.log('updateVote ----> ' + that['title']);
+  dbIMDB.imdb.findOne({title: that['title']}, function(err, doc) {
+    console.log('detail: '+ doc['detailUrl']);
+    request({
+      url: doc['detailUrl'],
+      encoding: "utf8",
+      method: "GET"}, function(err, res, body) {
+          if (err || !body) 
+              return;
+
+          var $ = cheerio.load(body);
+          var votes;
+          var rating;
+
+          rating = parseInt($('.imdbRating .ratingValue strong span').text());
+          votes = parseInt($('.imdbRating a').text());
+          dbIMDB.imdb.update({'title': that['title']}, {'$set': {
+              rating: {
+                  score: rating,
+                  votes: votes
+              }
+          }}, function() {
+              console.log(that['title']+' updated!');
+              that.emit('updated', that.title);
+          });
+    });
   });
 };
 
