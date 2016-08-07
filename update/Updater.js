@@ -312,7 +312,7 @@ Updater.prototype.updateVote = function () {
           var votes;
           var rating;
 
-          rating = parseInt($('.imdbRating .ratingValue strong span').text());
+          rating = parseFloat($('.imdbRating .ratingValue strong span').text());
           votes = parseInt($('.imdbRating a').text());
           dbIMDB.imdb.update({'title': that['title']}, {'$set': {
               rating: {
