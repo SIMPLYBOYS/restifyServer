@@ -100,6 +100,14 @@ function insertPoster(done) {
         function (callback) {
             poster = posterPages.pop(); 
             console.log(poster['title'] + '---->');
+
+            if (poster['detailUrl'] == 'http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/180x268/film-173410679._CB282471105_.png') {
+                return dbIMDB.imdb.update({'title': poster['title']}, {'$set': {'posterUrl': poster['detailUrl']}}, function() {
+                    count++;
+                    callback(null, count);
+                });
+            }
+
             var path = poster['detailUrl'];
             var bar = path.split('title')[1];
             path = path.split('title')[0] + '_json/title' + bar.split('mediaviewer')[0] + 'mediaviewer';
@@ -504,10 +512,12 @@ function insertDetail(done) {
                             votes,
                             mainInfo,
                             gallerySize,
+                            title,
                             data = [];
 
                         movieObj[count]['originTitle'] = originTitle;
 
+                        title = movieObj[count]['originTitle'] == "" ? movieObj[count]['title'] : movieObj[count]['originTitle'];
                         year = $('#titleYear a').text();
                         type = $('.subtext meta').attr('content');
                         runTime = $('.subtext time').text().trim();
@@ -588,17 +598,17 @@ function insertDetail(done) {
                             }
                         });
 
-                        if (typeof(review) !='undefined') {
+                        if (typeof(reviewUrl) !='undefined') {
                                 finalReviewPages.push({
                                 reviewUrl: reviewUrl,
-                                title: movieObj[count]['title'],
+                                title: title,
                                 votes: votes
                             });
                         }
                         
                         finalCastPages.push({
                             castUrl: movieObj[count]['link'].split('?')[0]+'fullcredits?ref_=tt_cl_sm#cast',
-                            title: movieObj[count]['title']
+                            title: title
                         });
 
                         var hash = $('.slate_wrapper .poster img')[0];
@@ -611,10 +621,11 @@ function insertDetail(done) {
                             }
 
                             posterPages.push({
-                                detailUrl: 'http://www.imdb.com'+$('.slate_wrapper .poster a')[0]['attribs']['href'],
+                                detailUrl: $('.slate_wrapper .poster a').length > 0 ? 'http://www.imdb.com'+$('.slate_wrapper .poster a')[0]['attribs']['href'] : 'http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/180x268/film-173410679._CB282471105_.png',
                                 posterHash: hash,
                                 title: movieObj[count]['title']
                             });
+
                         } else {
                             obj = $('.minPosterWithPlotSummaryHeight .poster img')[0];
 
@@ -642,8 +653,6 @@ function insertDetail(done) {
                                 title: movieObj[count]['title']
                             });
                         }
-
-                        var title = movieObj[count]['originTitle'] == "" ? movieObj[count]['title'] : movieObj[count]['originTitle'];
 
                         dbIMDB.imdb.findOne({title: title}, function(err, doc) {
                             if (!doc) {
