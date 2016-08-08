@@ -146,36 +146,43 @@ function prepareGalleryPages(done) {
         function (callback) {
             var innerCount = 0;
             gallery = GalleryPages.pop(); 
-            async.whilst(
-                function () { console.log('innerCount: ' + innerCount); return innerCount < gallery['page']; },
-                function (innercallback) {  
-                    url = gallery['photoUrl'].split('?')[0]+'?page=' +(innerCount+1)+'&'+gallery['photoUrl'].split('?')[1];
-                    console.log('detailUrl: '+ url);
-                    request({
-                            url: url,   
-                            encoding: "utf8",
-                            method: "GET"
-                    }, function(err, response, body) {
-                        var $ = cheerio.load(body);
-                        $('.media_index_thumb_list a').each(function(index, item) {
-                            if ($(item).attr('href') != '/register/login') {
-                                GalleryfullPages.push({
-                                    photoUrl: 'http://www.imdb.com'+$(item).attr('href'),
-                                    title: gallery['title']
-                                });
-                            }
-                        });
-                        innerCount++;
-                        innercallback(null, innerCount);  
-                    });
-
-                },
-                function (err, n) {
-                    console.log(gallery['title'] + '-------->');
+            dbIMDB.imdb.findOne({title: gallery['title']}, function(err, doc) {
+                if (doc.hasOwnProperty('gallery_full')) {
                     count++;
                     callback(null, count);
+                } else {
+                    async.whilst(
+                        function () { console.log('innerCount: ' + innerCount); return innerCount < gallery['page']; },
+                        function (innercallback) {  
+                            url = gallery['photoUrl'].split('?')[0]+'?page=' +(innerCount+1)+'&'+gallery['photoUrl'].split('?')[1];
+                            console.log('detailUrl: '+ url);
+                            request({
+                                    url: url,   
+                                    encoding: "utf8",
+                                    method: "GET"
+                            }, function(err, response, body) {
+                                var $ = cheerio.load(body);
+                                $('.media_index_thumb_list a').each(function(index, item) {
+                                    if ($(item).attr('href') != '/register/login') {
+                                        GalleryfullPages.push({
+                                            photoUrl: 'http://www.imdb.com'+$(item).attr('href'),
+                                            title: gallery['title']
+                                        });
+                                    }
+                                });
+                                innerCount++;
+                                innercallback(null, innerCount);  
+                            });
+
+                        },
+                        function (err, n) {
+                            console.log(gallery['title'] + '=====> ready!');
+                            count++;
+                            callback(null, count);
+                        }
+                    );
                 }
-            );
+            });
         },
         function (err, n) {
             console.log(GalleryfullPages);
@@ -265,14 +272,16 @@ function insertReview(done) {
                         if (doc) {
                             dbReview.reviews.update({'title': doc['title']}, {$set: {review: reviewer}}, function() {
                                 console.log(review['title'] + 'finished insert review');
+                                count++;
                                 callback(null);
                             });
                         } else {
                             dbReview.reviews.insert({
-                                title: doc['title']
+                                title: review['title']
                             }, function() {
-                                dbReview.reviews.update({'title': doc['title']}, {$set: {review: reviewer}}, function() {
+                                dbReview.reviews.update({'title': review['title']}, {$set: {review: reviewer}}, function() {
                                     console.log(review['title'] + 'finished insert review');
+                                    count++;
                                     callback(null);
                                 });
                             });
@@ -301,48 +310,55 @@ function insertCast(done) {
         function () { return count < end;},
         function (callback) {
             cast = finalCastPages.pop();
-            Cast = [];
-            request({
-                url: cast['castUrl'], 
-                encoding: "utf8",
-                method: "GET"
-            }, function(err, response, body) {
-                var $ = cheerio.load(body);
-                console.log(cast['title']+' --->');
-                $('.cast_list tr').each(function(index, item) {
-                    if (index > 0) {
-                        name = $(item).find('.itemprop span').text();
-                        link = 'http://www.imdb.com'+$(item).find('.primary_photo a').attr('href');
-                        avatarUrl.push({
-                            link: link,
-                            cast: name,
-                            title: cast['title']
+            dbIMDB.imdb.findOne({title: cast['title']}, function(err, doc) {
+                if (doc.hasOwnProperty('cast')) {
+                    count++;
+                    callback(null, count);
+                } else {
+                    Cast = [];
+                    request({
+                        url: cast['castUrl'], 
+                        encoding: "utf8",
+                        method: "GET"
+                    }, function(err, response, body) {
+                        var $ = cheerio.load(body);
+                        console.log(cast['title']+' --->');
+                        $('.cast_list tr').each(function(index, item) {
+                            if (index > 0) {
+                                name = $(item).find('.itemprop span').text();
+                                link = 'http://www.imdb.com'+$(item).find('.primary_photo a').attr('href');
+                                avatarUrl.push({
+                                    link: link,
+                                    cast: name,
+                                    title: cast['title']
+                                });
+                                if (typeof($(item).find('.character a')[0])!='undefined')
+                                    as = $(item).find('.character a').text().trim();
+                                Cast.push({
+                                    cast: name,
+                                    as: as,
+                                    link: link,
+                                    avatar: null
+                                });
+                            }
                         });
-                        if (typeof($(item).find('.character a')[0])!='undefined')
-                            as = $(item).find('.character a').text().trim();
-                        Cast.push({
-                            cast: name,
-                            as: as,
-                            link: link,
-                            avatar: null
-                        });
-                    }
-                });
 
-                dbIMDB.imdb.findOne({title: cast['title']}, function(err, doc) {
-                    if (doc.hasOwnProperty('cast')) {
-                        count++;
-                        callback(null, count);
-                    } else {
-                        dbIMDB.imdb.update({title: cast['title']}, {$set: {
-                            cast: Cast
-                        }}, function() {
-                            count++;
-                            callback(null, count);
+                        dbIMDB.imdb.findOne({title: cast['title']}, function(err, doc) {
+                            if (doc.hasOwnProperty('cast')) {
+                                count++;
+                                callback(null, count);
+                            } else {
+                                dbIMDB.imdb.update({title: cast['title']}, {$set: {
+                                    cast: Cast
+                                }}, function() {
+                                    count++;
+                                    callback(null, count);
+                                });
+                            }
                         });
-                    }
-                });
-            });
+                    });
+                }
+            });   
         },
         function (err, n) {
             // avatarUrl = avatarUrl.slice(0,444); TODO breakpoint 
@@ -633,7 +649,7 @@ function insertDetail(done) {
                             posterPages.push({
                                 detailUrl: $('.slate_wrapper .poster a').length > 0 ? 'http://www.imdb.com'+$('.slate_wrapper .poster a')[0]['attribs']['href'] : 'http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/180x268/film-173410679._CB282471105_.png',
                                 posterHash: hash,
-                                title: movieObj[count]['title']
+                                title: title
                             });
 
                         } else {
@@ -651,7 +667,7 @@ function insertDetail(done) {
                                 posterPages.push({
                                     detailUrl: 'http://www.imdb.com'+$('.minPosterWithPlotSummaryHeight .poster a')[0]['attribs']['href'],
                                     posterHash: hash,
-                                    title: movieObj[count]['title']
+                                    title: title
                                 });
                             }  
                         }
@@ -660,7 +676,7 @@ function insertDetail(done) {
                             GalleryPages.push({
                                 photoUrl: 'http://www.imdb.com'+$('.combined-see-more a')[1]['attribs']['href'],
                                 page: Math.ceil(parseInt($('.combined-see-more a').text().split('photos')[0])/48),
-                                title: movieObj[count]['title']
+                                title: title
                             });
                         }
 
@@ -686,7 +702,7 @@ function insertDetail(done) {
                                     story: story,
                                     data: data
                                 },function() {
-                                    console.log(movieObj[count]['title']+' updated!');
+                                    console.log(title+' updated!');
                                     count++;
                                     callback(null, count);
                                 });
@@ -711,7 +727,7 @@ function insertDetail(done) {
                                     story: story,
                                     data: data
                                 }},function() {
-                                    console.log(movieObj[count]['title']+' updated!');
+                                    console.log(title+' updated!');
                                     count++;
                                     callback(null, count);
                                 });

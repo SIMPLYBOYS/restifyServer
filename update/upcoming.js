@@ -603,7 +603,7 @@ function upComingInitWizard(done) {
         if (!doc) {
             dbUpComing.upComing.insert({'month': month}, function() {
                 dbUpComing.upComing.update({'month': month}, {'$set': {'movies': listing['movies']}});
-            })
+            });
         } else {
             dbUpComing.upComing.update({'month': month}, {'$set': {'movies': listing['movies']}}, function(err, doc) {
                 if (!err) {
