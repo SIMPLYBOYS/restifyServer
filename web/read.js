@@ -34,6 +34,11 @@ var monthList = [
         {start: '1101', end: '1130'},
         {start: '1201', end: '1231'}
     ];
+var genreList = [
+    {type: "Animation"},
+    {type: "Documentary"},
+    {type: "Action"}
+];
 
 exports.read = function (req, res, next) {
     console.log('from: '+ req.query.from +'\n to: ' + req.query.to + '\n title: ' + req.query.title);
@@ -79,6 +84,32 @@ exports.read = function (req, res, next) {
     }
 };
 
+exports.getGenre = function(req, res) {
+    dbIMDB.imdb.find({genre: req.query.type}).limit(10).skip(req.query.page*10, function(err, docs){
+        res.end(JSON.stringify(docs));
+    });
+};
+
+exports.getGenreTopic = function(req, res) {
+    var count = 0;
+    async.whilst(
+        function () { return count < genreList.length;},
+        function (callback) {
+            var random = Math.floor((Math.random() * 100)+1);
+            dbIMDB.imdb.find({genre:genreList[count]['type']}).limit(1).skip(random, function(err, doc){
+                console.log(doc);
+                genreList[count]['imageUrl'] = doc[0]['title'];
+                count++;
+                callback(null, count);      
+            });
+        },
+        function (err, results) {
+            console.log('results ===>' + JSON.stringify(genreList));
+            res.end(JSON.stringify(genreList));
+        }
+    );
+};
+
 exports.imdbReview = function(req, res) {
     console.log(req.query.title);
     var foo = {};
@@ -93,7 +124,7 @@ exports.imdbReview = function(req, res) {
         foo['size'] = doc[0]['review'].length;
         res.end(JSON.stringify(foo));
     });
-}
+};
 
 exports.upComing = function(req, res, next) {
 
@@ -181,7 +212,6 @@ exports.getTitle = function(req, res) {
                 posterUrl: docs[i]['posterUrl']
             });
         }
-        res.end(JSON.stringify(foo));
         dbIMDB.imdb.find({releaseDate: {$gte: 20160701, $lte: 20161031}}).sort({'releaseDate': 1}, function(err, docs){
             for (var j=0; j<docs.length; j++) {
                 foo['contents'].push({

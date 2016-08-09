@@ -47,10 +47,10 @@ server.use(restify.bodyParser());
 youTube = new config.YouTube;
 youTube.setKey(config.YouTubeKey);
 
-var https_options = {
+/*var https_options = {
     key: fs.readFileSync('./ssl/restify.pem'), //on current folder
     certificate: fs.readFileSync('./ssl/restifycert.pem')
-};
+};*/
 
 /*var https_server = restify.createServer(https_options);
 https_server.use(restify.acceptParser(server.acceptable));
@@ -91,6 +91,10 @@ server.get('/imdb_records', Read.getRecords);
 server.get('/imdbReview', Read.imdbReview);
 
 server.get('/today', Read.getToday);
+
+server.get('/genre', Read.getGenre);
+
+server.get('/genre_topic', Read.getGenreTopic)
 
 server.get('/imdb', Read.read);
 
@@ -445,7 +449,9 @@ var job_recordUpdate = new cronJob(config.recordUpdate, function () {
 });
 
 var job_genreUpdate = new cronJob(config.genreUpdate, function() {
-    Genre.updateGenres('animation');
+    //Genre.updateGenres('animation');
+    // Genre.updateGenres('documentary');
+    Genre.updateGenres('action');
 });
 
 var job_positionUpdate = new cronJob(config.positionUpdate, function() {
