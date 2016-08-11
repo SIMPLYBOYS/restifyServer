@@ -29,13 +29,13 @@ exports.updateTrends = function() {
     async.series([
         resetPosition,
         insertTitle,
-        insertDetail/*,
+        insertDetail,
         insertPoster,
         insertCastAvatar,
         insertTrailer,
         resetGallery,
         insertGallery,
-        InsertReView*/
+        InsertReView
     ],
     function (err) {
         if (err) console.error(err.stack);
