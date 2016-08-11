@@ -2,6 +2,7 @@ var config = require('../config');
 var Updater = require('../update/Updater');
 var cheerio = require("cheerio");
 var request = require("request");
+var mongojs = require('mongojs');
 var async = require('async');
 var moment = require("moment")
 var Trailer = require('../Trailer');
@@ -28,30 +29,79 @@ var votes = [];
 var weeks = [];
 var movieObj = [];
 var genreType;
+var scrapingTasks = [
+    initScrape,
+    insertDetail,
+    insertCast,
+    insertCastAvatar,
+    insertReview,
+    insertTrailer,
+    prepareGalleryPages,
+    insertPoster,
+    GalleryWizard
+];
+
+var cleaningTasks = [
+    initClean,
+    cleanMovie/*,
+    insertDetail,initClean
+    insertCast,
+    insertCastAvatar,
+    insertReview,
+    insertTrailer,
+    prepareGalleryPages,
+    insertPoster,
+    GalleryWizard*/
+];
 
 exports.updateGenres = function(type) {
     genreType = type;
-    async.series([
-        initScrape,
-        insertDetail,
-        insertCast,
-        insertCastAvatar,
-        insertReview,
-        insertTrailer,
-        prepareGalleryPages,
-        insertPoster,
-        GalleryWizard
-    ],
-    function (err) {
+    async.series(scrapingTasks, function (err) {
         if (err) console.error(err.stack);
           console.log('all jobs for updateGenres '+ genreType +' finished!!');
     });
 };
 
+function initClean(done) {
+    dbIMDB.imdb.find({genre: 'Animation'}, function(err, docs) {
+        
+        docs.forEach(function(item, index){
+            if (!item.hasOwnProperty('posterUrl')) {
+                console.log('removeList: ' + item['title'] + ' ' + item['_id']);
+                movieObj.push({
+                    title: item['title'],
+                    id: item['_id']
+                });
+            }
+        })
+        done(null);
+    });
+}
+
+function cleanMovie(done) {
+    console.log('cleanMovie -------->');
+    var count = 0;
+    async.whilst(
+        function() { return count < movieObj.length},
+        function(callback) {
+            dbIMDB.imdb.remove({_id: mongojs.ObjectId(movieObj[count]['id'])}, function(err, doc) {
+                if (!err)
+                    console.log('remove ' + movieObj[count]['id']+ 'success!');
+                count++
+                callback(null, count);
+            });
+        },
+        function(err, n) {
+            console.log('cleanMovie finish ' + n);
+            done(null);
+        }
+    ); 
+}
+
 function initScrape(done) {
     var count = 0;
     async.whilst(
-        function () { return count < 20; },
+        function () { return count < 1; },
         function (callback) {
             request({
                 url: 'http://www.imdb.com/search/title?genres='+genreType+'&page='+(count+1)+'&sort=boxoffice_gross_us&ref_=adv_nxt',
@@ -266,7 +316,6 @@ function insertReview(done) {
                     text.forEach(function(item, index) {
                         reviewer[index]['text'] = item
                     });
-                    // console.log(JSON.stringify(reviewer));
 
                     dbReview.reviews.findOne({title: review['title']}, function(err, doc) {
                         if (doc) {
@@ -687,6 +736,7 @@ function insertDetail(done) {
                                     originTitle: originTitle,
                                     genre: genre,
                                     releaseDate: releaseDate,
+                                    year: year,
                                     runTime: runTime,
                                     type: type,
                                     budget: budget,
@@ -713,6 +763,7 @@ function insertDetail(done) {
                                     genre: genre,
                                     releaseDate: releaseDate,
                                     runTime: runTime,
+                                    year: year,
                                     type: type,
                                     country: country,
                                     budget: budget,
