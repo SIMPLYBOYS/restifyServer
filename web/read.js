@@ -21,23 +21,43 @@ var moment = require("moment");
 var async = require('async');
 var updateMovies = [];
 var monthList = [
-        {start: '0101', end: '0131'},
-        {start: '0201', end: '0228'},
-        {start: '0301', end: '0331'},
-        {start: '0401', end: '0430'},
-        {start: '0501', end: '0531'},
-        {start: '0601', end: '0630'},
-        {start: '0701', end: '0731'},
-        {start: '0801', end: '0831'},
-        {start: '0901', end: '0930'},
-        {start: '1001', end: '1031'},
-        {start: '1101', end: '1130'},
-        {start: '1201', end: '1231'}
-    ];
+    {start: '0101', end: '0131'},
+    {start: '0201', end: '0228'},
+    {start: '0301', end: '0331'},
+    {start: '0401', end: '0430'},
+    {start: '0501', end: '0531'},
+    {start: '0601', end: '0630'},
+    {start: '0701', end: '0731'},
+    {start: '0801', end: '0831'},
+    {start: '0901', end: '0930'},
+    {start: '1001', end: '1031'},
+    {start: '1101', end: '1130'},
+    {start: '1201', end: '1231'}
+];
 var genreList = [
     {type: "Animation"},
+    {type: "Action"},
+    {type: "Adventure"},
+    {type: "Biography"},
+    {type: "Comedy"},
+    {type: "Crime"},
+    {type: "Comedy"},
     {type: "Documentary"},
-    {type: "Action"}
+    {type: "Drama"},
+    {type: "Family"}/*,
+    {type: "Fantasy"},
+    {type: "Film-Noir"},
+    {type: "History"},
+    {type: "Horror"},
+    {type: "Music"},
+    {type: "Musical"},
+    {type: "Mystery"},
+    {type: "Romance"},
+    {type: "Sci-Fi"},
+    {type: "Sport"},
+    {type: "Thriller "},
+    {type: "War"},
+    {type: "Western"}*/
 ];
 
 exports.read = function (req, res, next) {
@@ -85,7 +105,7 @@ exports.read = function (req, res, next) {
 };
 
 exports.getGenre = function(req, res) {
-    dbIMDB.imdb.find({genre: req.query.type}).limit(10).skip(req.query.page*10, function(err, docs){
+    dbIMDB.imdb.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
         res.end(JSON.stringify(docs));
     });
 };
@@ -96,9 +116,8 @@ exports.getGenreTopic = function(req, res) {
         function () { return count < genreList.length;},
         function (callback) {
             var random = Math.floor((Math.random() * 100)+1);
-            dbIMDB.imdb.find({genre:genreList[count]['type']}).limit(1).skip(random, function(err, doc){
-                console.log(doc);
-                genreList[count]['imageUrl'] = doc[0]['title'];
+            dbIMDB.imdb.find({genre:genreList[count]['type']}).limit(1).skip(random, function(err, doc) {
+                genreList[count]['imageUrl'] = doc[0]['posterUrl'];
                 count++;
                 callback(null, count);      
             });
