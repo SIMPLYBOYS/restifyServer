@@ -1,6 +1,7 @@
 var request = require("request");
 var config = require('../config');
 var moment = require("moment");
+var dbUser = config.dbUser;
 var GCMKey = config.GCMKey;
 var dbToday = config.dbToday;
 var dbPosition = config.dbPosition;
@@ -32,6 +33,23 @@ exports.gcmTopic = function(message, done) {
         done(null);
     }
   });
+}
+
+exports.register = function(req, res) {
+  dbUser.user.find({name: req.params.fbId}, function(err, person) {
+      if (!person) {
+        res.send('welcom again! ' + person['name']);
+        res.end();
+      } else {
+        dbUser.user.insert({
+          name: req.params.name,
+          fbId: req.params.fbId
+        }, function() {
+          res.send('regist WorldMoviePro finished !!!'+req.params.name);
+          res.end();
+        });
+      }
+  })
 }
 
 exports.gcmTopic_t = function(req, res) {

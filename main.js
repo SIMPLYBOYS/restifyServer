@@ -78,6 +78,8 @@ https_server.get('/oauth_k', function(req, res, next) {
 google.resultsPerPage = 10;
 var nextCounter = 0;
 
+server.post('/register', Post.register);
+
 server.get('/google', Read.google);
 
 server.get('/upComing', Read.upComing);
@@ -449,9 +451,11 @@ var job_recordUpdate = new cronJob(config.recordUpdate, function () {
 });
 
 var job_genreUpdate = new cronJob(config.genreUpdate, function() {
-    //Genre.updateGenres('animation');
-    // Genre.updateGenres('documentary');
-    Genre.updateGenres('action');
+    //Genre.updateGenres('Animation');
+    //Genre.updateGenres('Adventure');
+    //Genre.updateGenres('Documentary');
+    //Genre.updateGenres('Action');
+    Genre.updateGenres('Biography');
 });
 
 var job_positionUpdate = new cronJob(config.positionUpdate, function() {

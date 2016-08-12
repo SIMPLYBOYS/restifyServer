@@ -44,7 +44,7 @@ var scrapingTasks = [
 var cleaningTasks = [
     initClean,
     cleanMovie/*,
-    insertDetail,initClean
+    insertDetail,
     insertCast,
     insertCastAvatar,
     insertReview,
@@ -63,13 +63,15 @@ exports.updateGenres = function(type) {
 };
 
 function initClean(done) {
-    dbIMDB.imdb.find({genre: 'Animation'}, function(err, docs) {
+    dbIMDB.imdb.find({genre: genreType}, function(err, docs) {
         
         docs.forEach(function(item, index){
             if (!item.hasOwnProperty('posterUrl')) {
                 console.log('removeList: ' + item['title'] + ' ' + item['_id']);
                 movieObj.push({
                     title: item['title'],
+                    originTitle: item['title'],
+                    link: item['detailUrl'],
                     id: item['_id']
                 });
             }
@@ -112,15 +114,26 @@ function initScrape(done) {
                 var top, link, title, description;
                 // console.log('page '+(count+1)+'\n\n');
                 $('.lister-list .lister-item').each(function(index, item) {
+                    description = [];
                     link = 'http://www.imdb.com'+$(item).find('.lister-item-image a').attr('href');
                     top = parseInt($(item).find('.lister-item-header .lister-item-index').text().split('.')[0]);
                     title = $(item).find('.lister-item-header a').text().trim();
                     
                     $(item).find('p').each(function(index, item){
-                        if (item['attribs']['class'] == '')
-                            description = $(item).find('a').text();
+                        if (item['attribs']['class'] == '') {
+                            // console.log($(item).find('a'));
+                            $(item).find('a').each(function(innerindex, inneritem) {
+                                if (innerindex == 0)
+                                    description.push($(inneritem).text()+'(dir)');
+                                else
+                                    description.push($(inneritem).text());
+                            });
+                        }
                     });
+
+                    console.log('description: '+description);
                     console.log('title: '+title);
+
                     movieObj.push({
                         title: title,
                         top: top,
@@ -743,6 +756,7 @@ function insertDetail(done) {
                                     cross: cross,
                                     country: country,
                                     mainInfo: mainInfo,
+                                    detailUrl: movieObj[count]['link'],
                                     description: movieObj[count]['description'],
                                     staff: staff,
                                     rating: {
@@ -769,6 +783,7 @@ function insertDetail(done) {
                                     budget: budget,
                                     cross: cross,
                                     mainInfo: mainInfo,
+                                    detailUrl: movieObj[count]['link'],
                                     description: movieObj[count]['description'],
                                     staff: staff,
                                     rating: {
