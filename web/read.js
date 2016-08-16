@@ -11,6 +11,7 @@ var dbFrance = config.dbFrance;
 var dbTaiwan = config.dbTaiwan;
 var dbReview = config.dbReview;
 var dbUSA = config.dbUSA;
+var dbUser = config.dbUser;
 var myapiToken = config.myapiToken;
 var Updater = require('../update/Updater');
 var nyInformer = require('../nytimes/nyInformer');
@@ -219,6 +220,18 @@ exports.nyTimes = function(req, res) {
             res.end(JSON.stringify(foo));
         })
     }
+};
+
+exports.my_nyTimes = function(req, res) {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
+    dbUser.user.findOne({fbId: req.params.fbId}, function(err, doc) {
+        if (doc) {
+            console.log(doc['name']);
+            doc.hasOwnProperty('nyTimes') ? res.end(JSON.stringify(doc['nyTimes'])) : res.end(JSON.stringify([]));
+        } else {
+            res.end(JSON.stringify({ content: 'user not exisit!'}));
+        }
+    });
 };
 
 exports.getTitle = function(req, res) {

@@ -10,6 +10,7 @@ var http = require('http');
 var config = require('./config');
 var Read = require('./web/read');
 var Post = require('./web/post');
+var Delelte = require('./web/delete');
 var fs = require("fs");
 var localPath = require('path');
 var dbContact = mongojs('http://52.192.246.11/test', ['contact']);
@@ -77,6 +78,12 @@ https_server.get('/oauth_k', function(req, res, next) {
 
 google.resultsPerPage = 10;
 var nextCounter = 0;
+
+server.del('/nyTimes/:fbId/:headline', Delelte.nyTimes);
+
+server.post('/nyTimes/:fbId', Post.nyTimes);
+
+server.get('/my_nyTimes/:fbId', Read.my_nyTimes);
 
 server.post('/register', Post.register);
 
@@ -451,11 +458,11 @@ var job_recordUpdate = new cronJob(config.recordUpdate, function () {
 });
 
 var job_genreUpdate = new cronJob(config.genreUpdate, function() {
-    //Genre.updateGenres('Animation');
+    Genre.updateGenres('Animation');
     //Genre.updateGenres('Adventure');
     //Genre.updateGenres('Documentary');
     //Genre.updateGenres('Action');
-    Genre.updateGenres('Biography');
+    // Genre.updateGenres('Biography');
 });
 
 var job_positionUpdate = new cronJob(config.positionUpdate, function() {

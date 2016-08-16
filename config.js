@@ -11,12 +11,14 @@ var dbRecord = mongojs('test', ['records']);
 var dbReview = mongojs('test', ['reviews']);
 var dbPosition = mongojs('test', ['position']);
 var dbToday = mongojs('test', ['today']);
+var dbUser =  mongojs('test', ['user']);
 var myapiToken = '632ce305-f516-4ccb-8f32-4e0fb1ad412a';
 var YouTube = require('youtube-node');
 var YouTubeKey = 'AIzaSyCpHbHblbj_6zfA1AeKsuaxB4ZuoTffVKw';
 var GCMKey = 'AIzaSyCpHbHblbj_6zfA1AeKsuaxB4ZuoTffVKw';
 // var dbContact = mongojs('http://52.192.246.11/test', ['contact']);
 
+exports.dbUser = dbUser;
 exports.myapiToken = myapiToken;
 exports.dbRecord = dbRecord;
 exports.dbReview = dbReview;
@@ -46,7 +48,7 @@ exports.db = mysql.createConnection({
 exports.port = 80;
 
 // update record
-exports.genreUpdate = '15 31 1 * * *';
+exports.genreUpdate = '5 54 23 * * *';
 
 exports.recordUpdate = '35 10 7 * * *';
 

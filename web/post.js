@@ -35,22 +35,56 @@ exports.gcmTopic = function(message, done) {
   });
 }
 
+exports.nyTimes = function(req, res) {
+  console.log('nyTimes ===============>');
+  dbUser.user.find({fbId: req.params.fbId}, function(err, person) {
+      if (person) {
+        dbUser.user.update({
+          fbId: req.params.fbId
+        }, {
+          $addToSet: {
+            nyTimes: {
+              headline: req.body['headline'],
+              link: req.body['link'],
+              picUrl: req.body['picUrl']
+            }
+          }
+        }, function() {
+          res.send({
+            content: 'post nyTimes finished !!! '
+          });
+          res.end();
+        });
+      } else {
+        res.end({
+          content: 'user not exisit!'
+        });
+      }
+  });
+};
+
 exports.register = function(req, res) {
-  dbUser.user.find({name: req.params.fbId}, function(err, person) {
-      if (!person) {
-        res.send('welcom again! ' + person['name']);
+   console.log('register ===============>' + req.params.fbId);
+   dbUser.user.findOne({fbId: req.params.fbId}, function(err, person) {
+      //console.log(person);
+      if (person) {
+        res.send({
+          content: 'welcom again! ' + person['name']
+        });
         res.end();
       } else {
         dbUser.user.insert({
           name: req.params.name,
           fbId: req.params.fbId
         }, function() {
-          res.send('regist WorldMoviePro finished !!!'+req.params.name);
+          res.send({
+            content: 'regist WorldMoviePro finished !!!'+req.params.name
+          });
           res.end();
         });
       }
-  })
-}
+  });
+};
 
 exports.gcmTopic_t = function(req, res) {
   var options = {
@@ -103,5 +137,4 @@ exports.gcmTopic_t = function(req, res) {
           });
       });
   }); 
-
-}
+};
