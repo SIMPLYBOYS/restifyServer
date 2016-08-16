@@ -36,6 +36,7 @@ util.inherits(Creater, EventEmitter);
  * Initialize scraping
 **/
 Creater.prototype.init = function () {
+    this.bindAll();
     this.on('updated', function (title) {
         console.log('\n====> \"'+title + '\" got updated!!!');
         this.emit('complete', title);
@@ -69,19 +70,19 @@ Creater.prototype.updateMovie = function () {
 Creater.prototype.createMovie = function () {
   var that = this;
   async.series([
-      insertTitle,
-      fetchMovieInfo,
-      insertDetail,
+      function(done){ return that.insertTitle(done);},
+      function(done) { return that.fetchMovieInfo(done);},
+      function(done) { return that.insertDetail(done);},
       insertCast,
       insertCastAvatar,
       insertReview,
-      prepareGalleryThumbnailPages,
-      insertGalleryThumbnail,
-      insertPoster,
-      insertGallery,
-      insertTrailer,
-      prepareRecords,
-      insertRecords
+      function(done) { return that.prepareGalleryThumbnailPages(done);},
+      function(done) { return that.insertGalleryThumbnail(done);},
+      function(done) { return that.insertPoster(done);},
+      function(done) { return that.insertGallery(done);},
+      function(done) { return that.insertTrailer(done);},
+      function(done) { return that.prepareRecords(done);},
+      function(done) { return that.insertRecords(done);}
   ], function (err) {
         if (err) console.error(err.stack);
         console.log('\n\n-------- 2016 0520 final step ---------' + that.title );
@@ -298,7 +299,7 @@ function insertCastAvatar(done) {
     });
 }
 
-function insertTitle (done) {
+Creater.prototype.insertTitle = function(done) {
     request({
         url: "http://www.imdb.com/chart/top",
         encoding: "utf8",
@@ -333,7 +334,7 @@ function insertTitle (done) {
     });
 }
 
-function fetchMovieInfo(done) {
+Creater.prototype.fetchMovieInfo = function(done) {
     console.log('\n\n-------- 2016 0520 step2 --------- ' + that.title );
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
         if (doc) {
@@ -345,7 +346,7 @@ function fetchMovieInfo(done) {
     });
 }
 
-function insertDetail(done) {
+Creater.prototype.insertDetail = function(done) {
     console.log('\n\n-------- 2016 0520 step3 ---------' + that.title);
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
         if (doc) {
@@ -359,24 +360,26 @@ function insertDetail(done) {
                 var $ = cheerio.load(body);
                 var url = $('.slate_wrapper .poster a img')[0];
                 var foo = $('.minPosterWithPlotSummaryHeight .poster img')[0];
-
+                var originTitle = $('.originalTitle').text().split('(')[0].trim(),
+                var title = originTitle == "" ? doc['title'] : originTitle;
+                that.title = title;
                 finalCastPages.push({
                     castUrl: doc['detailUrl'].split('?')[0]+'fullcredits?ref_=tt_cl_sm#cast',
-                    title: doc['title']
+                    title: title
                 });
 
                 $('.titleReviewBarItem').each(function(index, item) {
                     if (index == 1) {
                         finalReviewPages.push({
                             reviewUrl: doc['detailUrl'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'],
-                            title: doc['title'],
+                            title: title,
                             votes: parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim())
                         });
                     }
                 });
 
                 if (typeof(url)!=='undefined') {
-                    console.log(doc['title']);
+                    console.log(title);
                     console.log('.1-->'+url['attribs']['src']);
                     var poster = url['attribs']['src'];
                     var slate = $('.slate_wrapper .slate a img')[0]['attribs']['src'];
@@ -406,10 +409,10 @@ function insertDetail(done) {
                         hash = hash.split('@')[0];
                     }
                     console.log('hash: ' + hash);
-                    dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': path}});
-                    dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterHash': hash}});
+                    dbIMDB.imdb.update({title: doc['title']}, {$set: {posterUrl: path, title: title}});
+                    dbIMDB.imdb.update({title: doc['title']}, {$set: {posterHash: hash, title: title}});
                 } else {
-                    console.log(doc['title']);
+                    console.log(title);
                     var poster = foo['attribs']['src'];
                     var summery = $('.minPosterWithPlotSummaryHeight .summary_text').text().trim();
                     if ($($('#titleDetails .txt-block')[0]).find('.inline').text() == 'Country:')
@@ -438,8 +441,8 @@ function insertDetail(done) {
                         hash = hash.split('@')[0];
                     }
                     console.log('hash: ' + hash);
-                    dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': path}});
-                    dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterHash': hash}});
+                    dbIMDB.imdb.update({title: doc['title']}, {$set: {posterUrl: path, title: title}});
+                    dbIMDB.imdb.update({title: doc['title']}, {$set: {posterHash: hash, title: title}});
                 }
                 done(null);
           });
@@ -450,7 +453,7 @@ function insertDetail(done) {
     });
 }
 
-function prepareGalleryThumbnailPages(done) {
+Creater.prototype.prepareGalleryThumbnailPages = function(done) {
     console.log('\n\n-------- 2016 0520 step4 ---------' + that.title);
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
         if (doc) {
@@ -481,7 +484,7 @@ function prepareGalleryThumbnailPages(done) {
     });      
 }
 
-function insertGalleryThumbnail(done) {
+Creater.prototype.insertGalleryThumbnail = function(done) {
     console.log('\n\n-------- 2016 0520 step5 ---------' + that.title);
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
       if (doc) {
@@ -530,7 +533,7 @@ function insertGalleryThumbnail(done) {
     });
 }
 
-function insertPoster (done) {
+Creater.prototype.insertPoster =function(done) {
     console.log('\n\n-------- 2016 0520 step6 ---------' + that.title );
      dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
         if (doc) {
@@ -569,7 +572,7 @@ function insertPoster (done) {
     });
 }
 
-function insertGallery (done) {
+Creater.prototype.insertGallery = function(done) {
     console.log('\n\n-------- 2016 0520 step7 ---------' + that.title);
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
       if (doc) {
@@ -588,7 +591,7 @@ function insertGallery (done) {
     });  
 }
 
-function insertTrailer (done) {
+Creater.prototype.insertTrailer = function(done) {
     console.log('\n\n-------- 2016 0520 step8 --------- ' + that.title );
     dbIMDB.imdb.findOne({title: that.title + ' trailer'}, function(err, doc) {
         if (doc) {
@@ -600,7 +603,7 @@ function insertTrailer (done) {
     });
 }
 
-function prepareRecords (done) {
+Creater.prototype.prepareRecords = function(done) {
     console.log('\n\n-------- 2016 0520 step9 --------- ' + that.title );
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
         if (doc) {
@@ -616,7 +619,7 @@ function prepareRecords (done) {
     });
 }
 
-function insertRecords (done) {
+Creater.prototype.insertRecords = function(done) {
     console.log('\n\n-------- 2016 0520 step10 --------- ' + that.title );
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
         if (doc) {
