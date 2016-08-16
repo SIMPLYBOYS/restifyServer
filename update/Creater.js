@@ -36,7 +36,6 @@ util.inherits(Creater, EventEmitter);
  * Initialize scraping
 **/
 Creater.prototype.init = function () {
-    this.bindAll();
     this.on('updated', function (title) {
         console.log('\n====> \"'+title + '\" got updated!!!');
         this.emit('complete', title);
@@ -300,6 +299,7 @@ function insertCastAvatar(done) {
 }
 
 Creater.prototype.insertTitle = function(done) {
+    var that = this;
     request({
         url: "http://www.imdb.com/chart/top",
         encoding: "utf8",
@@ -335,6 +335,7 @@ Creater.prototype.insertTitle = function(done) {
 }
 
 Creater.prototype.fetchMovieInfo = function(done) {
+    var that = this;
     console.log('\n\n-------- 2016 0520 step2 --------- ' + that.title );
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
         if (doc) {
@@ -347,6 +348,7 @@ Creater.prototype.fetchMovieInfo = function(done) {
 }
 
 Creater.prototype.insertDetail = function(done) {
+    var that = this;
     console.log('\n\n-------- 2016 0520 step3 ---------' + that.title);
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
         if (doc) {
@@ -360,7 +362,7 @@ Creater.prototype.insertDetail = function(done) {
                 var $ = cheerio.load(body);
                 var url = $('.slate_wrapper .poster a img')[0];
                 var foo = $('.minPosterWithPlotSummaryHeight .poster img')[0];
-                var originTitle = $('.originalTitle').text().split('(')[0].trim(),
+                var originTitle = $('.originalTitle').text().split('(')[0].trim();
                 var title = originTitle == "" ? doc['title'] : originTitle;
                 that.title = title;
                 finalCastPages.push({
@@ -454,6 +456,7 @@ Creater.prototype.insertDetail = function(done) {
 }
 
 Creater.prototype.prepareGalleryThumbnailPages = function(done) {
+    var that = this;
     console.log('\n\n-------- 2016 0520 step4 ---------' + that.title);
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
         if (doc) {
@@ -485,6 +488,7 @@ Creater.prototype.prepareGalleryThumbnailPages = function(done) {
 }
 
 Creater.prototype.insertGalleryThumbnail = function(done) {
+    var that = this;
     console.log('\n\n-------- 2016 0520 step5 ---------' + that.title);
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
       if (doc) {
@@ -534,6 +538,7 @@ Creater.prototype.insertGalleryThumbnail = function(done) {
 }
 
 Creater.prototype.insertPoster =function(done) {
+    var that = this;
     console.log('\n\n-------- 2016 0520 step6 ---------' + that.title );
      dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
         if (doc) {
@@ -573,6 +578,7 @@ Creater.prototype.insertPoster =function(done) {
 }
 
 Creater.prototype.insertGallery = function(done) {
+    var that = this;
     console.log('\n\n-------- 2016 0520 step7 ---------' + that.title);
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
       if (doc) {
@@ -592,6 +598,7 @@ Creater.prototype.insertGallery = function(done) {
 }
 
 Creater.prototype.insertTrailer = function(done) {
+    var that = this;
     console.log('\n\n-------- 2016 0520 step8 --------- ' + that.title );
     dbIMDB.imdb.findOne({title: that.title + ' trailer'}, function(err, doc) {
         if (doc) {
@@ -604,6 +611,7 @@ Creater.prototype.insertTrailer = function(done) {
 }
 
 Creater.prototype.prepareRecords = function(done) {
+    var that = this;
     console.log('\n\n-------- 2016 0520 step9 --------- ' + that.title );
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
         if (doc) {
@@ -620,6 +628,7 @@ Creater.prototype.prepareRecords = function(done) {
 }
 
 Creater.prototype.insertRecords = function(done) {
+    var that = this;
     console.log('\n\n-------- 2016 0520 step10 --------- ' + that.title );
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
         if (doc) {
