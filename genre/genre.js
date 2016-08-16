@@ -42,8 +42,8 @@ var scrapingTasks = [
 ];
 
 var cleaningTasks = [
-    initClean,
-    cleanMovie/*,
+    initClean/*,
+    cleanMovie,
     insertDetail,
     insertCast,
     insertCastAvatar,
@@ -63,10 +63,9 @@ exports.updateGenres = function(type) {
 };
 
 function initClean(done) {
-    dbIMDB.imdb.find({genre: genreType}, function(err, docs) {
-        
+    dbIMDB.imdb.find({genre: genreType}, function(err, docs) {  
         docs.forEach(function(item, index){
-            if (!item.hasOwnProperty('posterUrl')) {
+            if (!item.hasOwnProperty('description')) {
                 console.log('removeList: ' + item['title'] + ' ' + item['_id']);
                 movieObj.push({
                     title: item['title'],
@@ -103,7 +102,7 @@ function cleanMovie(done) {
 function initScrape(done) {
     var count = 0;
     async.whilst(
-        function () { return count < 1; },
+        function () { return count < 20; },
         function (callback) {
             request({
                 url: 'http://www.imdb.com/search/title?genres='+genreType+'&page='+(count+1)+'&sort=boxoffice_gross_us&ref_=adv_nxt',
@@ -138,7 +137,7 @@ function initScrape(done) {
                         title: title,
                         top: top,
                         link: link,
-                        description: description
+                        description: description.join(',')
                     });
                 });
                 count++;
@@ -601,10 +600,10 @@ function insertDetail(done) {
                             mainInfo,
                             gallerySize,
                             title,
-                            data = [];
+                            data = [],
+                            end;
 
                         movieObj[count]['originTitle'] = originTitle;
-
                         title = movieObj[count]['originTitle'] == "" ? movieObj[count]['title'] : movieObj[count]['originTitle'];
                         year = $('#titleYear a').text();
                         type = $('.subtext meta').attr('content');
@@ -613,8 +612,8 @@ function insertDetail(done) {
                         story = $('.article .inline p').text().split('Written by')[0].trim();
                         rating = parseFloat($('.imdbRating .ratingValue strong span').text());
                         votes = parseInt($('.imdbRating a').text());
-                        
-                        var end = $('.subtext a').length;
+                        end = $('.subtext a').length;
+
                         $('.subtext a').each(function(index, item) {
                             if (index < end-1)
                                 genre.push($(item).text().trim());
