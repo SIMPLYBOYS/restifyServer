@@ -93,9 +93,10 @@ Creater.prototype.createMovie = function () {
 function insertReview(done) {
     console.log('insertReview -------->');
     var count = 0,
+        end = finalReviewPages.length,
         cast;
     async.whilst(
-        function () { return count < 10; },
+        function () { return count < end; },
         function (callback) {
             var innerCount = 0,
                 reviewer = [],
@@ -107,6 +108,12 @@ function insertReview(done) {
                 date,
                 url;
             review = finalReviewPages.pop();
+
+            if (typeof(review['votes']) == 'undefined') {
+                console.log(review['title']+ ' no reviews!!');
+                callback(null);
+            }
+
             async.whilst(
                 function () { console.log('innerCount: ' + innerCount); return innerCount < parseInt(review['votes']); },
                 function (innercallback) {  
@@ -363,8 +370,10 @@ Creater.prototype.insertDetail = function(done) {
                 var url = $('.slate_wrapper .poster a img')[0];
                 var foo = $('.minPosterWithPlotSummaryHeight .poster img')[0];
                 var originTitle = $('.originalTitle').text().split('(')[0].trim();
+                var votes = $('.imdbRating a').text();
                 var title = originTitle == "" ? doc['title'] : originTitle;
                 that.title = title;
+
                 finalCastPages.push({
                     castUrl: doc['detailUrl'].split('?')[0]+'fullcredits?ref_=tt_cl_sm#cast',
                     title: title
@@ -386,33 +395,44 @@ Creater.prototype.insertDetail = function(done) {
                     var poster = url['attribs']['src'];
                     var slate = $('.slate_wrapper .slate a img')[0]['attribs']['src'];
                     var summery = $('.plot_summary .summary_text').text().trim();
+
                     if ($($('#titleDetails .txt-block')[0]).find('.inline').text() == 'Country:')
                         var country = $('#titleDetails .txt-block')[0];
                     else
                         var country = $('#titleDetails .txt-block')[1];
+
                     var $country = $(country);
+
                     if ($country.find('a').length == 1)
                         country = $country.find('a').text();
                     else
                         country = $($country.find('a')[0]).text();
+
                     doc['detailContent'] = {
                         "poster": poster,
                         "slate": slate,
                         "summery": summery,
                         "country": country
                     };
+
                     dbIMDB.imdb.update({'title':doc['title']}, doc);
                     var bar = $('.slate_wrapper .poster a')[0];
                     var path = 'http://www.imdb.com' + bar['attribs']['href'];
                     console.log(path);
                     var hash = $('.slate_wrapper .poster img')[0];
                     hash = hash['attribs']['src'].split('images')[1].split('._V1')[0].slice(3);
+
                     if (hash.indexOf('@')!= -1) {
                         hash = hash.split('@')[0];
                     }
+
                     console.log('hash: ' + hash);
-                    dbIMDB.imdb.update({title: doc['title']}, {$set: {posterUrl: path, title: title}});
-                    dbIMDB.imdb.update({title: doc['title']}, {$set: {posterHash: hash, title: title}});
+                    dbIMDB.imdb.update({title: doc['title']}, {$set: {
+                        posterUrl: path,
+                        posterHash: hash,
+                        title: title,
+                        votes: votes
+                    }});
                 } else {
                     console.log(title);
                     var poster = foo['attribs']['src'];
@@ -443,8 +463,12 @@ Creater.prototype.insertDetail = function(done) {
                         hash = hash.split('@')[0];
                     }
                     console.log('hash: ' + hash);
-                    dbIMDB.imdb.update({title: doc['title']}, {$set: {posterUrl: path, title: title}});
-                    dbIMDB.imdb.update({title: doc['title']}, {$set: {posterHash: hash, title: title}});
+                    dbIMDB.imdb.update({title: doc['title']}, {$set: {
+                        posterUrl: path,
+                        posterHash: hash,
+                        title: title,
+                        votes: votes
+                    }});
                 }
                 done(null);
           });
@@ -545,31 +569,23 @@ Creater.prototype.insertPoster =function(done) {
             var path = doc['posterUrl'];
             var bar = path.split('title')[1];
             path = path.split('title')[0] + '_json/title' + bar.split('mediaviewer')[0] + 'mediaviewer';
-            http.get(path, function (res) {
-                    var body = '';
-                    if(res.statusCode !== 200) {
-                        console.log('link not avaliable');
+
+            request({
+                url: path,
+                encoding: "utf8",
+                method: "GET"
+            }, function(err, response, body) {
+                var json = JSON.parse(body)['allImages'];
+                json.forEach(function(item, index){
+                   if (item['src'].indexOf(doc['posterHash']) != -1) {
+                     var posterUrl = item['src'];
+                     dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': posterUrl}}, function() {
+                        console.log('posterUrl: ' + posterUrl);
                         done(null);
-                    }
-                res.on('data', function (chunk) {
-                  body += chunk;
+                     });
+                   }
                 });
-                res.on('end', function () {
-                  var json = JSON.parse(body)['allImages'];
-                  json.forEach(function(item, index){
-                      if (item['src'].indexOf(doc['posterHash']) != -1) {
-                        var posterUrl = item['src'];
-                        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': posterUrl}}, function() {
-                            console.log('posterUrl: ' + posterUrl);
-                            done(null);
-                        });
-                      }
-                  });
-                });
-            })
-            .on('error', function (err) {
-                console.log(err);
-            });       
+            });    
         } else {
             console.log(that.title + ' not found!');
             done(null);
