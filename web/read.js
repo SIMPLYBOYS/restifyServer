@@ -15,6 +15,7 @@ var dbUser = config.dbUser;
 var myapiToken = config.myapiToken;
 var Updater = require('../update/Updater');
 var nyInformer = require('../nytimes/nyInformer');
+var elastic = require('../search/elasticsearch');
 var google = require('google');
 var request = require("request");
 var async = require('async');
@@ -42,7 +43,6 @@ var genreList = [
     {type: "Biography"},
     {type: "Comedy"},
     {type: "Crime"},
-    {type: "Comedy"},
     {type: "Documentary"},
     {type: "Drama"},
     {type: "Family"}/*,
@@ -515,6 +515,10 @@ exports.getToday = function(req, res, next) {
             object['contents'] = doc;
         res.end(JSON.stringify(object));
     });
+};
+
+exports.elasticSearch = function(req, res, next) {
+    elastic.searchDocument(req.params.input).then(function (result) {res.json(result)});
 };
 
 exports.google = function (req, res, next) {

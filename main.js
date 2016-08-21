@@ -133,6 +133,8 @@ server.get('/usTrendsReview', Read.usTrendsReview);
 
 server.get('/nyTimes', Read.nyTimes);
 
+server.get('/search/:input', Read.elasticSearch);
+
 server.get('/gcm', Post.gcmTopic_t);
 
 server.get('/youtube_search', function(req, res, next) {
