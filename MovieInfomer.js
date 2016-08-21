@@ -144,12 +144,12 @@ MovieInformer.prototype.findMovieInfo = function () {
         if(err || !json) { return; }
         console.log(json);
         var movieInfo = JSON.parse(json),
-            bar = movieInfo.hasOwnProperty('data') ? movieInfo['data']['movies'] : null;
+            info = movieInfo.hasOwnProperty('data') ? movieInfo['data']['movies'] : null;
 
-        if (!bar)
+        if (!info)
           self.done(null, self.count);
         else
-          self.emit('finish', JSON.stringify(bar));
+          self.emit('finish', JSON.stringify(info));
     });
 };
 
