@@ -105,7 +105,7 @@ function initScrape(done) {
         function () { return count < 20; },
         function (callback) {
             request({
-                url: 'http://www.imdb.com/search/title?genres='+genreType+'&page='+(count+1)+'&sort=boxoffice_gross_us&ref_=adv_nxt',
+                url: 'http://www.imdb.com/search/title?genres='+genreType+'&title_type=feature&page='+(count+1)+'&sort=boxoffice_gross_us,desc&ref_=adv_prv',
                 encoding: "utf8",
                 method: "GET"
             }, function(err, response, body) {
@@ -372,53 +372,48 @@ function insertCast(done) {
         function (callback) {
             cast = finalCastPages.pop();
             dbIMDB.imdb.findOne({title: cast['title']}, function(err, doc) {
-                if (doc.hasOwnProperty('cast')) {
-                    count++;
-                    callback(null, count);
-                } else {
-                    Cast = [];
-                    request({
-                        url: cast['castUrl'], 
-                        encoding: "utf8",
-                        method: "GET"
-                    }, function(err, response, body) {
-                        var $ = cheerio.load(body);
-                        console.log(cast['title']+' --->');
-                        $('.cast_list tr').each(function(index, item) {
-                            if (index > 0) {
-                                name = $(item).find('.itemprop span').text();
-                                link = 'http://www.imdb.com'+$(item).find('.primary_photo a').attr('href');
-                                avatarUrl.push({
-                                    link: link,
-                                    cast: name,
-                                    title: cast['title']
-                                });
-                                if (typeof($(item).find('.character a')[0])!='undefined')
-                                    as = $(item).find('.character a').text().trim();
-                                Cast.push({
-                                    cast: name,
-                                    as: as,
-                                    link: link,
-                                    avatar: null
-                                });
-                            }
-                        });
+                Cast = [];
+                request({
+                    url: cast['castUrl'], 
+                    encoding: "utf8",
+                    method: "GET"
+                }, function(err, response, body) {
+                    var $ = cheerio.load(body);
+                    console.log(cast['title']+' --->');
+                    $('.cast_list tr').each(function(index, item) {
+                        if (index > 0) {
+                            name = $(item).find('.itemprop span').text();
+                            link = 'http://www.imdb.com'+$(item).find('.primary_photo a').attr('href');
+                            avatarUrl.push({
+                                link: link,
+                                cast: name,
+                                title: cast['title']
+                            });
+                            if (typeof($(item).find('.character a')[0])!='undefined')
+                                as = $(item).find('.character a').text().trim();
+                            Cast.push({
+                                cast: name,
+                                as: as,
+                                link: link,
+                                avatar: null
+                            });
+                        }
+                    });
 
-                        dbIMDB.imdb.findOne({title: cast['title']}, function(err, doc) {
-                            if (doc.hasOwnProperty('cast')) {
+                    dbIMDB.imdb.findOne({title: cast['title']}, function(err, doc) {
+                        if (doc.hasOwnProperty('cast')) {
+                            count++;
+                            callback(null, count);
+                        } else {
+                            dbIMDB.imdb.update({title: cast['title']}, {$set: {
+                                cast: Cast
+                            }}, function() {
                                 count++;
                                 callback(null, count);
-                            } else {
-                                dbIMDB.imdb.update({title: cast['title']}, {$set: {
-                                    cast: Cast
-                                }}, function() {
-                                    count++;
-                                    callback(null, count);
-                                });
-                            }
-                        });
+                            });
+                        }
                     });
-                }
+                });
             });   
         },
         function (err, n) {
