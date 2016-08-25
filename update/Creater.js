@@ -117,7 +117,7 @@ function insertReview(done) {
             async.whilst(
                 function () { console.log('innerCount: ' + innerCount); return innerCount < parseInt(review['votes']); },
                 function (innercallback) {  
-                    url = review['reviewUrl'].split('reviews?')[0]+'/reviews?start='+innerCount;
+                    url = review['reviewUrl'].split('reviews?')[0]+'reviews?start='+innerCount;
                     console.log('reviewUrl: '+ url);
                     request({
                         url: url,   
@@ -329,7 +329,7 @@ Creater.prototype.insertTitle = function(done) {
         console.log('\n\n-------- 2016 0520 title --------- : ' + $(title[that.position-1]).text() + '\n' + that.title);
         dbIMDB.imdb.insert({
             'top': parseInt(that.position), 
-            'title': that.title,
+            'title': $(title[that.position-1]).text(),
             'year': $(year[that.position-1]).text().slice(1,5),
             'rating': $(rating[that.position-1]).text(),
             'description': title[that.position-1]['attribs']['title'],
