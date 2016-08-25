@@ -851,7 +851,7 @@ function upComingPosterWizard(done) {
 
     var obj = upComingPosterImageObjs.pop();
 
-    if (!obj.url) {
+    if (!obj.url || obj.url.indexOf('.jpg')!= -1) {
         return upComingPosterWizard(done)
     }
 

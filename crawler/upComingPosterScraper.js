@@ -33,6 +33,7 @@ upComingPosterScraper.prototype.loadWebPage = function () {
   var self = this;
   // console.log('\n\nLoading ' + website);
   console.log('loading ' + self.url);
+
   var foo = self.url;
   var bar = foo.split('title')[1];
   foo = foo.split('title')[0] + '_json/title' + bar.split('mediaviewer')[0] + 'mediaviewer';

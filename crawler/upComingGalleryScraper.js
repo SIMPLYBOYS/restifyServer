@@ -27,6 +27,9 @@ upComingGalleryScraper.prototype.init = function () {
         model = self.parsePage(html);
         self.emit('gallery_complete', model);
     });
+    self.on('404', function() {
+      self.emit('error');
+    });
     self.loadWebPage();
 };
 
@@ -92,6 +95,11 @@ upComingGalleryScraper.prototype.parsePage = function (html) {
   // if (title == '')
   title = $('title').text().split('(')[0].trim();
 
+  if (title == '404 Error - IMDb') {
+     self.emit('404');
+     return;
+  }
+  
   picturesUrl = $('.photo img').attr('src');
 
   if (typeof(picturesUrl) == 'undefined') {
