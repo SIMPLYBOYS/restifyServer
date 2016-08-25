@@ -466,7 +466,7 @@ var job_genreUpdate = new cronJob(config.genreUpdate, function() {
     //Genre.updateGenres('Biography');
     //Genre.updateGenres('Crime');
     Genre.updateGenres('Drama');
-}
+});
 
 var job_positionUpdate = new cronJob(config.positionUpdate, function() {
     Position.updatePosition();
