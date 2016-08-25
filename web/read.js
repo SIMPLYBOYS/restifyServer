@@ -106,6 +106,7 @@ exports.read = function (req, res, next) {
 };
 
 exports.getGenre = function(req, res) {
+    // console.log('date -------> ' + moment().subtract(10, 'days').calendar());
     dbIMDB.imdb.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
         res.end(JSON.stringify(docs));
     });
@@ -518,7 +519,28 @@ exports.getToday = function(req, res, next) {
 };
 
 exports.elasticSearch = function(req, res, next) {
-    elastic.searchDocument(req.params.input).then(function (result) {res.json(result)});
+    elastic.searchDocument(req.params.input).then(function (result) {
+        var scrollId = result._scroll_id;
+        var json_res = [];
+        (function next(result) {
+            if (!result.hits.hits.length) {
+              console.log('done');
+              res.json(json_res);
+              return;
+            }
+
+            result['hits']['hits'].forEach(function(item, index){
+               json_res.push(item);
+            });
+
+            // console.log(result.hits.hits.length + ' hits out of ' + result.hits.total);
+
+            elastic.elasticClient.scroll({
+              scroll: '1m',
+              scrollId: scrollId
+            }).then(next);
+        }(result));
+    });
 };
 
 exports.google = function (req, res, next) {
