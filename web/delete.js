@@ -4,7 +4,7 @@ var moment = require("moment");
 var dbUser = config.dbUser;
 
 exports.nyTimes = function(req, res) {
-  console.log('delete nyTimes ===============> ' + req.body['headline']);
+  console.log('delete nyTimes ===============> ');
   dbUser.user.find({fbId: req.params.fbId}, function(err, person) {
       if (person) {
         dbUser.user.update({
@@ -12,7 +12,7 @@ exports.nyTimes = function(req, res) {
         }, {
           $pull: {
             nyTimes: {
-              headline: req.body['headline']
+              headline: req.params.headline
             }
           }
         }, function() {

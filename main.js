@@ -19,7 +19,6 @@ var dbIMDB = config.dbIMDB;
 var dbUpComing = config.dbUpComing;
 var dbRecord = config.dbRecord;
 var dbToday = config.dbToday;
-var moment = require("moment");
 // var Special = require("./update/special");
 var dbUbike = mongojs('http://52.192.246.11/test', ['ubike']);
 var myapiToken = config.myapiToken;
@@ -85,7 +84,7 @@ server.post('/nyTimes/:fbId', Post.nyTimes);
 
 server.get('/my_nyTimes/:fbId', Read.my_nyTimes);
 
-server.post('/register', Post.register);
+server.post('/register/:name/:fbId', Post.register);
 
 server.get('/google', Read.google);
 
@@ -460,12 +459,14 @@ var job_recordUpdate = new cronJob(config.recordUpdate, function () {
 });
 
 var job_genreUpdate = new cronJob(config.genreUpdate, function() {
-    Genre.updateGenres('Animation');
+    //Genre.updateGenres('Animation');
     //Genre.updateGenres('Adventure');
     //Genre.updateGenres('Documentary');
     //Genre.updateGenres('Action');
-    // Genre.updateGenres('Biography');
-});
+    //Genre.updateGenres('Biography');
+    //Genre.updateGenres('Crime');
+    Genre.updateGenres('Drama');
+}
 
 var job_positionUpdate = new cronJob(config.positionUpdate, function() {
     Position.updatePosition();

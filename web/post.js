@@ -46,7 +46,8 @@ exports.nyTimes = function(req, res) {
             nyTimes: {
               headline: req.body['headline'],
               link: req.body['link'],
-              picUrl: req.body['picUrl']
+              picUrl: req.body['picUrl'],
+              timestamp: moment().format()
             }
           }
         }, function() {
