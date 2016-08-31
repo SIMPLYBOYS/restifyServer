@@ -87,7 +87,7 @@ function prepareDetailPages(done) {
     async.whilst(
         function () { console.log('start: ' + start + 'count: ' + count + 'limit: ' + limit); return count <= limit; },
         function (callback) {
-            dbUpComing.upComing.findOne({'month': monthList[count-1]}, function(err, doc) {
+            dbUpComing.upComing.findOne({'month': monthList[(count-1)%12]}, function(err, doc) {
                 if (doc) {
                     for (var j in doc['movies']) {
                         upComingDetailPages.push(doc['movies'][j]['detailUrl']); 
@@ -96,7 +96,7 @@ function prepareDetailPages(done) {
                     count++;
                     callback(null, count);
                 } else {
-                    console.log('something wrong with the docs in month: ' + monthList[count-1]);
+                    console.log('something wrong with the docs in month: ' + monthList[(count-1)%12]);
                     return;
                 }
             });             
@@ -114,8 +114,8 @@ function prepareCastPages(done) {
     async.whilst(
         function () { console.log('start: ' + start + 'count: ' + count + 'limit: ' + limit); return count <= limit; },
         function (callback) {
-            console.log('month: ' + monthList[count-1]);
-            dbUpComing.upComing.findOne({'month': monthList[count-1]}, function(err, doc) {
+            console.log('month: ' + monthList[(count-1)%12]);
+            dbUpComing.upComing.findOne({'month': monthList[(count-1)%12]}, function(err, doc) {
                 if (doc) {
                     InnerCount = 0;
                     async.whilst(
@@ -136,7 +136,7 @@ function prepareCastPages(done) {
                         }
                     );
                 } else {
-                    console.log('something wrong with the docs in month: ' + monthList[count-1]);
+                    console.log('something wrong with the docs in month: ' + monthList[(count-1)%12]);
                     return;
                 }
             });  
@@ -267,8 +267,8 @@ function prepareThumbnailPages(done) {
     async.whilst(
         function () { console.log('start: ' + start + 'count: ' + count + 'limit: ' + limit); return count <= limit; },
         function (callback) {
-            console.log('month: ' + monthList[count-1]);
-            dbUpComing.upComing.findOne({'month': monthList[count-1]}, function(err, doc) {
+            console.log('month: ' + monthList[(count-1)%12]);
+            dbUpComing.upComing.findOne({'month': monthList[(count-1)%12]}, function(err, doc) {
                 if (doc) {
                     InnerCount = 0;
                     async.whilst(
@@ -308,7 +308,7 @@ function prepareThumbnailPages(done) {
                         }
                     );
                 } else {
-                    console.log('something wrong with the docs in month: ' + monthList[count-1]);
+                    console.log('something wrong with the docs in month: ' + monthList[(count-1)%12]);
                     return;
                 }
             });  
@@ -326,10 +326,10 @@ function prepareGalleryPages(done) {
     async.whilst(
         function () { console.log('start: ' + start + 'count: ' + count + 'limit: ' + limit); return count <= limit; },
         function (callback) {
-            dbUpComing.upComing.findOne({'month': monthList[count-1]}, function(err, doc) {
+            dbUpComing.upComing.findOne({'month': monthList[(count-1)%12]}, function(err, doc) {
                 if (doc) {
                     var innerCount = 0;
-                    console.log('<<prepareGalleryPages>> movies in the month ====> ' + monthList[count-1]);
+                    console.log('<<prepareGalleryPages>> movies in the month ====> ' + monthList[(count-1)%12]);
                     async.whilst(
                         function () { console.log('innerCount: ' + innerCount); return innerCount < doc['movies'].length; },
                         function (innercallback) {
@@ -376,7 +376,7 @@ function prepareGalleryPages(done) {
                         }
                     );
                 } else {
-                    console.log('something wrong with the docs in month: ' + monthList[count-1]);
+                    console.log('something wrong with the docs in month: ' + monthList[(count-1)%12]);
                     return;
                 }
             });
@@ -395,10 +395,10 @@ function generateUpComingMovieInfo(done) {
     async.whilst(
         function () { console.log('start: ' + start + 'count: ' + count + 'limit: ' + limit); return count <= limit; },
         function (callback) {
-            dbUpComing.upComing.findOne({'month': monthList[count-1]}, function(err, doc) {
+            dbUpComing.upComing.findOne({'month': monthList[(count-1)%12]}, function(err, doc) {
                 if (doc) {
                     var innerCount = 0;
-                    console.log('<<generateUpComingMovieInfo>> movies in the month ====> ' + monthList[count-1]);
+                    console.log('<<generateUpComingMovieInfo>> movies in the month ====> ' + monthList[(count-1)%12]);
                     async.whilst(
                         function () { console.log('innerCount: ' + innerCount); return innerCount < doc['movies'].length; },
                         function (innercallback) {
@@ -413,7 +413,7 @@ function generateUpComingMovieInfo(done) {
                         }
                     );
                 } else {
-                    console.log('something wrong with the docs in month: ' + monthList[count-1]);
+                    console.log('something wrong with the docs in month: ' + monthList[(count-1)%12]);
                     return;
                 }
             });
@@ -432,10 +432,10 @@ function generateUpComingTrailerUrls(done) {
     async.whilst(
         function () { console.log('start: ' + start + 'count: ' + count + 'limit: ' + limit); return count <= limit; },
         function (callback) {
-            dbUpComing.upComing.findOne({'month': monthList[count-1]}, function(err, doc) {
+            dbUpComing.upComing.findOne({'month': monthList[(count-1)%12]}, function(err, doc) {
                 if (doc) {
                     var innerCount = 0;
-                    console.log('<<generateUpComingTrailerUrls>> movies in the month ====> ' + monthList[count-1]);
+                    console.log('<<generateUpComingTrailerUrls>> movies in the month ====> ' + monthList[(count-1)%12]);
                     async.whilst(
                         function () { console.log('innerCount: ' + innerCount); return innerCount < doc['movies'].length; },
                         function (innercallback) {
@@ -450,7 +450,7 @@ function generateUpComingTrailerUrls(done) {
                         }
                     );
                 } else {
-                    console.log('something wrong with the docs in month: ' + monthList[count-1]);
+                    console.log('something wrong with the docs in month: ' + monthList[(count-1)%12]);
                     return;
                 }
             });
@@ -468,10 +468,10 @@ function generateUpComingPosterPages(done) {
     async.whilst(
         function () { console.log('start: ' + start + 'count: ' + count + 'limit: ' + limit); return count <= limit; },
         function (callback) {
-            dbUpComing.upComing.findOne({'month': monthList[count-1]}, function(err, doc) {
+            dbUpComing.upComing.findOne({'month': monthList[(count-1)%12]}, function(err, doc) {
                 if (doc) {
                     var innerCount = 0;
-                    console.log('<<generateUpComingPosterPages>> movies in the month ====> ' + monthList[count-1]);
+                    console.log('<<generateUpComingPosterPages>> movies in the month ====> ' + monthList[(count-1)%12]);
                     async.whilst(
                         function () { console.log('innerCount: ' + innerCount); return innerCount < doc['movies'].length; },
                         function (innercallback) {
@@ -505,7 +505,7 @@ function generateUpComingPosterPages(done) {
                         }
                     );
                 } else {
-                    console.log('something wrong with the docs in month: ' + monthList[count-1]);
+                    console.log('something wrong with the docs in month: ' + monthList[(count-1)%12]);
                     return;
                 }
             });
@@ -523,10 +523,10 @@ function prepareUpComingPosterUrls(done) {
     async.whilst(
         function () { console.log('start: ' + start + 'count: ' + count + 'limit: ' + limit); return count <= limit; },
         function (callback) {
-            dbUpComing.upComing.findOne({'month': monthList[count-1]}, function(err, doc) {
+            dbUpComing.upComing.findOne({'month': monthList[(count-1)%12]}, function(err, doc) {
                 if (doc) {
                     var innerCount = 0;
-                    console.log('<<prepareUpComingPosterUrls>> movies in the month ====> ' + monthList[count-1]);
+                    console.log('<<prepareUpComingPosterUrls>> movies in the month ====> ' + monthList[(count-1)%12]);
                     async.whilst(
                         function () { console.log('innerCount: ' + innerCount); return innerCount < doc['movies'].length;},
                         function (innercallback) {
@@ -566,7 +566,7 @@ function prepareUpComingPosterUrls(done) {
                         }
                     );
                 } else {
-                    console.log('something wrong with the docs in month: ' + monthList[count-1]);
+                    console.log('something wrong with the docs in month: ' + monthList[(count-1)%12]);
                     return;
                 }
             });
