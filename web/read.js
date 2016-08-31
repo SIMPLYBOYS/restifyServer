@@ -45,9 +45,9 @@ var genreList = [
     {type: "Crime"},
     {type: "Documentary"},
     {type: "Drama"},
-    {type: "Family"}/*,
+    {type: "Family"},
     {type: "Fantasy"},
-    {type: "Film-Noir"},
+    {type: "Film-Noir"}/*,
     {type: "History"},
     {type: "Horror"},
     {type: "Music"},
@@ -60,6 +60,10 @@ var genreList = [
     {type: "War"},
     {type: "Western"}*/
 ];
+
+var client_id = '713961bd892a424f84585a57067750bf'; // Your client id
+var client_secret = '7db9e0e7761a4fd5b2e4653a7229e1b4'; // Your secret
+var redirect_uri = 'worldmovie-login://callback'; // Your redirect uri
 
 exports.read = function (req, res, next) {
     console.log('from: '+ req.query.from +'\n to: ' + req.query.to + '\n title: ' + req.query.title);
@@ -105,6 +109,55 @@ exports.read = function (req, res, next) {
     }
 };
 
+exports.access_refresh_token = function(req, res) {
+  var code = req.query.code;
+  var authOptions = {
+    url: 'https://accounts.spotify.com/api/token',
+    headers: { 'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64')) },
+    form: {
+      grant_type: 'authorization_code',
+      redirect_uri: redirect_uri,
+      code: code
+    },
+    json: true
+  };
+
+  request.post(authOptions, function(error, response, body) {
+    if (!error && response.statusCode === 200) {
+      var access_token = body.access_token;
+      res.send({
+        'access_token': access_token,
+        'expires_in': body.expires_in,
+        'scope': body.scope,
+        'refresh_token': body.refresh_token
+      });
+    }
+  });
+};
+
+exports.refresh_token = function(req, res) {
+  var refresh_token = req.query.refresh_token;
+  var authOptions = {
+    url: 'https://accounts.spotify.com/api/token',
+    headers: { 'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64')) },
+    form: {
+      grant_type: 'refresh_token',
+      refresh_token: refresh_token
+    },
+    json: true
+  };
+
+  request.post(authOptions, function(error, response, body) {
+    if (!error && response.statusCode === 200) {
+      var access_token = body.access_token;
+      res.send({
+        'access_token': access_token,
+        'expires_in': body.expires_in
+      });
+    }
+  });
+}
+
 exports.getGenre = function(req, res) {
     // console.log('date -------> ' + moment().subtract(10, 'days').calendar());
     dbIMDB.imdb.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
@@ -137,8 +190,9 @@ exports.imdbReview = function(req, res) {
     var start = parseInt(req.query.start);
     var end = start + 10;
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});   
-    dbReview.reviews.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+    dbReview.reviews.find({title: req.query.title}, {review:1, title:1}).limit(1,
       function(err, doc) {
+        console.log(doc[0]['review'].length);
         foo['title'] = doc[0]['title'];
         foo['review'] = doc[0]['review'].slice(start,end);
         foo['byTitle'] = false;
@@ -380,7 +434,7 @@ exports.twTrendsReview = function(req, res) {
         foo['size'] = doc[0]['review'].length;
         res.end(JSON.stringify(foo));
     });
-}
+};
 
 exports.frTrends = function(req, res) {
     console.log('frTrends');
