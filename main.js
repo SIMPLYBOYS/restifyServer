@@ -80,7 +80,11 @@ var nextCounter = 0;
 
 server.del('/nyTimes/:fbId/:headline', Delelte.nyTimes);
 
+server.del('/trends/:fbId/:title/', Delelte.trends);
+
 server.post('/nyTimes/:fbId', Post.nyTimes);
+
+server.post('/trends/:fbId', Post.trends);
 
 server.get('/my_nyTimes/:fbId', Read.my_nyTimes);
 
@@ -135,6 +139,10 @@ server.get('/nyTimes', Read.nyTimes);
 server.get('/search/:input', Read.elasticSearch);
 
 server.get('/gcm', Post.gcmTopic_t);
+
+server.get('/access_refresh_token', Read.access_refresh_token);
+
+server.get('/refresh_token', Read.refresh_token);
 
 server.get('/youtube_search', function(req, res, next) {
     var movieTitle = req.query.title;
@@ -465,7 +473,10 @@ var job_genreUpdate = new cronJob(config.genreUpdate, function() {
     //Genre.updateGenres('Action');
     //Genre.updateGenres('Biography');
     //Genre.updateGenres('Crime');
-    Genre.updateGenres('Drama');
+    //Genre.updateGenres('Drama');
+    //Genre.updateGenres('Family');
+    //Genre.updateGenres('Fantasy');
+    Genre.updateGenres('Film-Noir');
 });
 
 var job_positionUpdate = new cronJob(config.positionUpdate, function() {

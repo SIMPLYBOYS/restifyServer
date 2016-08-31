@@ -47,7 +47,7 @@ exports.nyTimes = function(req, res) {
               headline: req.body['headline'],
               link: req.body['link'],
               picUrl: req.body['picUrl'],
-              timestamp: moment().format()
+              timestamp: moment().subtract(10, 'days').calendar()
             }
           }
         }, function() {
@@ -63,6 +63,35 @@ exports.nyTimes = function(req, res) {
       }
   });
 };
+
+exports.trends = function(req, res) {
+  dbUser.user.find({fbId: req.params.fbId}, function(err, person) {
+      if (person) {
+        dbUser.user.update({
+          fbId: req.params.fbId
+        }, {
+          $addToSet: {
+            trends: {
+              title: req.body['title'],
+              link: req.body['link'],
+              picUrl: req.body['picUrl'],
+              channel: req.body['channel'],
+              timestamp: moment().subtract(10, 'days').calendar()
+            }
+          }
+        }, function() {
+          res.send({
+            content: 'post trends finished !!! '
+          });
+          res.end();
+        });
+      } else {
+        res.end({
+          content: 'user not exisit!'
+        });
+      }
+  });
+}
 
 exports.register = function(req, res) {
    console.log('register ===============>' + req.params.fbId);
