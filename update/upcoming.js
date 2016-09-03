@@ -48,7 +48,7 @@ youTube.setKey(config.YouTubeKey);
 exports.updateupComing = function() {
     async.series([
         function(done) {
-             var url = 'http://www.imdb.com/movies-coming-soon/2016-';
+             var url = start <= 12 ? 'http://www.imdb.com/movies-coming-soon/2016-' : 'http://www.imdb.com/movies-coming-soon/2017-';
              var i;
              for (i=start; i <= limit; i++) {
                 if (i<10)
@@ -161,6 +161,11 @@ function insertCast(done) {
         function () { return count < end; },
         function (callback) {
             cast = finalCastPages.pop();
+            if (!cast.hasOwnProperty()) {
+              count++;
+              callback(null, count);
+              return;
+            }
             Cast = [];
             request({
                 url: cast['castUrl'], 
