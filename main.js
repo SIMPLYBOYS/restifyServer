@@ -33,6 +33,7 @@ var krTrends = require('./trends/krTrends');
 var frTrends = require('./trends/frTrends');
 var twTrends = require('./trends/twTrends');
 var usTrends = require('./trends/usTrends');
+var cnTrends = require('./trends/cnTrends');
 var google = require('google');
 
 var server = restify.createServer({
@@ -87,6 +88,8 @@ server.post('/nyTimes/:fbId', Post.nyTimes);
 server.post('/trends/:fbId', Post.trends);
 
 server.get('/my_nyTimes/:fbId', Read.my_nyTimes);
+
+server.get('/my_trends/:fbId', Read.my_trends);
 
 server.post('/register/:name/:fbId', Post.register);
 
@@ -476,7 +479,8 @@ var job_genreUpdate = new cronJob(config.genreUpdate, function() {
     //Genre.updateGenres('Drama');
     //Genre.updateGenres('Family');
     //Genre.updateGenres('Fantasy');
-    Genre.updateGenres('Film-Noir');
+    // Genre.updateGenres('Film-Noir');
+    Genre.updateGenres('History');
 });
 
 var job_positionUpdate = new cronJob(config.positionUpdate, function() {
@@ -515,6 +519,10 @@ var job_usTrendsUpdate = new cronJob(config.usTrendsUpdate, function() {
     usTrends.updateTrends();
 });
 
+var job_cnTrendsUpdate = new cronJob(config.cnTrendsUpdate, function() {
+    cnTrends.updateTrends();
+});
+
 /*var job_twTrendsUpdate = new cronJob(config.recordUpdate, function () {
   console.log('开始执行定时更新任务');
   var update = spawn(process.execPath, [localPath.resolve(__dirname, 'trends/twTrends.js')]);
@@ -525,7 +533,7 @@ var job_usTrendsUpdate = new cronJob(config.usTrendsUpdate, function() {
   });
 });*/
 
-job_recordUpdate.start();
+/*job_recordUpdate.start();
 job_positionUpdate.start();
 job_fullrecordUpdate.start();
 job_upcomingUpdate.start();
@@ -535,7 +543,8 @@ job_frTrendsUpdate.start();
 job_twTrendsUpdate.start();
 job_usTrendsUpdate.start();
 job_reviewUpdate.start();
-job_genreUpdate.start();
+job_genreUpdate.start();*/
+job_cnTrendsUpdate.start();
 
 require('events').EventEmitter.prototype._maxListeners = 100;
  
