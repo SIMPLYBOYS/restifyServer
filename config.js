@@ -5,6 +5,7 @@ var dbJapan = mongojs('test', ['japan']);
 var dbKorea = mongojs('test', ['korea']);
 var dbTaiwan = mongojs('test', ['taiwan']);
 var dbUSA = mongojs('test', ['usa']);
+var dbChina = mongojs('test', ['china']);
 var dbFrance = mongojs('test', ['france']);
 var dbUpComing = mongojs('test', ['upComing']);
 var dbRecord = mongojs('test', ['records']);
@@ -34,6 +35,7 @@ exports.dbJapan = dbJapan;
 exports.dbKorea = dbKorea;
 exports.dbFrance = dbFrance;
 exports.dbTaiwan = dbTaiwan;
+exports.dbChina = dbChina;
 
 /*var mysql = require('mysql');
 exports.db = mysql.createConnection({
@@ -69,4 +71,6 @@ exports.frTrendsUpdate = '55 50 11 * * *';
 exports.twTrendsUpdate = '15 40 12 * * *';
 
 exports.usTrendsUpdate = '45 50 14 * * *';
+
+exports.cnTrendsUpdate = '15 46 0 * * *';
 

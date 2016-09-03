@@ -289,6 +289,18 @@ exports.my_nyTimes = function(req, res) {
     });
 };
 
+exports.my_trends = function(req, res) {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
+    dbUser.user.findOne({fbId: req.params.fbId}, function(err, doc) {
+        if (doc) {
+            console.log(doc['name']);
+            doc.hasOwnProperty('trends') ? res.end(JSON.stringify(doc['trends'])) : res.end(JSON.stringify([]));
+        } else {
+            res.end(JSON.stringify({ content: 'user not exisit!'}));
+        }
+    });
+};
+
 exports.getTitle = function(req, res) {
     var foo = {'contents': []};
     dbIMDB.imdb.find({'top': {$lte:250, $gte: 1}}).sort({'top':1}, function(err, docs){
@@ -327,7 +339,7 @@ exports.krTrends = function(req, res) {
     var foo = {};
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     if (typeof(req.query.title)!= 'undefined') {      
-        dbKorea.korea.find.find({'title': req.query.title}, {review:0}, function(err, docs) {
+        dbKorea.korea.find({'title': req.query.title}, {review:0}, function(err, docs) {
                 foo['contents'] = docs;
                 foo['byTitle'] = true;
                 res.end(JSON.stringify(foo));
@@ -365,7 +377,7 @@ exports.usTrends = function(req, res) {
     var foo = {};
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     if (typeof(req.query.title)!= 'undefined') {      
-        dbUSA.usa.find.find({'title': req.query.title}, {review:0}, function(err, docs) {
+        dbUSA.usa.find({'title': req.query.title}, {review:0}, function(err, docs) {
                 foo['contents'] = docs;
                 foo['byTitle'] = true;
                 res.end(JSON.stringify(foo));
@@ -403,7 +415,7 @@ exports.twTrends = function(req, res) {
     var foo = {};
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     if (typeof(req.query.title)!= 'undefined') {      
-        dbTaiwan.taiwan.find.find({'title': req.query.title}, {review:0}, function(err, docs) {
+        dbTaiwan.taiwan.find({'title': req.query.title}, {review:0}, function(err, docs) {
                 foo['contents'] = docs;
                 foo['byTitle'] = true;
                 res.end(JSON.stringify(foo));
@@ -441,7 +453,7 @@ exports.frTrends = function(req, res) {
     var foo = {};
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     if (typeof(req.query.title)!= 'undefined') {      
-        dbFrance.france.find.find({'title': req.query.title}, {review:0}, function(err, docs) {
+        dbFrance.france.find({'title': req.query.title}, {review:0}, function(err, docs) {
                 foo['contents'] = docs;
                 foo['byTitle'] = true;
                 res.end(JSON.stringify(foo));
@@ -478,7 +490,7 @@ exports.jpTrends = function(req, res) {
     var foo = {};
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     if (typeof(req.query.title)!= 'undefined') {      
-        dbJapan.japan.find.find({'title': req.query.title}, function(err, docs) {
+        dbJapan.japan.find({'title': req.query.title}, function(err, docs) {
                 foo['contents'] = docs;
                 foo['byTitle'] = true;
                 res.end(JSON.stringify(foo));

@@ -91,7 +91,7 @@ exports.trends = function(req, res) {
         });
       }
   });
-}
+};
 
 exports.register = function(req, res) {
    console.log('register ===============>' + req.params.fbId);
