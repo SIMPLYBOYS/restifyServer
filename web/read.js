@@ -624,7 +624,7 @@ exports.getToday = function(req, res, next) {
 };
 
 exports.elasticSearch = function(req, res, next) {
-    elastic.searchDocument(req.params.input).then(function (result) {
+    elastic.searchDocument(req.params.channel, req.params.input).then(function (result) {
         var scrollId = result._scroll_id;
         var json_res = [];
         (function next(result) {

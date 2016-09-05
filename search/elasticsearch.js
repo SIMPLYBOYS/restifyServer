@@ -6,10 +6,33 @@ var elasticClient = new elasticsearch.Client({
 });
 exports.elasticClient = elasticClient;
 
-function searchDocument(input) {
+function searchDocument(channel, input) {
+    var type = 0;
+
+    switch (channel) {
+       case 0:
+          type = 'japan';
+          break;
+       case 1:
+          type = 'usa';
+          break;
+       case 2: 
+          type = 'taiwan';
+          break;
+       case 3:
+          type = 'korea';
+          break;
+       case 4:
+          type = 'france';
+          break;
+       case 5:
+          type = 'china';
+          break;
+    }
+
     return elasticClient.search({
       index: 'test',
-      type: 'imdb',
+      type: type,
       scroll: '10s',
       body: {
         query: {
