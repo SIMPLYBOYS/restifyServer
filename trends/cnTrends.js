@@ -87,7 +87,7 @@ function insertTitle(done) {
                         	top: count+1,
                         	rating: {
                         		score: rating[count],
-                                votes: 0
+                                votes: null
                         	}
                         }}, function(){
                             count++;
@@ -100,7 +100,7 @@ function insertTitle(done) {
                             top: count+1,
                             rating: {
                         		score: rating[count],
-                                votes: 0
+                                votes: null
                         	}
                         }, function() {
                             count++;
@@ -149,6 +149,7 @@ function insertDetail(done) {
                                     cast = [],
                                     rating,
                                     votes,
+                                    content,
                                     mainInfo,
                                     gallerySize,
                                     data = [];
@@ -169,12 +170,10 @@ function insertDetail(done) {
 
                                 year = releaseDate.split('-')[0];
                                 type = null;
+                                content = $('.dra').text().trim();
 
-                                opencc.convert($('.dra').text().trim(), function (err, converted) {
-								  console.log(converted);
-								  mainInfo = converted;
-								  story = mainInfo;
-								});
+                                mainInfo = opencc.convertSync(content);
+                                story = mainInfo;
                                 
                                 // $('.movie-stats-container .banner-stats').each(function(index, item) {
                                 // 	if (index == 0) {
@@ -193,25 +192,22 @@ function insertDetail(done) {
                                 	if (index == 0) {
                                 		$(item).find('.info').each(function(index, item) {
                                 			staff.push({
-                                				staff: $(item).text().trim().split(' ')[0],
+                                				staff: opencc.convertSync($(item).text().trim().split(' ')[0]),
                                 				link: 'http://maoyan.com'+$(item).find('a').attr('href')
                                 			});
                                 		});
-                                		/*console.log($(item).find('.info').text().trim().split(' ')[0]);
-                                		console.log('http://maoyan.com'+$(item).find('a').attr('href'));*/
                                 	} else if (index == 1) {	
                                 		$(item).find('.actor').each(function(index, item) {
                                 			Cast.push({
-					                            cast: $(item).find('.info a').text().trim(),
-					                            as: $(item).find('.role').text().trim().split('：')[1],
+					                            cast: opencc.convertSync($(item).find('.info a').text().trim()),
+					                            as: $(item).find('.role').text().trim().split('：'),
 					                            link: 'http://maoyan.com'+$(item).find('.info a').attr('href'),
 					                            avatar: $(item).find('img').attr('data-src').split('@')[0]
 					                        });
                                 		});
                                 	}
                                 });                           
-                                
-                              
+                                                              
                                 // $('#titleDetails .txt-block').each(function(index, item) {
                                 //     if ($(item).text().trim().indexOf('Budget') == 0)
                                 //         budget = $(item).text().trim().split(':')[1].split('(')[0].trim();
@@ -282,11 +278,16 @@ function insertDetail(done) {
                                         mainInfo: mainInfo,
                                         story: story,
                                         staff: staff,
+                                        cast: Cast,
                                         review: reviewer,
                                         data: data,
+                                        posterUrl: posterUrl,
                                         gallery_full: gallery_full
                                     }},function() {
                                         count++;
+                                        gallery_full = [];
+                                        Cast = [];
+                                        reviewer = [];
                                         console.log(title[count] + ' updated!');
                                         callback(null, count);
                                 });
@@ -309,11 +310,11 @@ function insertTrailer(done) {
     console.log('insertTrailer -------->');
     var count = 0;
     async.whilst(
-        function() { return count < trailerTitle.length},
+        function() { return count < title.length},
         function(callback) {
-            dbChina.china.findOne({trailerTitle: trailerTitle[count]}, function(err, doc) {
+            dbChina.china.findOne({title: title[count]}, function(err, doc) {
                 if (doc) {
-                    new TrendsTrailer('cn', trailerTitle[count], youTube, count, callback);
+                    new TrendsTrailer('cn', title[count], youTube, count, callback);
                     count++;
                 } else {
                     count++;

@@ -71,7 +71,7 @@ TrendsTrailer.prototype.init = function () {
                   }  
           });
         } else if (self.country == 'cn') {
-          dbChina.china.update({trailerTitle: self.title}, {'$set': {trailerUrl: trailerUrl}
+          dbChina.china.update({title:: self.title}, {'$set': {trailerUrl: trailerUrl}
                 }, function() {
                 if (self.done) {
                   self.done(null, self.count);
