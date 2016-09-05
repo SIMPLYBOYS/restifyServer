@@ -10,6 +10,7 @@ var dbKorea = config.dbKorea;
 var dbFrance = config.dbFrance;
 var dbTaiwan = config.dbTaiwan;
 var dbReview = config.dbReview;
+var dbChina = config.dbChina;
 var dbUSA = config.dbUSA;
 var dbUser = config.dbUser;
 var myapiToken = config.myapiToken;
@@ -47,9 +48,9 @@ var genreList = [
     {type: "Drama"},
     {type: "Family"},
     {type: "Fantasy"},
-    {type: "Film-Noir"}/*,
+    {type: "Film-Noir"},
     {type: "History"},
-    {type: "Horror"},
+    {type: "Horror"}/*,
     {type: "Music"},
     {type: "Musical"},
     {type: "Mystery"},
@@ -440,6 +441,44 @@ exports.twTrendsReview = function(req, res) {
     dbTaiwan.taiwan.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
       function(err, doc) {
         // console.log(doc[0]['review']);
+        foo['title'] = doc[0]['title'];
+        foo['review'] = doc[0]['review'].slice(start,end);
+        foo['byTitle'] = false;
+        foo['size'] = doc[0]['review'].length;
+        res.end(JSON.stringify(foo));
+    });
+};
+
+exports.cnTrends = function(req, res) {
+    console.log('dbChina');
+    var foo = {};
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
+    if (typeof(req.query.title)!= 'undefined') {      
+        dbChina.china.find({'title': req.query.title}, {review:0}, function(err, docs) {
+                foo['contents'] = docs;
+                foo['byTitle'] = true;
+                res.end(JSON.stringify(foo));
+        });
+    } else {
+        dbChina.china.find({'top': {$lte:10, $gte: 1}}, {review:0}).sort({'top': parseInt(req.query.ascending)},
+         function(err, docs) {
+            console.log(docs);
+            foo['contents'] = docs;
+            foo['byTitle'] = false;
+            res.end(JSON.stringify(foo));
+        });
+    }
+};
+
+exports.cnTrendsReview = function(req, res) {
+    console.log(req.query.title);
+    var foo = {};
+    var start = parseInt(req.query.start); 
+    var end = start + 10;
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});   
+    dbChina.china.find({trailerTitle: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+      function(err, doc) {
+        console.log(doc);
         foo['title'] = doc[0]['title'];
         foo['review'] = doc[0]['review'].slice(start,end);
         foo['byTitle'] = false;
