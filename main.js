@@ -129,6 +129,10 @@ server.get('/twTrends', Read.twTrends);
 
 server.get('/twTrendsReview', Read.twTrendsReview);
 
+server.get('/cnTrends', Read.cnTrends);
+
+server.get('/cnTrendsReview', Read.cnTrendsReview);
+
 server.get('/frTrends', Read.frTrends);
 
 server.get('/frTrendsReview', Read.frTrendsReview);
@@ -480,7 +484,8 @@ var job_genreUpdate = new cronJob(config.genreUpdate, function() {
     //Genre.updateGenres('Family');
     //Genre.updateGenres('Fantasy');
     // Genre.updateGenres('Film-Noir');
-    Genre.updateGenres('History');
+    // Genre.updateGenres('History');
+    Genre.updateGenres('Horror');
 });
 
 var job_positionUpdate = new cronJob(config.positionUpdate, function() {
