@@ -16,8 +16,8 @@ function searchDocument(input) {
           multi_match: {
             query: {
                 query: input,
-                fields: ["title", "description"],
-                fuzziness: 2
+                fuzziness: "AUTO",
+                fields: ["title", "trailerTitle", "description"]
             }
           }
         }
