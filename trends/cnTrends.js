@@ -200,7 +200,7 @@ function insertDetail(done) {
                                 		$(item).find('.actor').each(function(index, item) {
                                 			Cast.push({
 					                            cast: opencc.convertSync($(item).find('.info a').text().trim()),
-					                            as: $(item).find('.role').text().trim().split('：'),
+					                            as: $(item).find('.role').text().trim().split('：')[1],
 					                            link: 'http://maoyan.com'+$(item).find('.info a').attr('href'),
 					                            avatar: $(item).find('img').attr('data-src').split('@')[0]
 					                        });
