@@ -9,6 +9,7 @@ var dbKorea = config.dbKorea;
 var dbFrance = config.dbFrance;
 var dbTaiwan = config.dbTaiwan;
 var dbChina = config.dbChina;
+var dbGermany = config.dbGermany;
 var dbUSA = config.dbUSA;
 var STATUS_CODES = http.STATUS_CODES;
 /*
@@ -71,7 +72,14 @@ TrendsTrailer.prototype.init = function () {
                   }  
           });
         } else if (self.country == 'cn') {
-          dbChina.china.update({title:: self.title}, {'$set': {trailerUrl: trailerUrl}
+          dbChina.china.update({title: self.title}, {'$set': {trailerUrl: trailerUrl}
+                }, function() {
+                if (self.done) {
+                  self.done(null, self.count);
+                }  
+          });
+        } else if (self.country == 'gm') {
+          dbGermany.germany.update({title: self.title}, {'$set': {trailerUrl: trailerUrl}
                 }, function() {
                 if (self.done) {
                   self.done(null, self.count);
