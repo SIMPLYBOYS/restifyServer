@@ -9,7 +9,7 @@ exports.elasticClient = elasticClient;
 function searchDocument(channel, input) {
     var type = 0;
 
-    switch (channel) {
+    switch (parseInt(channel)) {
        case 0:
           type = 'japan';
           break;
@@ -27,6 +27,9 @@ function searchDocument(channel, input) {
           break;
        case 5:
           type = 'china';
+          break;
+      default:
+          type = 'imdb'
           break;
     }
 
