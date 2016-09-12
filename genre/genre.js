@@ -332,7 +332,7 @@ function insertReview(done) {
                     dbReview.reviews.findOne({title: review['title']}, function(err, doc) {
                         if (doc) {
                             dbReview.reviews.update({'title': doc['title']}, {$set: {review: reviewer}}, function() {
-                                console.log(review['title'] + 'finished insert review');
+                                console.log(review['title'] + ' finished insert review');
                                 count++;
                                 callback(null);
                             });
@@ -341,7 +341,7 @@ function insertReview(done) {
                                 title: review['title']
                             }, function() {
                                 dbReview.reviews.update({'title': review['title']}, {$set: {review: reviewer}}, function() {
-                                    console.log(review['title'] + 'finished insert review');
+                                    console.log(review['title'] + ' finished insert review');
                                     count++;
                                     callback(null);
                                 });
