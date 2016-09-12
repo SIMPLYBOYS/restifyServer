@@ -7,6 +7,7 @@ var moment = require("moment")
 var TrendsTrailer = require('./TrendsTrailer');
 var trendsGalleryScraper = require('../crawler/trendsUsGalleryScraper');
 var usCastAvatarScraper = require('../crawler/usCastAvatarScraper');
+var tomatoKey = config.TomatoKey;
 var youTube = config.YouTube;
 var dbUSA = config.dbUSA;
 var posterPages = [];
@@ -33,6 +34,7 @@ exports.updateTrends = function() {
         resetPosition,
         insertTitle,
         insertDetail,
+        insertRottenTomatoes,
         insertCast,
         insertCastAvatar,
         insertReview,
@@ -47,6 +49,48 @@ exports.updateTrends = function() {
           console.log('all jobs for usTrends update finished!!');
     });
 };
+
+function insertRottenTomatoes(done) {
+    var count = 0,
+        url;
+        console.log('insertRottenTomatoes -------->');
+        async.whilst(
+                function() { return count < 10; },
+                function(callback) {
+                    url = 'http://api.rottentomatoes.com/api/public/v1.0/movies.json?apikey='+tomatoKey+'&q='+title[count];
+                    console.log(url);
+                    request({
+                        url: url,
+                        encoding: "utf8",
+                        method: "GET"
+                    }, function(err, response, body) {
+                        if (err || !body) { count++; callback(null, count);}
+                        console.log(JSON.parse(body)['total']);
+                        var result = JSON.parse(body);
+
+                        if (result['total'] == 0) {
+                            count++;
+                            callback(null, count);
+                            return;
+                        } 
+
+                        dbUSA.usa.update({'title': title[count]}, {'$set': {
+                                rottentomatoes: {
+                                    critics_score: result['movies'][0]['ratings']['critics_score'],
+                                    audience_score: result['movies'][0]['ratings']['audience_score']
+                                }
+                            }},function() {
+                                count++;
+                                console.log(title[count] + ' updated!');
+                                callback(null, count);
+                        });
+                    });
+                },
+                function(err, n) {
+                    done(null);
+                }
+        );
+}
 
 function resetPosition (done) {
     console.log('resetPosition ---->');
@@ -483,9 +527,8 @@ function insertDetail(done) {
                                 method: "GET"
                             }, function(err, response, body) {
                                 if (err || !body) { count++; callback(null, count);}
-                                var $ = cheerio.load(body);
-
-                                var originTitle = $('.txt_origin').text(),
+                                var $ = cheerio.load(body),
+                                    originTitle = $('.txt_origin').text(),
                                     genre = [],
                                     releaseDate,
                                     runTime,
@@ -502,7 +545,8 @@ function insertDetail(done) {
                                     votes,
                                     mainInfo,
                                     gallerySize,
-                                    data = [];
+                                    data = [],
+                                    end = $('.subtext a').length;
 
                                 year = $('#titleYear a').text();
                                 type = $('.subtext meta').attr('content');
@@ -510,9 +554,8 @@ function insertDetail(done) {
                                 mainInfo = $('.summary_text').text().trim();
                                 story = $('.article .inline p').text().split('Written by')[0].trim();
                                 rating = parseInt($('.imdbRating .ratingValue strong span').text());
-                                votes = parseInt($('.imdbRating a').text());
+                                votes = parseInt($('.imdbRating a').text());     
                                 
-                                var end = $('.subtext a').length;
                                 $('.subtext a').each(function(index, item) {
                                     if (index < end-1)
                                         genre.push($(item).text().trim());
