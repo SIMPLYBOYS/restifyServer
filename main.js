@@ -34,6 +34,7 @@ var frTrends = require('./trends/frTrends');
 var twTrends = require('./trends/twTrends');
 var usTrends = require('./trends/usTrends');
 var cnTrends = require('./trends/cnTrends');
+var gmTrends = require('./trends/gmTrends');
 var google = require('google');
 
 var server = restify.createServer({
@@ -528,6 +529,10 @@ var job_cnTrendsUpdate = new cronJob(config.cnTrendsUpdate, function() {
     cnTrends.updateTrends();
 });
 
+var job_gmTrendsUpdate = new cronJob(config.gmTrendsUpdate, function() {
+    gmTrends.updateTrends();
+})
+
 /*var job_twTrendsUpdate = new cronJob(config.recordUpdate, function () {
   console.log('开始执行定时更新任务');
   var update = spawn(process.execPath, [localPath.resolve(__dirname, 'trends/twTrends.js')]);
@@ -538,7 +543,7 @@ var job_cnTrendsUpdate = new cronJob(config.cnTrendsUpdate, function() {
   });
 });*/
 
-/*job_recordUpdate.start();
+job_recordUpdate.start();
 job_positionUpdate.start();
 job_fullrecordUpdate.start();
 job_upcomingUpdate.start();
@@ -548,8 +553,9 @@ job_frTrendsUpdate.start();
 job_twTrendsUpdate.start();
 job_usTrendsUpdate.start();
 job_reviewUpdate.start();
-job_genreUpdate.start();*/
+job_genreUpdate.start();
 job_cnTrendsUpdate.start();
+job_gmTrendsUpdate.start();
 
 require('events').EventEmitter.prototype._maxListeners = 100;
  

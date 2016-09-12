@@ -10,6 +10,7 @@ var dbKorea = config.dbKorea;
 var dbFrance = config.dbFrance;
 var dbTaiwan = config.dbTaiwan;
 var dbReview = config.dbReview;
+var dbGermany = config.dbGermany;
 var dbChina = config.dbChina;
 var dbUSA = config.dbUSA;
 var dbUser = config.dbUser;
@@ -50,10 +51,10 @@ var genreList = [
     {type: "Fantasy"},
     {type: "Film-Noir"},
     {type: "History"},
-    {type: "Horror"}/*,
+    {type: "Horror"},
     {type: "Music"},
     {type: "Musical"},
-    {type: "Mystery"},
+    {type: "Mystery"}/*,
     {type: "Romance"},
     {type: "Sci-Fi"},
     {type: "Sport"},
@@ -190,7 +191,7 @@ exports.imdbReview = function(req, res) {
     var foo = {};
     var start = parseInt(req.query.start);
     var end = start + 10;
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});   
+    res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});   
     dbReview.reviews.find({title: req.query.title}, {review:1, title:1}).limit(1,
       function(err, doc) {
         console.log(doc[0]['review'].length);
@@ -203,7 +204,6 @@ exports.imdbReview = function(req, res) {
 };
 
 exports.upComing = function(req, res, next) {
-
     if (typeof(req.query.month) != 'undefined') {
         dbUpComing.upComing.find({'month': req.params.month}, function(err, docs) {
             for (var i in docs[0]['movies']) {   
@@ -401,6 +401,44 @@ exports.usTrendsReview = function(req, res) {
     var end = start + 10;
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});   
     dbUSA.usa.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+      function(err, doc) {
+        // console.log(doc[0]['review']);
+        foo['title'] = doc[0]['title'];
+        foo['review'] = doc[0]['review'].slice(start,end);
+        foo['byTitle'] = false;
+        foo['size'] = doc[0]['review'].length;
+        res.end(JSON.stringify(foo));
+    });
+}
+
+exports.gmTrends = function(req, res) {
+    console.log('dbGermany');
+    var foo = {};
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
+    if (typeof(req.query.title)!= 'undefined') {      
+        dbGermany.germany.find({'title': req.query.title}, {review:0}, function(err, docs) {
+                foo['contents'] = docs;
+                foo['byTitle'] = true;
+                res.end(JSON.stringify(foo));
+        });
+    } else {
+        dbGermany.germany.find({'top': {$lte:10, $gte: 1}}, {review:0}).sort({'top': parseInt(req.query.ascending)},
+         function(err, docs) {
+            console.log(docs);
+            foo['contents'] = docs;
+            foo['byTitle'] = false;
+            res.end(JSON.stringify(foo));
+        });
+    }
+}
+
+exports.gmTrendsReview = function(req, res) {
+    console.log(req.query.title);
+    var foo = {};
+    var start = parseInt(req.query.start);
+    var end = start + 10;
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});   
+    dbGermany.germany.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
       function(err, doc) {
         // console.log(doc[0]['review']);
         foo['title'] = doc[0]['title'];
@@ -625,12 +663,13 @@ exports.getToday = function(req, res, next) {
 
 exports.elasticSearch = function(req, res, next) {
     elastic.searchDocument(req.params.channel, req.params.input).then(function (result) {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
         var scrollId = result._scroll_id;
         var json_res = [];
         (function next(result) {
             if (!result.hits.hits.length) {
-              console.log('done');
-              res.json(json_res);
+              console.log('done ----> ' + JSON.stringify(json_res));
+              res.end(JSON.stringify(json_res));
               return;
             }
 

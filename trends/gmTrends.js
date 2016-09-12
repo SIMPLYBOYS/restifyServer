@@ -1,0 +1,270 @@
+var config = require('../config');
+var Updater = require('../update/Updater');
+var cheerio = require("cheerio");
+var request = require("request");
+var async = require('async');
+var moment = require("moment");
+var TrendsTrailer = require('./TrendsTrailer');
+var dbGermany = config.dbGermany;
+var posterPages = [];
+var releaseUrl = [];
+var GalleryfullPages = [];
+var castPages = [];
+var GalleryPages = [];
+var finalCastPages = [];
+var finalReviewPages = [];
+var avatarUrl = [];
+var trailerTitle = [];
+var Cast = [];
+var reviewer = [];
+var title = [];
+var delta = [];
+var link = [];
+var rating = [];
+var gallery_full = [];
+
+exports.updateTrends = function() {
+	console.log('updateTrends for Germany')
+    async.series([
+        resetPosition,
+        insertTitle,
+        insertDetail,
+        insertTrailer
+    ],
+    function (err) {
+        if (err) console.error(err.stack);
+          console.log('all jobs for cnTrends update finished!!');
+    });
+};
+
+function resetPosition (done) {
+    console.log('resetPosition ---->');
+    dbGermany.germany.find({'top': {$lte:10, $gte:1}}, function(err, docs) {
+        if (docs) {
+            docs.forEach(function(doc, top){
+                dbGermany.germany.update({'title': doc['title']}, {'$unset': {'top':1}});
+            });
+            done(null);
+        } else {
+            done(null);
+        }
+    });
+}
+
+function insertTitle(done) {
+    console.log('insertTitle ---->');
+    request({
+        url: 'http://www.kino.de/filme/kinocharts/',
+        encoding: "utf8",
+        method: "GET"
+    }, function(err, response, body) {
+
+        var $ = cheerio.load(body);
+
+        $('.movie li').each(function(index, item) {
+        	title.push($(item).find('.teaser-name a').text().split('.')[1].trim());
+        	link.push($(item).find('.teaser-name a').attr('href'));
+        });
+
+        var count = 0;
+        async.whilst(
+            function() { return count < 10; },
+            function(callback) {
+                dbGermany.germany.findOne({'title': title[count]}, function(err, doc){
+                    if (doc) {
+                        dbGermany.germany.update({'title': title[count]}, {'$set': {
+                        	top: count+1,
+                        }}, function(){
+                            count++;
+                            callback(null, count);
+                        });
+                    } else {
+                        dbGermany.germany.insert({
+                            title: title[count],
+                            detailUrl: link[count],
+                            top: count+1,
+                        }, function() {
+                            count++;
+                            callback(null, count);
+                        });
+                    }
+                });
+            },
+            function(err, n) {
+                console.log('insertTitle finish ' + n);          
+                done(null);
+            }
+        );  
+    });
+}
+
+
+function insertDetail(done) {
+    var count = 0;
+        console.log('insertDetail -------->');
+        async.whilst(
+                function() { return count < 10; },
+                function(callback) {
+                    dbGermany.germany.findOne({'title': title[count]}, function(err, doc) {
+                        if (doc) {                           
+                            request({
+                                url: doc['detailUrl'],
+                                encoding: "utf8",
+                                method: "GET"
+                            }, function(err, response, body) {
+                                if (err || !body) { count++; callback(null, count);}
+
+                                var $ = cheerio.load(body),
+                                	genre = [],
+                                    releaseDate,
+                                    runTime,
+                                    type,
+                                    country,
+                                    budget,
+                                    cross,
+                                    story = "",
+                                    staff = [],
+                                    year,
+                                    studio = [],
+                                    cast = [],
+                                    rating,
+                                    votes,
+                                    plot,
+                                    gallerySize,
+                                    posterUrl,
+                                    data = [];
+
+                                year = $('.movie-article-year').text();
+                                type = $('.subtext meta').attr('content');
+                                runTime = $('.article-meta .first').text();
+                                plot = $('#movie-plot p').text().trim();
+                                story = plot;
+                                rating = parseInt($('.movie-rating-user .rating-number').text().split('Ø')[1].trim());
+                                votes = parseInt($('.movie-rating-user a').text().split('(')[1].split(')')[0]);
+                                posterUrl = $('.article-poster img').attr('src').split('236')[0] + '0x1920.jpg';
+                                releaseDate = $('.article-meta time').text().split('Ab')[1].split('im')[0].trim();
+
+                                $('.article-meta dd a').each(function(index, item) {
+                                	if (index == 0)
+                                		type = $(item).text().trim();
+                                	else if (index == 1)
+                                		genre = $(item).text().trim();
+                                	else if (index == 2)
+                                		country = $(item).text().trim();
+                                });
+
+                                $('.major .major').each(function(index, item) {
+                                	if (index == 0) {
+                                		staff.push({
+                                            staff: $(item).find('dt').text().split('©')[0].trim(),
+                                            link: $(item).find('a').attr('href')
+                                        })
+                                	}
+                                });
+
+                                $('.major li').each(function(index, item) {
+                                	if (index > 2) {
+                                		Cast.push({
+				                            cast: $(item).find('dt').text().split('©')[0].trim(),
+				                            as: $(item).find('em').text() != '' ? $(item).find('em').text().split("„")[1].split("“")[0] : "",
+				                            link: $(item).find('a').attr('href'),
+				                            avatar: $(item).find('img').attr('src')
+				                        });
+                                		
+                                	}
+                                });
+                            
+                                data.push({
+                                    data: null
+                                });
+
+                                data.push({
+                                    data: year
+                                });
+
+                                data.push({
+                                    data: country
+                                });
+
+                                data.push({
+                                    data: null
+                                });
+
+                                data.push({
+                                    data: runTime
+                                });
+
+                                $('.titleReviewBarItem').each(function(index, item) {
+                                    if (index == 1) {
+                                        finalReviewPages.push({
+                                            reviewUrl: doc['detailUrl'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'],
+                                            title: title[count],
+                                            votes: parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim())
+                                        });
+                                    }
+                                });
+
+                                $('#article-gallery li img').each(function(index, item) {
+                                	console.log($(item).attr('src'));
+                                	gallery_full.push({
+                                		type: 'full',
+                                		url: $(item).attr('src').split('rcm')[0]+'rcm0x1920.jpg'
+                                	});
+                                });
+                
+                                dbGermany.germany.update({'title': title[count]}, {'$set': {
+                                        genre: genre,
+                                        releaseDate: releaseDate,
+                                        runTime: runTime,
+                                        type: type,
+                                        country: country,
+                                        mainInfo: plot,
+                                        gallery_full: gallery_full,
+                                        staff: staff,
+                                        rating: {
+                                            score: rating,
+                                            votes: votes
+                                        },
+                                        story: plot,
+                                        data: data
+                                    }},function() {
+                                        count++;
+                                        console.log(title[count] + ' updated!');
+                                        callback(null, count);
+                                });
+                            });
+                        }
+                    });
+                },
+                function(err, n) {
+                    console.log('posterPages --> ' + JSON.stringify(posterPages));
+                    console.log('finalReviewPages --> ' + JSON.stringify(finalReviewPages));
+                    console.log('finalCastPages --> ' + JSON.stringify(finalCastPages));
+                    console.log('insertDetail finish ' + n);
+                    done(null);
+                }
+        );
+}
+
+function insertTrailer(done) {
+    console.log('insertTrailer -------->');
+    var count = 0;
+    async.whilst(
+        function() { return count < title.length},
+        function(callback) {
+            dbGermany.germany.findOne({title: title[count]}, function(err, doc) {
+                if (doc) {
+                    new TrendsTrailer('gm', title[count], youTube, count, callback);
+                    count++;
+                } else {
+                    count++;
+                    callback(null, count);
+                }
+            });
+        },
+        function(err, n) {
+            console.log('insert gm Trailer finish ' + n);
+            done(null);
+        }
+    ); 
+}

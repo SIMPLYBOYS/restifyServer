@@ -7,6 +7,7 @@ var dbTaiwan = mongojs('test', ['taiwan']);
 var dbUSA = mongojs('test', ['usa']);
 var dbChina = mongojs('test', ['china']);
 var dbFrance = mongojs('test', ['france']);
+var dbGermany = mongojs('test', ['germany']);
 var dbUpComing = mongojs('test', ['upComing']);
 var dbRecord = mongojs('test', ['records']);
 var dbReview = mongojs('test', ['reviews']);
@@ -17,6 +18,7 @@ var myapiToken = '632ce305-f516-4ccb-8f32-4e0fb1ad412a';
 var YouTube = require('youtube-node');
 var YouTubeKey = 'AIzaSyCpHbHblbj_6zfA1AeKsuaxB4ZuoTffVKw';
 var GCMKey = 'AIzaSyCpHbHblbj_6zfA1AeKsuaxB4ZuoTffVKw';
+var TomatoKey = '9htuhtcb4ymusd73d4z6jxcj';
 // var dbContact = mongojs('http://52.192.246.11/test', ['contact']);
 
 exports.dbUser = dbUser;
@@ -29,11 +31,13 @@ exports.dbToday = dbToday;
 exports.dbPosition = dbPosition;
 exports.YouTube = YouTube;
 exports.YouTubeKey = YouTubeKey;
+exports.TomatoKey = TomatoKey;
 exports.GCMKey = GCMKey;
 exports.dbUSA = dbUSA;
 exports.dbJapan = dbJapan;
 exports.dbKorea = dbKorea;
 exports.dbFrance = dbFrance;
+exports.dbGermany = dbGermany;
 exports.dbTaiwan = dbTaiwan;
 exports.dbChina = dbChina;
 
@@ -70,7 +74,9 @@ exports.frTrendsUpdate = '55 50 11 * * *';
 
 exports.twTrendsUpdate = '15 40 12 * * *';
 
-exports.usTrendsUpdate = '45 50 14 * * *';
+exports.usTrendsUpdate = '5 58 18 * * *';
 
-exports.cnTrendsUpdate = '15 46 0 * * *';
+exports.cnTrendsUpdate = '5 19 2 * * *';
+
+exports.gmTrendsUpdate = '15 3 1 * * *';
 
