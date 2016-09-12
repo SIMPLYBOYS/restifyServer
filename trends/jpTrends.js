@@ -468,6 +468,7 @@ function insertDetail(done) {
                                     cast: cast,
                                     staff: staff,
                                     story: story,
+                                    mainInfo: story,
                                     data: data,
                                     originTitle: originTitle,
                                     releaseDate: releaseDate,
