@@ -192,6 +192,7 @@ function prepareGalleryPages(done) {
                             })
 
                             posterUrl = $('.poster img').attr('src').split('=')[0] + '=m665_443_2';
+                            // posterUrl = $('.poster img').attr('src').split('=')[0].split('?')[0];
 
                             dbKorea.korea.update({title: title}, {$set: {posterUrl: posterUrl}}, function(){
                                 Innercount++;
@@ -554,7 +555,7 @@ function insertDetail(done) {
                                         type = foo[1];
                                     } 
                                     else if (index == 3) 
-                                        country = $(item).text().trim();
+                                        country = $(item).text().trim().split(',')[0];
                                 });
 
                                 data.push({
