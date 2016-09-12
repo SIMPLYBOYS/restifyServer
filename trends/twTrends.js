@@ -545,7 +545,7 @@ function insertDetail(done) {
                                 encoding: "utf8",
                                 method: "GET"
                             }, function(err, response, body) {
-                                if (err || !body) { count++; callback(null, count);}
+                                if (err || !body) { count++; callback(null, count);};
                                 var $ = cheerio.load(body);
                                 var genre,
                                     releaseDate,
@@ -620,7 +620,7 @@ function insertDetail(done) {
                                             votes: votes
                                         },
                                         data: data,
-                                        story: story
+                                        story: mainInfo
                                     }},function() {
                                         console.log(title[count] + ' updated!');
                                         count++;
