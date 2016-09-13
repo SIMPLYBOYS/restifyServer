@@ -142,6 +142,10 @@ server.get('/usTrends', Read.usTrends);
 
 server.get('/usTrendsReview', Read.usTrendsReview);
 
+server.get('/gmTrends', Read.gmTrends);
+
+server.get('/gmTrendsReview', Read.gmTrendsReview);
+
 server.get('/nyTimes', Read.nyTimes);
 
 server.get('/search/:channel/:input', Read.elasticSearch);
