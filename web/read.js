@@ -1,5 +1,8 @@
 var config = require('../config');
 var url = require('url');
+var cacheAccess = require('../memory_cache/redis');
+var redisClient = require('redis').createClient;
+var redis = redisClient(6380, 'localhost');
 var dbIMDB = config.dbIMDB;
 var dbUpComing = config.dbUpComing;
 var dbPosition = config.dbPosition;
@@ -192,14 +195,9 @@ exports.imdbReview = function(req, res) {
     var start = parseInt(req.query.start);
     var end = start + 10;
     res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});   
-    dbReview.reviews.find({title: req.query.title}, {review:1, title:1}).limit(1,
-      function(err, doc) {
-        console.log(doc[0]['review'].length);
-        foo['title'] = doc[0]['title'];
-        foo['review'] = doc[0]['review'].slice(start,end);
-        foo['byTitle'] = false;
-        foo['size'] = doc[0]['review'].length;
-        res.end(JSON.stringify(foo));
+    cacheAccess.findImdbReviewsByTitleCached(dbReview, redis, req.query.title, function(movie) {
+        if (!book) res.status(500).send('Server error');
+        else res.send(movie);
     });
 };
 
