@@ -6,22 +6,12 @@ var async = require('async');
 var moment = require("moment");
 var TrendsTrailer = require('./TrendsTrailer');
 var dbGermany = config.dbGermany;
-var posterPages = [];
 var releaseUrl = [];
-var GalleryfullPages = [];
-var castPages = [];
-var GalleryPages = [];
-var finalCastPages = [];
-var finalReviewPages = [];
-var avatarUrl = [];
 var trailerTitle = [];
-var Cast = [];
-var reviewer = [];
 var title = [];
 var delta = [];
 var link = [];
 var rating = [];
-var gallery_full = [];
 
 exports.updateTrends = function() {
 	console.log('updateTrends for Germany')
@@ -124,6 +114,7 @@ function insertDetail(done) {
                                     cross,
                                     story = "",
                                     staff = [],
+                                    gallery_full = [],
                                     year,
                                     studio = [],
                                     cast = [],
@@ -164,7 +155,7 @@ function insertDetail(done) {
 
                                 $('.major li').each(function(index, item) {
                                 	if (index > 2) {
-                                		Cast.push({
+                                		cast.push({
 				                            cast: $(item).find('dt').text().split('©')[0].trim(),
 				                            as: $(item).find('em').text() != '' ? $(item).find('em').text().split("„")[1].split("“")[0] : "",
 				                            link: $(item).find('a').attr('href'),
@@ -194,16 +185,6 @@ function insertDetail(done) {
                                     data: runTime
                                 });
 
-                                $('.titleReviewBarItem').each(function(index, item) {
-                                    if (index == 1) {
-                                        finalReviewPages.push({
-                                            reviewUrl: doc['detailUrl'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'],
-                                            title: title[count],
-                                            votes: parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim())
-                                        });
-                                    }
-                                });
-
                                 $('#article-gallery li img').each(function(index, item) {
                                 	console.log($(item).attr('src'));
                                 	gallery_full.push({
@@ -220,7 +201,9 @@ function insertDetail(done) {
                                         country: country,
                                         mainInfo: plot,
                                         gallery_full: gallery_full,
+                                        posterUrl: posterUrl,
                                         staff: staff,
+                                        cast: cast,
                                         rating: {
                                             score: rating,
                                             votes: votes
@@ -229,6 +212,7 @@ function insertDetail(done) {
                                         data: data
                                     }},function() {
                                         count++;
+                                        gallery_full = [];
                                         console.log(title[count] + ' updated!');
                                         callback(null, count);
                                 });
@@ -237,9 +221,6 @@ function insertDetail(done) {
                     });
                 },
                 function(err, n) {
-                    console.log('posterPages --> ' + JSON.stringify(posterPages));
-                    console.log('finalReviewPages --> ' + JSON.stringify(finalReviewPages));
-                    console.log('finalCastPages --> ' + JSON.stringify(finalCastPages));
                     console.log('insertDetail finish ' + n);
                     done(null);
                 }
