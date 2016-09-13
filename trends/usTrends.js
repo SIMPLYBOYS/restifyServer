@@ -77,7 +77,8 @@ function insertRottenTomatoes(done) {
                         dbUSA.usa.update({'title': title[count]}, {'$set': {
                                 rottentomatoes: {
                                     critics_score: result['movies'][0]['ratings']['critics_score'],
-                                    audience_score: result['movies'][0]['ratings']['audience_score']
+                                    audience_score: result['movies'][0]['ratings']['audience_score'],
+                                    reviews: result['movies'][0]['links']['reviews']
                                 }
                             }},function() {
                                 count++;
@@ -605,10 +606,10 @@ function insertDetail(done) {
                                     data: runTime
                                 });
 
-                                $('.titleReviewBarItem').each(function(index, item) {
-                                    if (index == 1) {
+                                $('.titleReviewBar .subText a').each(function(index, item) {
+                                    if (index == 0) {
                                         finalReviewPages.push({
-                                            reviewUrl: doc['detailUrl'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'],
+                                            reviewUrl: doc['detailUrl'].split('?')[0]+$(item).attr('href'),
                                             title: title[count],
                                             votes: parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim())
                                         });
