@@ -5,6 +5,8 @@ var dbUser = config.dbUser;
 var GCMKey = config.GCMKey;
 var dbToday = config.dbToday;
 var dbPosition = config.dbPosition;
+var kue = require('kue');
+var jobs = kue.createQueue();
 
 exports.gcmTopic = function(message, done) {
   var options = {
@@ -93,25 +95,44 @@ exports.trends = function(req, res) {
   });
 };
 
+function newJob (name, fbId, dbUser) {
+   var job = jobs.create('register_job', {
+     name: name
+   });
+   
+   job.on('complete', function() {
+      console.log('Job', job.id, 'with name', job.data.name, 'is done');
+   }).on('failed', function() {
+      console.log('Job', job.id, 'with name', job.data.name, 'has failed');
+   });
+
+   dbUser.user.insert({
+      name: name,
+      fbId: fbId
+   }, function(err, doc) {
+      if (!err)
+        job.save();
+      else
+        throw error();
+   });
+}
+
+jobs.process('register_job', function (job, done){
+  /* carry out all the job function here */
+  done && done();
+});
+
 exports.register = function(req, res) {
    console.log('register ===============>' + req.params.fbId);
    dbUser.user.findOne({fbId: req.params.fbId}, function(err, person) {
-      //console.log(person);
       if (person) {
         res.send({
           content: 'welcom again! ' + person['name']
         });
         res.end();
       } else {
-        dbUser.user.insert({
-          name: req.params.name,
-          fbId: req.params.fbId
-        }, function() {
-          res.send({
-            content: 'regist WorldMoviePro finished !!!'+req.params.name
-          });
-          res.end();
-        });
+        newJob(req.params.name, req.params.fbId, dbUser);
+        res.end();
       }
   });
 };
