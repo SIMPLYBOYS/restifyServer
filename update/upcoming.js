@@ -50,7 +50,7 @@ exports.updateupComing = function() {
         function(done) {
              var url = start <= 12 ? 'http://www.imdb.com/movies-coming-soon/2016-' : 'http://www.imdb.com/movies-coming-soon/2017-';
              var i;
-             for (i=start; i <= limit; i++) {
+             for (i=start%12; i <= limit%12; i++) {
                 if (i<10)
                     upComingPages.push(url + '0'+ i + '/');
                 else

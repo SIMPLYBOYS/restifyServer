@@ -142,11 +142,12 @@ function createNewMovieWizard(done) {
         done(null);
         return console.log('Done!!!!');
     }
+    
     console.log('newMovies: '+ newMovies);
     var item = newMovies.pop();
     var creater = new Creater(item.title, item.position);
-
     console.log('Requests Left: ' + newMovies.length);
+
     creater.on('error', function (error) {
       console.log(error);
       createNewMovieWizard(done);
