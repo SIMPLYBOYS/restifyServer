@@ -5,24 +5,18 @@ var request = require("request");
 var async = require('async');
 var moment = require("moment");
 var OpenCC = require('opencc');
-var TrendsTrailer = require('./TrendsTrailer');/*
-var trendsGalleryScraper = require('../crawler/trendsUsGalleryScraper');
-var usCastAvatarScraper = require('../crawler/usCastAvatarScraper');*/
+var TrendsTrailer = require('./TrendsTrailer');
 var youTube = config.YouTube;
 var dbChina = config.dbChina;
 var posterPages = [];
 var releaseUrl = [];
 var GalleryfullPages = [];
 var castPages = [];
-var GalleryPages = [];
-var finalCastPages = [];
-var finalReviewPages = [];
 var avatarUrl = [];
 var trailerTitle = [];
 var Cast = [];
 var reviewer = [];
 var title = [];
-var delta = [];
 var link = [];
 var rating = [];
 var gallery_full = [];
@@ -297,8 +291,6 @@ function insertDetail(done) {
                 },
                 function(err, n) {
                     console.log('posterPages --> ' + JSON.stringify(posterPages));
-                    console.log('finalReviewPages --> ' + JSON.stringify(finalReviewPages));
-                    console.log('finalCastPages --> ' + JSON.stringify(finalCastPages));
                     console.log('insertDetail finish ' + n);
                     done(null);
                 }
