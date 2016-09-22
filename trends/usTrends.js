@@ -177,6 +177,7 @@ function insertPoster(done) {
             console.log(poster['title'] + '---->');
             var path = poster['detailUrl'];
             var bar = path.split('title')[1];
+            var posterUrl;
             path = path.split('title')[0] + '_json/title' + bar.split('mediaviewer')[0] + 'mediaviewer';
             request({
                 url: path,
@@ -184,15 +185,19 @@ function insertPoster(done) {
                 method: "GET"
             }, function(err, response, body) {
                 var json = JSON.parse(body)['allImages'];
-                json.forEach(function(item, index){
+                json.forEach(function(item, index) {
+                   console.log(item['src'].indexOf(poster['posterHash']) !== -1);
                    if (item['src'].indexOf(poster['posterHash']) != -1) {
-                     var posterUrl = item['src'];
-                     dbUSA.usa.update({'title': poster['title']}, {'$set': {'posterUrl': posterUrl}}, function() {
-                        console.log('posterUrl: ' + posterUrl);
-                        count++;
-                        callback(null, count);
-                     });
-                   }
+                        posterUrl = item['src'];
+                   } 
+                });
+
+                // console.log('posterUrl: ' + posterUrl);
+
+                dbUSA.usa.update({'title': poster['title']}, {'$set': {'posterUrl': posterUrl}}, function() {
+                    console.log('posterUrl: ' + posterUrl);
+                    count++;
+                    callback(null, count);
                 });
             });
         },
@@ -254,9 +259,10 @@ function prepareGalleryPages(done) {
 function insertReview(done) {
     console.log('insertReview -------->');
     var count = 0,
+        end = finalReviewPages.length,
         cast;
     async.whilst(
-        function () { return count < 10; },
+        function () { return count < end; },
         function (callback) {
             var innerCount = 0,
                 reviewer = [],
@@ -306,7 +312,7 @@ function insertReview(done) {
                          
                         $('#tn15content p').each(function(index, item) {
                             if($(item).text().indexOf('***') !=0 && $(item).text() !='Add another review')
-                                text.push($(item).text().trim());
+                                text.push($(item).text().trim().replace(/(\n)/g," "));
                         });
                         innerCount+=10;
                         innercallback(null, innerCount);  
@@ -543,7 +549,6 @@ function insertDetail(done) {
                                     studio = [],
                                     cast = [],
                                     rating,
-                                    votes,
                                     mainInfo,
                                     gallerySize,
                                     data = [],
@@ -554,8 +559,7 @@ function insertDetail(done) {
                                 runTime = $('.subtext time').text().trim();
                                 mainInfo = $('.summary_text').text().trim();
                                 story = $('.article .inline p').text().split('Written by')[0].trim();
-                                rating = parseInt($('.imdbRating .ratingValue strong span').text());
-                                votes = parseInt($('.imdbRating a').text());     
+                                rating = parseFloat($('.imdbRating .ratingValue strong span').text()); 
                                 
                                 $('.subtext a').each(function(index, item) {
                                     if (index < end-1)
@@ -606,15 +610,31 @@ function insertDetail(done) {
                                     data: runTime
                                 });
 
-                                $('.titleReviewBar .subText a').each(function(index, item) {
-                                    if (index == 0) {
-                                        finalReviewPages.push({
-                                            reviewUrl: doc['detailUrl'].split('?')[0]+$(item).attr('href'),
-                                            title: title[count],
-                                            votes: parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim())
-                                        });
+                                var length = $('.titleReviewBarItem').length,
+                                    reviewUrl,
+                                    votes;
+
+                                $('.titleReviewBarItem').each(function(index, item) {
+                                    if (length == 2 && $(item).find('.subText a').length == 2) {
+                                        console.log($(item).find('.subText a')[0]['attribs']['href']);
+                                        reviewUrl = doc['detailUrl'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'];
+                                        votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim().split(',').join(''));
+                                    } else if (length == 3 && index == 1) {
+                                        reviewUrl = doc['detailUrl'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'];
+                                        votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim().split(',').join('')); 
+                                    } else if (length == 1 && $(item).find('.subText a').length != 0) {
+                                        reviewUrl = doc['detailUrl'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'];
+                                        votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim().split(',').join('')); 
                                     }
                                 });
+
+                                if (typeof(reviewUrl) !='undefined') {
+                                        finalReviewPages.push({
+                                        reviewUrl: reviewUrl,
+                                        title: title[count],
+                                        votes: votes
+                                    });
+                                }
 
                                 finalCastPages.push({
                                     castUrl: doc['detailUrl'].split('?')[0]+'fullcredits?ref_=tt_cl_sm#cast',
@@ -623,40 +643,66 @@ function insertDetail(done) {
 
                                 var hash = $('.slate_wrapper .poster img')[0];
 
+
                                 if (typeof(hash)!='undefined') {
-                                    hash = hash['attribs']['src'].split('images')[1].split('._V1')[0].slice(3);
+
+                                    hash = hash['attribs']['src'].split('images')[3].split('._V1')[0].slice(3);
 
                                     if (hash.indexOf('@')!= -1) {
                                         hash = hash.split('@')[0];
                                     }
 
                                     posterPages.push({
-                                        detailUrl: 'http://www.imdb.com'+$('.slate_wrapper .poster a')[0]['attribs']['href'],
+                                        detailUrl: $('.slate_wrapper .poster a').length > 0 ? 'http://www.imdb.com'+$('.slate_wrapper .poster a')[0]['attribs']['href'] : 'http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/180x268/film-173410679._CB282471105_.png',
                                         posterHash: hash,
-                                        title: doc['title']
+                                        title: title[count]
                                     });
-                                } else {
+
+                                } else if ($('.minPosterWithPlotSummaryHeight .poster img') !=  null) {
                                     obj = $('.minPosterWithPlotSummaryHeight .poster img')[0];
-                                    hash = obj['attribs']['src'].split('images')[1].split('._V1')[0].slice(3);
 
-                                    if (hash.indexOf('@')!= -1) {
-                                        hash = hash.split('@')[0];
-                                    }
+                                    if (typeof(obj) != 'undefined') {
+                                        hash = obj['attribs']['src'].split('images')[3].split('._V1')[0].slice(3);
 
-                                    var detailUrl = obj['attribs']['src'];
+                                        if (hash.indexOf('@')!= -1) {
+                                            hash = hash.split('@')[0];
+                                        }
 
-                                    posterPages.push({
-                                        detailUrl: 'http://www.imdb.com'+$('.minPosterWithPlotSummaryHeight .poster a')[0]['attribs']['href'],
-                                        posterHash: hash,
-                                        title: doc['title']
-                                    });
+                                        var detailUrl = obj['attribs']['src'];
+
+                                        posterPages.push({
+                                            detailUrl: 'http://www.imdb.com'+$('.minPosterWithPlotSummaryHeight .poster a')[0]['attribs']['href'],
+                                            posterHash: hash,
+                                            title: title[count]
+                                        });
+                                    }  
+                                } else {
+                                    obj = $('.poster img')[0];
+
+                                    if (typeof(obj) != 'undefined') {
+                                        hash = obj['attribs']['src'].split('images')[3].split('._V1')[0].slice(3);
+
+                                        if (hash.indexOf('@')!= -1) {
+                                            hash = hash.split('@')[0];
+                                        }
+
+                                        var detailUrl = obj['attribs']['src'];
+
+                                        posterPages.push({
+                                            detailUrl: 'http://www.imdb.com'+$('.minPosterWithPlotSummaryHeight .poster a')[0]['attribs']['href'],
+                                            posterHash: hash,
+                                            title: title[count]
+                                        });
+                                    }  
                                 }
 
-                                GalleryPages.push({
-                                    photoUrl: 'http://www.imdb.com'+$('.combined-see-more a')[1]['attribs']['href'],
-                                    page: Math.ceil(parseInt($('.combined-see-more a').text().split('photos')[0])/48),
-                                    title: title[count]
-                                });
+                                if ($('.combined-see-more a').length > 1) {
+                                    GalleryPages.push({
+                                        photoUrl: 'http://www.imdb.com'+$('.combined-see-more a')[1]['attribs']['href'],
+                                        page: Math.ceil(parseInt($('.combined-see-more a').text().split('photos')[0])/48),
+                                        title: title[count]
+                                    });
+                                }
                 
                                 dbUSA.usa.update({'title': title[count]}, {'$set': {
                                         originTitle: null,
@@ -671,9 +717,9 @@ function insertDetail(done) {
                                             score: rating,
                                             votes: votes
                                         },
-                                        story: null,
+                                        story: story,
                                         data: data
-                                    }},function() {
+                                    }}, function() {
                                         count++;
                                         console.log(title[count] + ' updated!');
                                         callback(null, count);
