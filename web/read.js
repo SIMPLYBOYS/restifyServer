@@ -1,8 +1,10 @@
 var config = require('../config');
 var url = require('url');
 var cacheAccess = require('../memory_cache/redis');
-var redisClient = require('redis').createClient;
-var redis = redisClient(6380, 'localhost');
+/*var redisClient = require('redis').createClient;
+var redis = redisClient(6379, 'localhost');*/
+var redis = require("redis");
+var redisClient = redis.createClient();
 var dbIMDB = config.dbIMDB;
 var dbUpComing = config.dbUpComing;
 var dbPosition = config.dbPosition;
@@ -195,9 +197,11 @@ exports.imdbReview = function(req, res) {
     var start = parseInt(req.query.start);
     var end = start + 10;
     res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});   
-    cacheAccess.findImdbReviewsByTitleCached(dbReview, redis, req.query.title, function(movie) {
-        if (!book) res.status(500).send('Server error');
-        else res.send(movie);
+    cacheAccess.findImdbReviewsByTitleCached(dbReview, redisClient, req.query.title, start, end, function(movie) {
+        if (!movie) 
+            res.status(500).send('Server error');
+        else 
+            res.send(movie);
     });
 };
 
@@ -409,6 +413,17 @@ exports.usTrendsReview = function(req, res) {
     });
 }
 
+exports.usTrendsDirector = function(req, res) {
+    console.log(req.query.title);
+    var foo = {};
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});   
+    dbIMDB.imdb.find({"staff.staff": req.query.name}, {}, function(err, docs) {
+        foo['contents'] = docs;
+        foo['byTitle'] = false;
+        res.end(JSON.stringify(foo));
+    });
+}
+
 exports.gmTrends = function(req, res) {
     console.log('dbGermany');
     var foo = {};
@@ -490,7 +505,7 @@ exports.cnTrends = function(req, res) {
     var foo = {};
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     if (typeof(req.query.title)!= 'undefined') {      
-        dbChina.china.find({'title': req.query.title}, {review:0}, function(err, docs) {
+        dbChina.china.find({'trailerTitle': req.query.title}, {review:0}, function(err, docs) {
                 foo['contents'] = docs;
                 foo['byTitle'] = true;
                 res.end(JSON.stringify(foo));
