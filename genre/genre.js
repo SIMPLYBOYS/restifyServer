@@ -32,6 +32,7 @@ var genreType;
 var scrapingTasks = [
     initScrape,
     insertDetail,
+    insertRottenTomatoes,
     insertCast,
     insertCastAvatar,
     insertReview,
@@ -79,6 +80,49 @@ function initClean(done) {
     });
 }
 
+function insertRottenTomatoes(done) {
+    var count = 0,
+        url;
+        console.log('insertRottenTomatoes -------->');
+        async.whilst(
+            function() { return count < movieObj.length; },
+            function(callback) {
+                url = 'http://api.rottentomatoes.com/api/public/v1.0/movies.json?apikey='+tomatoKey+'&q='+movieObj[count]['title'];
+                console.log(url);
+                request({
+                    url: url,
+                    encoding: "utf8",
+                    method: "GET"
+                }, function(err, response, body) {
+                    if (err || !body) { count++; callback(null, count);}
+                    console.log(JSON.parse(body)['total']);
+                    var result = JSON.parse(body);
+
+                    if (result['total'] == 0) {
+                        count++;
+                        callback(null, count);
+                        return;
+                    } 
+
+                    dbUSA.usa.update({'title': title[count]}, {'$set': {
+                            rottentomatoes: {
+                                critics_score: result['movies'][0]['ratings']['critics_score'],
+                                audience_score: result['movies'][0]['ratings']['audience_score'],
+                                reviews: result['movies'][0]['links']['reviews']
+                            }
+                        }},function() {
+                            count++;
+                            console.log(title[count] + ' updated!');
+                            callback(null, count);
+                    });
+                });
+            },
+            function(err, n) {
+                done(null);
+            }
+        );
+}
+
 function cleanMovie(done) {
     console.log('cleanMovie -------->');
     var count = 0;
@@ -118,7 +162,7 @@ function initScrape(done) {
                     top = parseInt($(item).find('.lister-item-header .lister-item-index').text().split('.')[0]);
                     title = $(item).find('.lister-item-header a').text().trim();
                     
-                    $(item).find('p').each(function(index, item){
+                    $(item).find('p').each(function(index, item) {
                         if (item['attribs']['class'] == '') {
                             // console.log($(item).find('a'));
                             $(item).find('a').each(function(innerindex, inneritem) {
@@ -178,16 +222,19 @@ function insertPoster(done) {
                 encoding: "utf8",
                 method: "GET"
             }, function(err, response, body) {
-                var json = JSON.parse(body)['allImages'];
-                json.forEach(function(item, index){
+                var json = JSON.parse(body)['allImages'],
+                    posterUrl;
+
+                json.forEach(function(item, index) {
                    if (item['src'].indexOf(poster['posterHash']) != -1) {
-                     var posterUrl = item['src'];
-                     dbIMDB.imdb.update({'title': poster['title']}, {'$set': {'posterUrl': posterUrl}}, function() {
-                        console.log('posterUrl: ' + posterUrl);
-                        count++;
-                        callback(null, count);
-                     });
-                   }
+                        posterUrl = item['src'];
+                   } 
+                });
+
+                dbIMDB.imdb.update({'title': poster['title']}, {'$set': {'posterUrl': posterUrl}}, function() {
+                    console.log('posterUrl: ' + posterUrl);
+                    count++;
+                    callback(null, count);
                 });
             });
         },
@@ -317,7 +364,7 @@ function insertReview(done) {
                          
                         $('#tn15content p').each(function(index, item) {
                             if($(item).text().indexOf('***') !=0 && $(item).text() !='Add another review')
-                                text.push($(item).text().trim());
+                                text.push($(item).text().trim().replace(/(\n)/g," "));
                         });
 
                         innerCount+=10;
@@ -591,12 +638,12 @@ function insertDetail(done) {
                             studio = [],
                             cast = [],
                             rating,
-                            votes,
                             mainInfo,
                             gallerySize,
                             title,
                             data = [],
-                            end;
+                            end,
+                            description = [];
 
                         movieObj[count]['originTitle'] = originTitle;
                         title = movieObj[count]['originTitle'] == "" ? movieObj[count]['title'] : movieObj[count]['originTitle'];
@@ -606,8 +653,14 @@ function insertDetail(done) {
                         mainInfo = $('.summary_text').text().trim();
                         story = $('.article .inline p').text().split('Written by')[0].trim();
                         rating = parseFloat($('.imdbRating .ratingValue strong span').text());
-                        votes = parseInt($('.imdbRating a').text());
                         end = $('.subtext a').length;
+
+                        $('.plot_summary .credit_summary_item').each(function(index, item) {
+                            if ($(item).find('.inline').text() == 'Director:' && index == 0) 
+                                description.push($(item).find('.itemprop').text().trim()+'(dir)')
+                            else if ($(item).find('.inline').text() == 'Stars:') 
+                                description.push($(item).find('.itemprop').text().trim());
+                        });
 
                         $('.subtext a').each(function(index, item) {
                             if (index < end-1)
@@ -670,13 +723,13 @@ function insertDetail(done) {
                             if (length == 2 && $(item).find('.subText a').length == 2) {
                                 console.log($(item).find('.subText a')[0]['attribs']['href']);
                                 reviewUrl = movieObj[count]['link'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'];
-                                votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim());
-                            } else if (index == 1 && length == 3) {
+                                votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim().split(',').join(''));
+                            } else if (length == 3 && index == 1) {
                                 reviewUrl = movieObj[count]['link'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'];
-                                votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim()); 
+                                votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim().split(',').join('')); 
                             } else if (length == 1 && $(item).find('.subText a').length != 0) {
                                 reviewUrl = movieObj[count]['link'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'];
-                                votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim()); 
+                                votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim().split(',').join('')); 
                             }
                         });
 
@@ -696,7 +749,7 @@ function insertDetail(done) {
                         var hash = $('.slate_wrapper .poster img')[0];
 
                         if (typeof(hash)!='undefined') {
-                            hash = hash['attribs']['src'].split('images')[1].split('._V1')[0].slice(3);
+                            hash = hash['attribs']['src'].split('images')[3].split('._V1')[0].slice(3);
 
                             if (hash.indexOf('@')!= -1) {
                                 hash = hash.split('@')[0];
@@ -708,11 +761,29 @@ function insertDetail(done) {
                                 title: title
                             });
 
-                        } else {
+                        } else if ($('.minPosterWithPlotSummaryHeight .poster img') !=  null) {
                             obj = $('.minPosterWithPlotSummaryHeight .poster img')[0];
 
                             if (typeof(obj) != 'undefined') {
-                                hash = obj['attribs']['src'].split('images')[1].split('._V1')[0].slice(3);
+                                hash = obj['attribs']['src'].split('images')[3].split('._V1')[0].slice(3);
+
+                                if (hash.indexOf('@')!= -1) {
+                                    hash = hash.split('@')[0];
+                                }
+
+                                var detailUrl = obj['attribs']['src'];
+
+                                posterPages.push({
+                                    detailUrl: 'http://www.imdb.com'+$('.minPosterWithPlotSummaryHeight .poster a')[0]['attribs']['href'],
+                                    posterHash: hash,
+                                    title: title
+                                });
+                            }  
+                        } else {
+                            obj = $('.poster img')[0];
+
+                            if (typeof(obj) != 'undefined') {
+                                hash = obj['attribs']['src'].split('images')[3].split('._V1')[0].slice(3);
 
                                 if (hash.indexOf('@')!= -1) {
                                     hash = hash.split('@')[0];
@@ -751,7 +822,7 @@ function insertDetail(done) {
                                     country: country,
                                     mainInfo: mainInfo,
                                     detailUrl: movieObj[count]['link'],
-                                    description: movieObj[count]['description'],
+                                    description: description.join(','),
                                     staff: staff,
                                     rating: {
                                         score: rating,
@@ -778,7 +849,7 @@ function insertDetail(done) {
                                     cross: cross,
                                     mainInfo: mainInfo,
                                     detailUrl: movieObj[count]['link'],
-                                    description: movieObj[count]['description'],
+                                    description: description.join(','),
                                     staff: staff,
                                     rating: {
                                         score: rating,
