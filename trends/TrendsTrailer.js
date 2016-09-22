@@ -108,11 +108,14 @@ TrendsTrailer.prototype.findTrailer = function (html) {
         if (result['items'].length > 0) {
           result['items'].forEach(
             function loop (item, index) {
-              if (loop.stop) { return; }
+              if (loop.stop)  return; 
               if (item['id']['videoId']) {
                 // console.log(item['id']['videoId']);
                 self.emit('finish', 'https://www.youtube.com/watch?v=' + item['id']['videoId']);
                 loop.stop = true;
+              } else {
+                console.log('no trailer were found!');
+                self.emit('fail', null);
               }
           });
         } else {
