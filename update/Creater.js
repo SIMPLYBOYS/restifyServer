@@ -14,10 +14,14 @@ var Trailer = require('../Trailer');
 var Thumbnail = require('./Thumbnail');
 var EventEmitter = require('events').EventEmitter;
 var usCastAvatarScraper = require('../crawler/usCastAvatarScraper');
+var trendsGalleryScraper = require('../crawler/trendsUsGalleryScraper');
 var updateThumbnail = [];
+var posterPages = [];
 var finalCastPages = [];
 var avatarUrl = [];
 var finalReviewPages = [];
+var GalleryPages = [];
+var GalleryfullPages = [];
 
 /*
  * Scraper Constructor
@@ -75,7 +79,7 @@ Creater.prototype.createMovie = function () {
       insertCast,
       insertCastAvatar,
       insertReview,
-      function(done) { return that.prepareGalleryThumbnailPages(done);},
+      prepareGalleryPages,
       function(done) { return that.insertGalleryThumbnail(done);},
       function(done) { return that.insertPoster(done);},
       function(done) { return that.insertGallery(done);},
@@ -152,7 +156,7 @@ function insertReview(done) {
                          
                         $('#tn15content p').each(function(index, item) {
                             if($(item).text().indexOf('***') !=0 && $(item).text() !='Add another review')
-                                text.push($(item).text().trim());
+                                text.push($(item).text().trim().replace(/(\n)/g," "));
                         });
                         innerCount+=10;
                         innercallback(null, innerCount);  
@@ -360,117 +364,197 @@ Creater.prototype.insertDetail = function(done) {
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
         if (doc) {
             request({
-            url: doc['detailUrl'],
-            encoding: "utf8",
-            method: "GET" }, function(err, res, body) {
-                if (err || !body) 
-                    return;
+                url: doc['detailUrl'],
+                encoding: "utf8",
+                method: "GET" }, function(err, res, body) {
 
-                var $ = cheerio.load(body);
-                var url = $('.slate_wrapper .poster a img')[0];
-                var foo = $('.minPosterWithPlotSummaryHeight .poster img')[0];
-                var originTitle = $('.originalTitle').text().split('(')[0].trim();
-                var votes = $('.imdbRating a').text();
-                var title = originTitle == "" ? doc['title'] : originTitle;
-                that.title = title;
+                    if (err || !body) 
+                        return;
 
-                finalCastPages.push({
-                    castUrl: doc['detailUrl'].split('?')[0]+'fullcredits?ref_=tt_cl_sm#cast',
-                    title: title
-                });
+                    var $ = cheerio.load(body);
+                    var url = $('.slate_wrapper .poster a img')[0];
+                    var foo = $('.minPosterWithPlotSummaryHeight .poster img')[0];
+                    var originTitle = $('.originalTitle').text().split('(')[0].trim();
+                    var votes = $('.imdbRating a').text();
+                    var title = originTitle == "" ? doc['title'] : originTitle;
 
-                $('.titleReviewBarItem').each(function(index, item) {
-                    if (index == 1) {
-                        finalReviewPages.push({
-                            reviewUrl: doc['detailUrl'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'],
+                    that.title = title;
+
+                    finalCastPages.push({
+                        castUrl: doc['detailUrl'].split('?')[0]+'fullcredits?ref_=tt_cl_sm#cast',
+                        title: title
+                    });
+
+                    var hash = $('.slate_wrapper .poster img')[0];
+
+                    if (typeof(hash)!='undefined') {
+
+                        hash = hash['attribs']['src'].split('images')[3].split('._V1')[0].slice(3);
+
+                        if (hash.indexOf('@')!= -1) {
+                            hash = hash.split('@')[0];
+                        }
+
+                        posterPages.push({
+                            detailUrl: $('.slate_wrapper .poster a').length > 0 ? 'http://www.imdb.com'+$('.slate_wrapper .poster a')[0]['attribs']['href'] : 'http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/180x268/film-173410679._CB282471105_.png',
+                            posterHash: hash,
+                            title: title[count]
+                        });
+
+                    } else if ($('.minPosterWithPlotSummaryHeight .poster img') !=  null) {
+                        obj = $('.minPosterWithPlotSummaryHeight .poster img')[0];
+
+                        if (typeof(obj) != 'undefined') {
+                            hash = obj['attribs']['src'].split('images')[3].split('._V1')[0].slice(3);
+
+                            if (hash.indexOf('@')!= -1) {
+                                hash = hash.split('@')[0];
+                            }
+
+                            var detailUrl = obj['attribs']['src'];
+
+                            posterPages.push({
+                                detailUrl: 'http://www.imdb.com'+$('.minPosterWithPlotSummaryHeight .poster a')[0]['attribs']['href'],
+                                posterHash: hash,
+                                title: title[count]
+                            });
+                        }  
+                    } else {
+                        obj = $('.poster img')[0];
+
+                        if (typeof(obj) != 'undefined') {
+                            hash = obj['attribs']['src'].split('images')[3].split('._V1')[0].slice(3);
+
+                            if (hash.indexOf('@')!= -1) {
+                                hash = hash.split('@')[0];
+                            }
+
+                            var detailUrl = obj['attribs']['src'];
+
+                            posterPages.push({
+                                detailUrl: 'http://www.imdb.com'+$('.minPosterWithPlotSummaryHeight .poster a')[0]['attribs']['href'],
+                                posterHash: hash,
+                                title: title[count]
+                            });
+                        }  
+                    }
+
+                    var length = $('.titleReviewBarItem').length,
+                        reviewUrl,
+                        votes;
+
+                    $('.titleReviewBarItem').each(function(index, item) {
+                        if (length == 2 && $(item).find('.subText a').length == 2) {
+                            console.log($(item).find('.subText a')[0]['attribs']['href']);
+                            reviewUrl = doc['detailUrl'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'];
+                            votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim().split(',').join(''));
+                        } else if (length == 3 && index == 1) {
+                            reviewUrl = doc['detailUrl'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'];
+                            votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim().split(',').join('')); 
+                        } else if (length == 1 && $(item).find('.subText a').length != 0) {
+                            reviewUrl = doc['detailUrl'].split('?')[0]+$(item).find('.subText a')[0]['attribs']['href'];
+                            votes = parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim().split(',').join('')); 
+                        }
+                    });
+
+                    if (typeof(reviewUrl) !='undefined') {
+                            finalReviewPages.push({
+                            reviewUrl: reviewUrl,
                             title: title,
-                            votes: parseInt($(item).find('.subText a')[0]['children'][0]['data'].split('user')[0].trim())
+                            votes: votes
                         });
                     }
-                });
 
-                if (typeof(url)!=='undefined') {
-                    console.log(title);
-                    console.log('.1-->'+url['attribs']['src']);
-                    var poster = url['attribs']['src'];
-                    var slate = $('.slate_wrapper .slate a img')[0]['attribs']['src'];
-                    var summery = $('.plot_summary .summary_text').text().trim();
-
-                    if ($($('#titleDetails .txt-block')[0]).find('.inline').text() == 'Country:')
-                        var country = $('#titleDetails .txt-block')[0];
-                    else
-                        var country = $('#titleDetails .txt-block')[1];
-
-                    var $country = $(country);
-
-                    if ($country.find('a').length == 1)
-                        country = $country.find('a').text();
-                    else
-                        country = $($country.find('a')[0]).text();
-
-                    doc['detailContent'] = {
-                        "poster": poster,
-                        "slate": slate,
-                        "summery": summery,
-                        "country": country
-                    };
-
-                    dbIMDB.imdb.update({'title':doc['title']}, doc);
-                    var bar = $('.slate_wrapper .poster a')[0];
-                    var path = 'http://www.imdb.com' + bar['attribs']['href'];
-                    console.log(path);
-                    var hash = $('.slate_wrapper .poster img')[0];
-                    hash = hash['attribs']['src'].split('images')[1].split('._V1')[0].slice(3);
-
-                    if (hash.indexOf('@')!= -1) {
-                        hash = hash.split('@')[0];
+                    if ($('.combined-see-more a').length > 1) {
+                        GalleryPages.push({
+                            photoUrl: 'http://www.imdb.com'+$('.combined-see-more a')[1]['attribs']['href'],
+                            page: Math.ceil(parseInt($('.combined-see-more a').text().split('photos')[0])/48),
+                            title: title
+                        });
                     }
 
-                    console.log('hash: ' + hash);
-                    dbIMDB.imdb.update({title: doc['title']}, {$set: {
-                        posterUrl: path,
-                        posterHash: hash,
-                        title: title,
-                        votes: votes
-                    }});
-                } else {
-                    console.log(title);
-                    var poster = foo['attribs']['src'];
-                    var summery = $('.minPosterWithPlotSummaryHeight .summary_text').text().trim();
-                    if ($($('#titleDetails .txt-block')[0]).find('.inline').text() == 'Country:')
-                        var country = $('#titleDetails .txt-block')[0];
-                    else
-                        var country = $('#titleDetails .txt-block')[1];
-                    var $country = $(country);
-                    if ($country.find('a').length == 1)
-                        country = $country.find('a').text();
-                    else
-                        country = $($country.find('a')[0]).text()
-                    doc['detailContent'] = {
-                        "poster": poster,
-                        "summery": summery,
-                        "country": country
-                    };
-                
-                    dbIMDB.imdb.update({'title':doc['title']}, doc);
+                    if (typeof(url)!=='undefined') {
+                        console.log(title);
+                        console.log('.1-->'+url['attribs']['src']);
+                        var poster = url['attribs']['src'];
+                        var slate = $('.slate_wrapper .slate a img')[0]['attribs']['src'];
+                        var summery = $('.plot_summary .summary_text').text().trim();
 
-                    var bar = $('.minPosterWithPlotSummaryHeight .poster a')[0];
-                    var path = 'http://www.imdb.com' + bar['attribs']['href'];
-                    console.log(path);
-                    var hash = $('.minPosterWithPlotSummaryHeight .poster img')[0];
-                    hash = hash['attribs']['src'].split('images')[1].split('._V1')[0].slice(3);
-                    if (hash.indexOf('@')!= -1) {
-                        hash = hash.split('@')[0];
+                        if ($($('#titleDetails .txt-block')[0]).find('.inline').text() == 'Country:')
+                            var country = $('#titleDetails .txt-block')[0];
+                        else
+                            var country = $('#titleDetails .txt-block')[1];
+
+                        var $country = $(country);
+
+                        if ($country.find('a').length == 1)
+                            country = $country.find('a').text();
+                        else
+                            country = $($country.find('a')[0]).text();
+
+                        doc['detailContent'] = {
+                            "slate": slate,
+                            "summery": summery,
+                            "country": country
+                        };
+
+                        dbIMDB.imdb.update({'title':doc['title']}, doc);
+                        var bar = $('.slate_wrapper .poster a')[0];
+                        var path = 'http://www.imdb.com' + bar['attribs']['href'];
+                        console.log(path);
+                        var hash = $('.slate_wrapper .poster img')[0];
+                        hash = hash['attribs']['src'].split('images')[1].split('._V1')[0].slice(3);
+
+                        if (hash.indexOf('@')!= -1) {
+                            hash = hash.split('@')[0];
+                        }
+
+                        console.log('hash: ' + hash);
+                        dbIMDB.imdb.update({title: doc['title']}, {$set: {
+                            posterUrl: path,
+                            posterHash: hash,
+                            title: title,
+                            votes: votes
+                        }});
+
+                    } else {
+                        console.log(title);
+                        var poster = foo['attribs']['src'];
+                        var summery = $('.minPosterWithPlotSummaryHeight .summary_text').text().trim();
+
+                        if ($($('#titleDetails .txt-block')[0]).find('.inline').text() == 'Country:')
+                            var country = $('#titleDetails .txt-block')[0];
+                        else
+                            var country = $('#titleDetails .txt-block')[1];
+                        var $country = $(country);
+                        if ($country.find('a').length == 1)
+                            country = $country.find('a').text();
+                        else
+                            country = $($country.find('a')[0]).text()
+
+                        doc['detailContent'] = {
+                            "summery": summery,
+                            "country": country
+                        };
+                    
+                        dbIMDB.imdb.update({'title':doc['title']}, doc);
+                        var bar = $('.minPosterWithPlotSummaryHeight .poster a')[0];
+                        var path = 'http://www.imdb.com' + bar['attribs']['href'];
+                        console.log(path);
+                        var hash = $('.minPosterWithPlotSummaryHeight .poster img')[0];
+                        hash = hash['attribs']['src'].split('images')[1].split('._V1')[0].slice(3);
+
+                        if (hash.indexOf('@')!= -1) 
+                            hash = hash.split('@')[0];
+
+                        dbIMDB.imdb.update({title: doc['title']}, {$set: {
+                            posterUrl: path,
+                            posterHash: hash,
+                            title: title,
+                            votes: votes
+                        }});
                     }
-                    console.log('hash: ' + hash);
-                    dbIMDB.imdb.update({title: doc['title']}, {$set: {
-                        posterUrl: path,
-                        posterHash: hash,
-                        title: title,
-                        votes: votes
-                    }});
-                }
-                done(null);
+                    done(null);
           });
         } else {
             console.log(that.title + ' not found!');
@@ -479,117 +563,150 @@ Creater.prototype.insertDetail = function(done) {
     });
 }
 
-Creater.prototype.prepareGalleryThumbnailPages = function(done) {
-    var that = this;
-    console.log('\n\n-------- 2016 0520 step4 ---------' + that.title);
-    dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
-        if (doc) {
-            request({
-              url: doc['detailUrl'],
-              encoding: "utf8",
-              method: "GET" }, function(err, res, body) {
-                  if (err || !body)
-                      return;
-                  var $ = cheerio.load(body);
-                  var url = $('.combined-see-more a')[1]['attribs']['href'];
-                  var path = 'http://www.imdb.com' + url;
-                  var foo = $('.combined-see-more a')[1]['children'];
-                  var page = $(foo[0]).text();
-                  page = Math.ceil(parseInt(page.split("photos")[0]) / 48);
-                  console.log('top: ' + doc['top'] + path);
-                  doc['readMore'] = { 
-                      "url": path,
-                      "page": page
-                  };
-                  dbIMDB.imdb.update({'title': doc['title']}, doc);
-                  done(null);
+function prepareGalleryPages(done) {
+    console.log('prepareGalleryPages -------->');
+    var count = 0,
+        end = GalleryPages.length,
+        gallery;
+    async.whilst(
+        function () { return count < end; },
+        function (callback) {
+            var innerCount = 0;
+            gallery = GalleryPages.pop(); 
+            dbIMDB.imdb.findOne({title: gallery['title']}, function(err, doc) {
+                if (doc.hasOwnProperty('gallery_full')) {
+                    count++;
+                    callback(null, count);
+                } else {
+                    async.whilst(
+                        function () { console.log('innerCount: ' + innerCount); return innerCount < gallery['page']; },
+                        function (innercallback) {  
+                            url = gallery['photoUrl'].split('?')[0]+'?page=' +(innerCount+1)+'&'+gallery['photoUrl'].split('?')[1];
+                            console.log('detailUrl: '+ url);
+                            request({
+                                    url: url,   
+                                    encoding: "utf8",
+                                    method: "GET"
+                            }, function(err, response, body) {
+                                var $ = cheerio.load(body);
+                                $('.media_index_thumb_list a').each(function(index, item) {
+                                    if ($(item).attr('href') != '/register/login') {
+                                        GalleryfullPages.push({
+                                            photoUrl: 'http://www.imdb.com'+$(item).attr('href'),
+                                            title: gallery['title']
+                                        });
+                                    }
+                                });
+                                innerCount++;
+                                innercallback(null, innerCount);  
+                            });
+
+                        },
+                        function (err, n) {
+                            console.log(gallery['title'] + '=====> ready!');
+                            count++;
+                            callback(null, count);
+                        }
+                    );
+                }
             });
-        } else {
-            console.log(that.title + ' not found!');
+        },
+        function (err, n) {
+            console.log(GalleryfullPages);
+            console.log('prepareGalleryPages finished!');
             done(null);
         }
-    });      
-}
-
-Creater.prototype.insertGalleryThumbnail = function(done) {
-    var that = this;
-    console.log('\n\n-------- 2016 0520 step5 ---------' + that.title);
-    dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
-      if (doc) {
-        var gallery = [];
-            for (var j=1; j<=doc['readMore']['page']; j++) {
-
-                var bar = doc['readMore']['url'].split('?');
-
-                var options = {
-                  url: bar[0] + '?page=' +j+'&'+bar[1],
-                  encoding: "utf8",
-                  method: "GET"
-                };
-
-                console.log(doc['top']);
-
-                var callback = function(err, res, body) {
-                        if (err || !body)
-                            return;
-                        var $ = cheerio.load(body);
-                        var url = $('.media_index_thumb_list a img');
-                        var detailUrl = $('.media_index_thumb_list a');
-                                               
-                        url.each(function(index, body) {
-                            // console.log(detailUrl[index]['attribs']['href']);  
-                            console.log('index: ' + index);
-                            // console.log(body['attribs']['src']);
-                            gallery.push({
-                                type: 'thumbnail',
-                                url: body['attribs']['src'],
-                                detailUrl: 'http://www.imdb.com' + detailUrl[index]['attribs']['href']
-                            })
-                        });
-
-                        // console.log(gallery);
-                        doc["gallery_thumbnail"] = gallery;
-                        dbIMDB.imdb.update({'title': doc['title']}, doc);
-                        done(null);
-                };
-                request(options, callback);
-            }  
-      } else {
-        console.log(that.title + ' not found!');
-        done(null);
-      } 
-    });
+    );
 }
 
 Creater.prototype.insertPoster =function(done) {
+
     var that = this;
     console.log('\n\n-------- 2016 0520 step6 ---------' + that.title );
-     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
-        if (doc) {
-            var path = doc['posterUrl'];
-            var bar = path.split('title')[1];
-            path = path.split('title')[0] + '_json/title' + bar.split('mediaviewer')[0] + 'mediaviewer';
 
+     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
+
+        if (doc) {
+            var poster = posterPages.pop(); 
+            console.log(poster['title'] + '---->');
+            var path = poster['detailUrl'];
+            var bar = path.split('title')[1];
+            var posterUrl;
+            path = path.split('title')[0] + '_json/title' + bar.split('mediaviewer')[0] + 'mediaviewer';
+        
             request({
                 url: path,
                 encoding: "utf8",
                 method: "GET"
             }, function(err, response, body) {
                 var json = JSON.parse(body)['allImages'];
-                json.forEach(function(item, index){
+
+                json.forEach(function(item, index) {
                    if (item['src'].indexOf(doc['posterHash']) != -1) {
-                     var posterUrl = item['src'];
-                     dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': posterUrl}}, function() {
-                        console.log('posterUrl: ' + posterUrl);
-                        done(null);
-                     });
-                   }
+                        posterUrl = item['src'];
+                   } 
+                });
+
+                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': posterUrl}}, function() {
+                    console.log('posterUrl: ' + posterUrl);
+                    done(null);
                 });
             });    
         } else {
             console.log(that.title + ' not found!');
             done(null);
         }
+
+    });
+}
+
+function GalleryWizard(done) {
+    console.log('GalleryWizard --->');
+
+    if (!GalleryfullPages.length) {
+        done(null);
+        return console.log('insert Gallery Done!!!!');
+    }
+
+    var gallery = GalleryfullPages.pop();
+    var scraper = new trendsGalleryScraper(gallery);
+    console.log('Requests Left: ' + GalleryfullPages.length);
+
+    scraper.on('error', function (error) {
+      console.log(error);
+      GalleryWizard(done);
+    });
+
+    scraper.on('complete', function (listing) {
+        var title = listing['title'];
+        console.log(listing['picturesUrl']);
+        dbIMDB.imdb.findAndModify({
+            query: { 'title': title },
+            update: { $push: { gallery_full: { type: 'full', url: listing['picturesUrl']} }},
+            new: true
+        }, function (err, doc, lastErrorObject) {
+            if (doc) {
+                GalleryWizard(done);
+            } else {
+                console.log(listing['title'] + 'not found!');
+                var title = listing['title'].split('�');
+                var foo;
+                title.forEach(function(item, index){
+                    if (item.length > 0)
+                        foo = item;
+                });
+                var query = {'originTitle': new RegExp(foo, 'i') };
+                console.log(query);
+                dbIMDB.imdb.findAndModify({
+                    query: query,
+                    update: { $push: { gallery_full: { type: 'full', url: listing['picturesUrl']} }},
+                    new: true
+                }, function (err, doc, lastErrorObject) {
+                    // console.log(doc);
+                    GalleryWizard(done);
+                });
+            }           
+        });
     });
 }
 
