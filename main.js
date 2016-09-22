@@ -142,6 +142,8 @@ server.get('/usTrends', Read.usTrends);
 
 server.get('/usTrendsReview', Read.usTrendsReview);
 
+server.get('/usTrendsDirector', Read.usTrendsDirector);
+
 server.get('/gmTrends', Read.gmTrends);
 
 server.get('/gmTrendsReview', Read.gmTrendsReview);
