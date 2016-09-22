@@ -23,7 +23,7 @@ exports.updateTrends = function() {
     ],
     function (err) {
         if (err) console.error(err.stack);
-          console.log('all jobs for cnTrends update finished!!');
+          console.log('all jobs for gmTrends update finished!!');
     });
 };
 
