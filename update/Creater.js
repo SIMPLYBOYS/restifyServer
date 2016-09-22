@@ -80,9 +80,8 @@ Creater.prototype.createMovie = function () {
       insertCastAvatar,
       insertReview,
       prepareGalleryPages,
-      function(done) { return that.insertGalleryThumbnail(done);},
+      GalleryWizard,
       function(done) { return that.insertPoster(done);},
-      function(done) { return that.insertGallery(done);},
       function(done) { return that.insertTrailer(done);},
       function(done) { return that.prepareRecords(done);},
       function(done) { return that.insertRecords(done);}
@@ -134,7 +133,7 @@ function insertReview(done) {
                             if (index%2 ==0) {
                                 topic = $(item).find('h2').text().trim();
                                 avatar = $(item).find('img')[0]['attribs']['src'];
-                                name = $(item).find('a')[1]['children'][0]['data'];
+                                name = $(item).find('a')[1]['children'].length != 0 ? $(item).find('a')[1]['children'][0]['data'] : '';
 
                                 if (typeof($(item).find('img')[1])!='undefined')
                                     point = parseInt($(item).find('img')[1]['attribs']['alt'].split('/')[0]);
@@ -398,7 +397,7 @@ Creater.prototype.insertDetail = function(done) {
                         posterPages.push({
                             detailUrl: $('.slate_wrapper .poster a').length > 0 ? 'http://www.imdb.com'+$('.slate_wrapper .poster a')[0]['attribs']['href'] : 'http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/180x268/film-173410679._CB282471105_.png',
                             posterHash: hash,
-                            title: title[count]
+                            title: that.title
                         });
 
                     } else if ($('.minPosterWithPlotSummaryHeight .poster img') !=  null) {
@@ -416,7 +415,7 @@ Creater.prototype.insertDetail = function(done) {
                             posterPages.push({
                                 detailUrl: 'http://www.imdb.com'+$('.minPosterWithPlotSummaryHeight .poster a')[0]['attribs']['href'],
                                 posterHash: hash,
-                                title: title[count]
+                                title: that.title
                             });
                         }  
                     } else {
@@ -434,7 +433,7 @@ Creater.prototype.insertDetail = function(done) {
                             posterPages.push({
                                 detailUrl: 'http://www.imdb.com'+$('.minPosterWithPlotSummaryHeight .poster a')[0]['attribs']['href'],
                                 posterHash: hash,
-                                title: title[count]
+                                title: that.title 
                             });
                         }  
                     }
@@ -642,12 +641,12 @@ Creater.prototype.insertPoster =function(done) {
                 var json = JSON.parse(body)['allImages'];
 
                 json.forEach(function(item, index) {
-                   if (item['src'].indexOf(doc['posterHash']) != -1) {
+                   if (item['src'].indexOf(poster['posterHash']) != -1) {
                         posterUrl = item['src'];
                    } 
                 });
 
-                dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'posterUrl': posterUrl}}, function() {
+                dbIMDB.imdb.update({'title': poster['title']}, {'$set': {'posterUrl': posterUrl}}, function() {
                     console.log('posterUrl: ' + posterUrl);
                     done(null);
                 });
@@ -710,30 +709,10 @@ function GalleryWizard(done) {
     });
 }
 
-Creater.prototype.insertGallery = function(done) {
-    var that = this;
-    console.log('\n\n-------- 2016 0520 step7 ---------' + that.title);
-    dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
-      if (doc) {
-        var gallery = [];
-        for(var i in doc['gallery_thumbnail']) {
-            console.log(doc['gallery_thumbnail'][i]['detailUrl']);
-            updateThumbnail.push({'title': that.title, 'thumbnailUrl': doc['gallery_thumbnail'][i]['detailUrl']});                
-        }  
-
-        updateThumbnailWizard(doc, gallery, done);
-
-      } else {
-        console.log(that.title + ' not found!');
-        done(null);
-      } 
-    });  
-}
-
 Creater.prototype.insertTrailer = function(done) {
     var that = this;
     console.log('\n\n-------- 2016 0520 step8 --------- ' + that.title );
-    dbIMDB.imdb.findOne({title: that.title + ' trailer'}, function(err, doc) {
+    dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
         if (doc) {
             new Trailer(that.title, youTube, 0, done);
         } else {
