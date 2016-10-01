@@ -492,7 +492,16 @@ var job_genreUpdate = new cronJob(config.genreUpdate, function() {
     //Genre.updateGenres('Fantasy');
     // Genre.updateGenres('Film-Noir');
     // Genre.updateGenres('History');
-    Genre.updateGenres('Horror');
+    // Genre.updateGenres('Horror');
+    // Genre.updateGenres('Music');
+    // Genre.updateGenres('Musical');
+    // Genre.updateGenres('Mystery');
+    // Genre.updateGenres('Romance');
+    // Genre.updateGenres('Sci-Fi');
+    // Genre.updateGenres('Sport');
+    // Genre.updateGenres('Thriller');
+    // Genre.updateGenres('War');
+    Genre.updateGenres('Western');
 });
 
 var job_positionUpdate = new cronJob(config.positionUpdate, function() {
