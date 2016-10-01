@@ -41,7 +41,8 @@ MovieInformer.prototype.init = function () {
                 dbIMDB.imdb.findOne({'_id': mongojs.ObjectId('5705057233c8ea8e13b62488')}, {$set: {
                     detailContent: {
                         summery: info['simplePlot'],
-                        country: info['countries'].split('"')[1].split('"')[0],
+                        // country: info['countries'].split('"')[1].split('"')[0],
+                        country: info['countrues'][0],
                         rated: info['rated']
                     },
                     plot: info['plot'],
@@ -68,7 +69,8 @@ MovieInformer.prototype.init = function () {
                 dbIMDB.imdb.update({'title': self.title}, {$set: {
                     detailContent: {
                         summery: info['simplePlot'],
-                        country: info['countries'].split('"')[1].split('"')[0],
+                        // country: info['countries'].split('"')[1].split('"')[0],
+                        country: info['countrues'][0],
                         rated: info['rated']
                     },
                     plot: info['plot'],
