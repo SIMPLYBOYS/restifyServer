@@ -8,6 +8,7 @@ var moment = require("moment")
 var Trailer = require('../Trailer');
 var trendsGalleryScraper = require('../crawler/trendsUsGalleryScraper');
 var usCastAvatarScraper = require('../crawler/usCastAvatarScraper');
+var tomatoKey = config.TomatoKey;
 var youTube = config.YouTube;
 var dbIMDB = config.dbIMDB;
 var dbReview = config.dbReview;
@@ -32,14 +33,14 @@ var genreType;
 var scrapingTasks = [
     initScrape,
     insertDetail,
-    insertRottenTomatoes,
+    insertRottenTomatoes/*,
     insertCast,
     insertCastAvatar,
     insertReview,
     insertTrailer,
     prepareGalleryPages,
     insertPoster,
-    GalleryWizard
+    GalleryWizard*/
 ];
 
 var cleaningTasks = [
@@ -49,6 +50,7 @@ var cleaningTasks = [
     insertCast,
     insertCastAvatar,
     insertReview,
+    updateReview,
     insertTrailer,
     prepareGalleryPages,
     insertPoster,
@@ -94,25 +96,31 @@ function insertRottenTomatoes(done) {
                     encoding: "utf8",
                     method: "GET"
                 }, function(err, response, body) {
-                    if (err || !body) { count++; callback(null, count);}
+
+                    if (err || !body) { 
+                        count++; 
+                        callback(null, count);
+                        return;
+                    }
+
                     console.log(JSON.parse(body)['total']);
                     var result = JSON.parse(body);
 
-                    if (result['total'] == 0) {
+                    if (result['total'] == 0 || err) {
                         count++;
                         callback(null, count);
                         return;
                     } 
 
-                    dbUSA.usa.update({'title': title[count]}, {'$set': {
+                    dbIMDB.imdb.update({'title': movieObj[count]}, {'$set': {
                             rottentomatoes: {
                                 critics_score: result['movies'][0]['ratings']['critics_score'],
                                 audience_score: result['movies'][0]['ratings']['audience_score'],
                                 reviews: result['movies'][0]['links']['reviews']
                             }
                         }},function() {
+                            console.log(movieObj[count] + ' updated!');
                             count++;
-                            console.log(title[count] + ' updated!');
                             callback(null, count);
                     });
                 });
@@ -214,29 +222,37 @@ function insertPoster(done) {
                 });
             }
 
-            var path = poster['detailUrl'];
-            var bar = path.split('title')[1];
-            path = path.split('title')[0] + '_json/title' + bar.split('mediaviewer')[0] + 'mediaviewer';
-            request({
-                url: path,
-                encoding: "utf8",
-                method: "GET"
-            }, function(err, response, body) {
-                var json = JSON.parse(body)['allImages'],
-                    posterUrl;
-
-                json.forEach(function(item, index) {
-                   if (item['src'].indexOf(poster['posterHash']) != -1) {
-                        posterUrl = item['src'];
-                   } 
-                });
-
-                dbIMDB.imdb.update({'title': poster['title']}, {'$set': {'posterUrl': posterUrl}}, function() {
-                    console.log('posterUrl: ' + posterUrl);
+            dbIMDB.imdb.findOne({title: poster['title']}, function(err, doc) {
+                if (typeof(doc['posterUrl']) != 'undefined') {
                     count++;
                     callback(null, count);
-                });
-            });
+                } else {
+                    var path = poster['detailUrl'];
+                    var bar = path.split('title')[1];
+                    path = path.split('title')[0] + '_json/title' + bar.split('mediaviewer')[0] + 'mediaviewer';
+
+                    request({
+                        url: path,
+                        encoding: "utf8",
+                        method: "GET"
+                    }, function(err, response, body) {
+                        var json = JSON.parse(body)['allImages'],
+                            posterUrl;
+
+                        json.forEach(function(item, index) {
+                           if (item['src'].indexOf(poster['posterHash']) != -1) {
+                                posterUrl = item['src'];
+                           } 
+                        });
+
+                        dbIMDB.imdb.update({'title': poster['title']}, {'$set': {'posterUrl': posterUrl}}, function() {
+                            console.log('posterUrl: ' + posterUrl);
+                            count++;
+                            callback(null, count);
+                        });
+                    });
+                }
+            });    
         },
         function (err, n) {
             console.log('insertPoster finished!');
@@ -255,47 +271,87 @@ function prepareGalleryPages(done) {
         function (callback) {
             var innerCount = 0;
             gallery = GalleryPages.pop(); 
-            dbIMDB.imdb.findOne({title: gallery['title']}, function(err, doc) {
-                if (doc.hasOwnProperty('gallery_full')) {
+            async.whilst(
+                function () { console.log('innerCount: ' + innerCount); return innerCount < gallery['page']; },
+                function (innercallback) {  
+                    url = gallery['photoUrl'].split('?')[0]+'?page=' +(innerCount+1)+'&'+gallery['photoUrl'].split('?')[1];
+                    console.log('detailUrl: '+ url);
+                    request({
+                            url: url,   
+                            encoding: "utf8",
+                            method: "GET"
+                    }, function(err, response, body) {
+                        var $ = cheerio.load(body);
+                        $('.media_index_thumb_list a').each(function(index, item) {
+                            if ($(item).attr('href') != '/register/login') {
+                                GalleryfullPages.push({
+                                    photoUrl: 'http://www.imdb.com'+$(item).attr('href'),
+                                    title: gallery['title']
+                                });
+                            }
+                        });
+                        innerCount++;
+                        innercallback(null, innerCount);  
+                    });
+
+                },
+                function (err, n) {
+                    console.log(gallery['title'] + '=====> ready!');
                     count++;
                     callback(null, count);
-                } else {
-                    async.whilst(
-                        function () { console.log('innerCount: ' + innerCount); return innerCount < gallery['page']; },
-                        function (innercallback) {  
-                            url = gallery['photoUrl'].split('?')[0]+'?page=' +(innerCount+1)+'&'+gallery['photoUrl'].split('?')[1];
-                            console.log('detailUrl: '+ url);
-                            request({
-                                    url: url,   
-                                    encoding: "utf8",
-                                    method: "GET"
-                            }, function(err, response, body) {
-                                var $ = cheerio.load(body);
-                                $('.media_index_thumb_list a').each(function(index, item) {
-                                    if ($(item).attr('href') != '/register/login') {
-                                        GalleryfullPages.push({
-                                            photoUrl: 'http://www.imdb.com'+$(item).attr('href'),
-                                            title: gallery['title']
-                                        });
-                                    }
-                                });
-                                innerCount++;
-                                innercallback(null, innerCount);  
-                            });
-
-                        },
-                        function (err, n) {
-                            console.log(gallery['title'] + '=====> ready!');
-                            count++;
-                            callback(null, count);
-                        }
-                    );
                 }
-            });
+            );
         },
         function (err, n) {
             console.log(GalleryfullPages);
             console.log('prepareGalleryPages finished!');
+            done(null);
+        }
+    );
+}
+
+function updateReview(done) {
+    var count = 0,
+        end = finalReviewPages.length,
+        cast;
+    async.whilst(
+        function () { return count < end; },
+        function (callback) {
+            var innerCount = 0,
+                reviewer = [],
+                name,
+                avatar,
+                topic,
+                text = [],
+                point = null,
+                date,
+                url;
+            review = finalReviewPages.pop();
+
+            if (typeof(review['votes']) == 'undefined') {
+                console.log(review['title']+ ' no reviews!!');
+                callback(null);
+            }
+
+            dbReview.reviews.findOne({title: review['title']}, function(err, doc) {
+                if (doc) {
+                    reviewer = doc['review'];
+                    reviewer.forEach(function(item, index) {
+                        item[text] = item[text].replace(/(\n)/g," ");
+                    });
+                    dbReview.reviews.update({'title': doc['title']}, {$set: {review: reviewer}}, function() {
+                        console.log(review['title'] + ' finished insert review');
+                        count++;
+                        callback(null);
+                    });
+                } else {
+                    count++;
+                    callback(null);
+                }
+            });    
+        },
+        function (err, n) {
+            console.log('insertReview finished!');
             done(null);
         }
     );
@@ -419,7 +475,16 @@ function insertCast(done) {
         function (callback) {
             cast = finalCastPages.pop();
             dbIMDB.imdb.findOne({title: cast['title']}, function(err, doc) {
+
+                if (typeof(doc['cast'])!='undefined') {
+                    console.log(cast['title'] + ' have cast field');
+                    count++;
+                    callback(null, count);
+                    return;
+                }
+
                 Cast = [];
+
                 request({
                     url: cast['castUrl'], 
                     encoding: "utf8",
@@ -448,17 +513,12 @@ function insertCast(done) {
                     });
 
                     dbIMDB.imdb.findOne({title: cast['title']}, function(err, doc) {
-                        if (doc.hasOwnProperty('cast')) {
+                        dbIMDB.imdb.update({title: cast['title']}, {$set: {
+                            cast: Cast
+                        }}, function() {
                             count++;
                             callback(null, count);
-                        } else {
-                            dbIMDB.imdb.update({title: cast['title']}, {$set: {
-                                cast: Cast
-                            }}, function() {
-                                count++;
-                                callback(null, count);
-                            });
-                        }
+                        });
                     });
                 });
             });   
@@ -520,7 +580,9 @@ function insertCastAvatar(done) {
 }
 
 function GalleryWizard(done) {
+
     console.log('GalleryWizard --->');
+
     if (!GalleryfullPages.length) {
         done(null);
         return console.log('insert Gallery Done!!!!');
@@ -528,7 +590,9 @@ function GalleryWizard(done) {
 
     var gallery = GalleryfullPages.pop();
     var scraper = new trendsGalleryScraper(gallery);
+
     console.log('Requests Left: ' + GalleryfullPages.length);
+
     scraper.on('error', function (error) {
       console.log(error);
       GalleryWizard(done);
@@ -559,7 +623,6 @@ function GalleryWizard(done) {
                     update: { $push: { gallery_full: { type: 'full', url: listing['picturesUrl']} }},
                     new: true
                 }, function (err, doc, lastErrorObject) {
-                    // console.log(doc);
                     GalleryWizard(done);
                 });
             }           
