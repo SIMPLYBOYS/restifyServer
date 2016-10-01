@@ -29,7 +29,7 @@ exports.gcmTopic = function(message, done) {
   };
 
   // console.log(options);
-  request(options, function(error, response, body){
+  request(options, function(error, response, body) {
     if (!error && response.statusCode == 200) {
         console.log(body);
         done(null);
