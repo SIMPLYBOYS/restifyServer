@@ -102,8 +102,10 @@ trendsUsGalleryScraper.prototype.parsePage = function (html) {
 
   if (typeof(picturesUrl) == 'undefined') {
     var foo = $('#imageJson').text();
-    // console.log(foo);
     var bar = JSON.parse(foo);
+    if (typeof(bar) == 'undefined')
+      self.emit('error', null);
+
     bar.mediaViewerModel.allImages[position-1]['src']
     picturesUrl = bar.mediaViewerModel.allImages[position-1]['src'];
   }
