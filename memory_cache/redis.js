@@ -1,6 +1,6 @@
 
 exports.findImdbReviewsByTitleCached = function (dbReview, redis, title, start, end, callback) {
-    console.log('findImdbReviewsByTitleCached ' + title);
+    console.log('findImdbReviewsByTitle Cached ' + title);
     redis.get(title.split(' ').join('_'), function (err, reply) {
         if (err)
         	callback(null);
