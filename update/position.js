@@ -13,7 +13,7 @@ var newMovies = []; // not in database before this time
 var outMovies = [];
 
 exports.updatePosition = function() {
-    console.log(moment().format('l'));
+    // console.log(moment().format('l'));
     dbToday.today.find({date: moment().format('l')}, function(err, docs) {
         
         if (docs.length == 0)
