@@ -42,7 +42,7 @@ MovieInformer.prototype.init = function () {
                     detailContent: {
                         summery: info['simplePlot'],
                         // country: info['countries'].split('"')[1].split('"')[0],
-                        country: info['countrues'][0],
+                        country: info['countries'][0],
                         rated: info['rated']
                     },
                     plot: info['plot'],
@@ -59,8 +59,7 @@ MovieInformer.prototype.init = function () {
                     releaseDate: parseInt(info['releaseDate']),
                     year: parseInt(info['year'])
                   }
-                },
-                  function(err, doc) {
+                }, function(err, doc) {
                     console.log(err);
                     console.log('step1');
                     done(null);
@@ -70,7 +69,7 @@ MovieInformer.prototype.init = function () {
                     detailContent: {
                         summery: info['simplePlot'],
                         // country: info['countries'].split('"')[1].split('"')[0],
-                        country: info['countrues'][0],
+                        country: info['countries'][0],
                         rated: info['rated']
                     },
                     plot: info['plot'],
