@@ -27,7 +27,7 @@ var upComingThumbnailPages = [];
 var upComingPosterPages = [];
 var upComingPosterImageObjs = [];
 var start = parseInt(moment().format('M'));
-var limit = start;
+var limit = start + 5;
 var monthList = [
         "January",
         "February",
@@ -50,9 +50,9 @@ exports.updateupComing = function() {
         function(done) {
              var url = start <= 12 ? 'http://www.imdb.com/movies-coming-soon/2016-' : 'http://www.imdb.com/movies-coming-soon/2017-';
              var i;
-             for (i=start%12; i <= limit%12; i++) {
-                if (i<10)
-                    upComingPages.push(url + '0'+ i + '/');
+             for (i=start; i<=limit; i++) {
+                if ((i%12)<10)
+                    upComingPages.push(url + '0'+ (i%12) + '/');
                 else
                     upComingPages.push(url + i + '/');
             }
@@ -606,11 +606,18 @@ function upComingInitWizard(done) {
     var month = listing['groups'][0]['month'].split(' ')[0];
     dbUpComing.upComing.findOne({'month': month}, function(err, doc) {
         if (!doc) {
-            dbUpComing.upComing.insert({'month': month}, function() {
-                dbUpComing.upComing.update({'month': month}, {'$set': {'movies': listing['movies']}});
+            dbUpComing.upComing.insert({
+                month: month,
+                movies: listing['movies']
+            }, function(err, doc) {
+                if (!err) {
+                    console.log('got complete and update successfully!');
+                    upComingInitWizard(done);   
+                }
             });
         } else {
-            dbUpComing.upComing.update({'month': month}, {'$set': {'movies': listing['movies']}}, function(err, doc) {
+            dbUpComing.upComing.update({month: month},
+                {'$set': { movies: listing['movies']}}, function(err, doc) {
                 if (!err) {
                     console.log('got complete and update successfully!');
                     upComingInitWizard(done);   
