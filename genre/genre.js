@@ -33,14 +33,14 @@ var genreType;
 var scrapingTasks = [
     initScrape,
     insertDetail,
-    insertRottenTomatoes/*,
+    insertRottenTomatoes,
     insertCast,
     insertCastAvatar,
     insertReview,
     insertTrailer,
     prepareGalleryPages,
     insertPoster,
-    GalleryWizard*/
+    GalleryWizard
 ];
 
 var cleaningTasks = [
@@ -67,7 +67,7 @@ exports.updateGenres = function(type) {
 
 function initClean(done) {
     dbIMDB.imdb.find({genre: genreType}, function(err, docs) {  
-        docs.forEach(function(item, index){
+        docs.forEach(function(item, index) {
             if (!item.hasOwnProperty('description')) {
                 console.log('removeList: ' + item['title'] + ' ' + item['_id']);
                 movieObj.push({
@@ -337,7 +337,7 @@ function updateReview(done) {
                 if (doc) {
                     reviewer = doc['review'];
                     reviewer.forEach(function(item, index) {
-                        item[text] = item[text].replace(/(\n)/g," ");
+                        item['text'] = item['text'].replace(/(\n)/g," ");
                     });
                     dbReview.reviews.update({'title': doc['title']}, {$set: {review: reviewer}}, function() {
                         console.log(review['title'] + ' finished insert review');
@@ -351,7 +351,7 @@ function updateReview(done) {
             });    
         },
         function (err, n) {
-            console.log('insertReview finished!');
+            console.log('updateReview finished!');
             done(null);
         }
     );
@@ -392,8 +392,8 @@ function insertReview(done) {
                         method: "GET"
                     }, function(err, response, body) {
                         var $ = cheerio.load(body);
+                        
                         $('#tn15content div').each(function(index, item) { 
-
                             if (index%2 ==0) {
                                 topic = $(item).find('h2').text().trim();
                                 avatar = $(item).find('img')[0]['attribs']['src'];
@@ -441,13 +441,18 @@ function insertReview(done) {
                             });
                         } else {
                             dbReview.reviews.insert({
-                                title: review['title']
-                            }, function() {
-                                dbReview.reviews.update({'title': review['title']}, {$set: {review: reviewer}}, function() {
+                                title: review['title'],
+                                review: reviewer
+                            }, function(err, doc) {
+                                if (!err) {
                                     console.log(review['title'] + ' finished insert review');
                                     count++;
                                     callback(null);
-                                });
+                                } else {
+                                    console.log(review['title'] + 'fail to insert review');
+                                    count++;
+                                    callback(null);
+                                }
                             });
                         }
                     });        
