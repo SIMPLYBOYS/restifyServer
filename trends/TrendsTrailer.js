@@ -7,9 +7,17 @@ var config = require('../config');
 var dbJapan = config.dbJapan;
 var dbKorea = config.dbKorea;
 var dbFrance = config.dbFrance;
+var dbHonKong = config.dbHonKong;
 var dbTaiwan = config.dbTaiwan;
 var dbChina = config.dbChina;
 var dbGermany = config.dbGermany;
+var dbAustralia = config.dbAustralia;
+var dbThailand = config.dbThailand;
+var dbPoland = config.dbPoland;
+var dbItalia = config.dbItalia;
+var dbIndia = config.dbIndia;
+var dbSpain = config.dbSpain;
+var dbUK = config.dbUK;
 var dbUSA = config.dbUSA;
 var STATUS_CODES = http.STATUS_CODES;
 /*
@@ -80,6 +88,62 @@ TrendsTrailer.prototype.init = function () {
           });
         } else if (self.country == 'gm') {
           dbGermany.germany.update({title: self.title}, {'$set': {trailerUrl: trailerUrl}
+                }, function() {
+                if (self.done) {
+                  self.done(null, self.count);
+                }  
+          });
+        } else if (self.country == 'hk') {
+          dbHonKong.honkong.update({title: self.title}, {'$set': {trailerUrl: trailerUrl}
+                }, function() {
+                if (self.done) {
+                  self.done(null, self.count);
+                }  
+          });
+        } else if (self.country == 'uk') {
+          dbUK.uk.update({title: self.title}, {'$set': {trailerUrl: trailerUrl}
+                }, function() {
+                if (self.done) {
+                  self.done(null, self.count);
+                }  
+          });
+        } else if (self.country == 'au') {
+          dbAustralia.australia.update({title: self.title}, {'$set': {trailerUrl: trailerUrl}
+                }, function() {
+                if (self.done) {
+                  self.done(null, self.count);
+                }  
+          });
+        } else if (self.country == 'tl') {
+          dbThailand.thailand.update({title: self.title}, {'$set': {trailerUrl: trailerUrl}
+                }, function() {
+                if (self.done) {
+                  self.done(null, self.count);
+                }  
+          });
+        } else if (self.country == 'id') {
+          dbIndia.india.update({title: self.title}, {'$set': {trailerUrl: trailerUrl}
+                }, function() {
+                if (self.done) {
+                  self.done(null, self.count);
+                }  
+          });
+        } else if (self.country == 'it') {
+          dbItalia.italia.update({title: self.title}, {'$set': {trailerUrl: trailerUrl}
+                }, function() {
+                if (self.done) {
+                  self.done(null, self.count);
+                }  
+          });
+        } else if (self.country == 'sp') {
+          dbSpain.spain.update({title: self.title}, {'$set': {trailerUrl: trailerUrl}
+                }, function() {
+                if (self.done) {
+                  self.done(null, self.count);
+                }  
+          });
+        } else if (self.country == 'pl') {
+          dbPoland.poland.update({title: self.title}, {'$set': {trailerUrl: trailerUrl}
                 }, function() {
                 if (self.done) {
                   self.done(null, self.count);

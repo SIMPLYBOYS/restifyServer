@@ -41,7 +41,9 @@ var monthList = [
     {start: '0901', end: '0930'},
     {start: '1001', end: '1031'},
     {start: '1101', end: '1130'},
-    {start: '1201', end: '1231'}
+    {start: '1201', end: '1231'},
+    {start: '0101', end: '0131'},
+    {start: '0201', end: '0228'}
 ];
 var genreList = [
     {type: "Animation"},
@@ -59,13 +61,13 @@ var genreList = [
     {type: "Horror"},
     {type: "Music"},
     {type: "Musical"},
-    {type: "Mystery"}/*,
+    {type: "Mystery"},
     {type: "Romance"},
     {type: "Sci-Fi"},
     {type: "Sport"},
-    {type: "Thriller "},
+    {type: "Thriller"},
     {type: "War"},
-    {type: "Western"}*/
+    {type: "Western"}
 ];
 
 var client_id = '713961bd892a424f84585a57067750bf'; // Your client id
@@ -177,7 +179,7 @@ exports.getGenreTopic = function(req, res) {
     async.whilst(
         function () { return count < genreList.length;},
         function (callback) {
-            var random = Math.floor((Math.random() * 100)+1);
+            var random = Math.floor((Math.random() * 500)+1);
             dbIMDB.imdb.find({genre:genreList[count]['type']}).limit(1).skip(random, function(err, doc) {
                 genreList[count]['imageUrl'] = doc[0]['posterUrl'];
                 count++;
@@ -201,7 +203,7 @@ exports.imdbReview = function(req, res) {
         if (!movie) 
             res.status(500).send('Server error');
         else 
-            res.send(movie);
+            res.end(movie);
     });
 };
 
@@ -233,7 +235,7 @@ exports.upComing = function(req, res, next) {
     }    
 };
 
-exports.monthList = function(req, res, next) {
+exports.upcomingList = function(req, res, next) {
     var count = 1;
     var limit = 13;
     var List = [];
@@ -681,7 +683,8 @@ exports.elasticSearch = function(req, res, next) {
         var json_res = [];
         (function next(result) {
             if (!result.hits.hits.length) {
-              console.log('done ----> ' + JSON.stringify(json_res));
+                console.log('done ---->');
+              // console.log('done ----> ' + JSON.stringify(json_res));
               res.end(JSON.stringify(json_res));
               return;
             }
@@ -720,7 +723,7 @@ exports.google = function (req, res, next) {
     });
 };
 
-exports.myapi = function(req, res, next) {
+exports.myapi = function(req, res) {
     if (!req.params.title)
         res.end('missing title!');
     request({
@@ -736,4 +739,14 @@ exports.myapi = function(req, res, next) {
         res.end();
     });
 };
+
+exports.splash = function(req, res) {
+    var random = Math.floor((Math.random() * 7)+1);
+    dbIMDB.imdb.find({genre:genreList[count]['type']}).limit(4).skip(random, function(err, docs) {
+        console.log(docs);
+        var object = {};
+        object['content'] = docs;
+        res.end(JSON.stringify(object));
+    });
+}
 

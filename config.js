@@ -4,10 +4,18 @@ var dbIMDB = mongojs('test', ['imdb']);
 var dbJapan = mongojs('test', ['japan']);
 var dbKorea = mongojs('test', ['korea']);
 var dbTaiwan = mongojs('test', ['taiwan']);
+var dbHonKong = mongojs('test', ['honkong']);
 var dbUSA = mongojs('test', ['usa']);
 var dbChina = mongojs('test', ['china']);
 var dbFrance = mongojs('test', ['france']);
+var dbUK = mongojs('test', ['uk']);
 var dbGermany = mongojs('test', ['germany']);
+var dbAustralia = mongojs('test', ['australia']);
+var dbItalia = mongojs('test', ['italia']);
+var dbSpain = mongojs('test', ['spain']);
+var dbThailand = mongojs('test', ['thailand']);
+var dbIndia = mongojs('test', ['india']);
+var dbPoland = mongojs('test', ['poland']);
 var dbUpComing = mongojs('test', ['upComing']);
 var dbRecord = mongojs('test', ['records']);
 var dbReview = mongojs('test', ['reviews']);
@@ -16,8 +24,8 @@ var dbToday = mongojs('test', ['today']);
 var dbUser =  mongojs('test', ['user']);
 var myapiToken = '632ce305-f516-4ccb-8f32-4e0fb1ad412a';
 var YouTube = require('youtube-node');
-var YouTubeKey = 'AIzaSyCpHbHblbj_6zfA1AeKsuaxB4ZuoTffVKw';
-var GCMKey = 'AIzaSyCpHbHblbj_6zfA1AeKsuaxB4ZuoTffVKw';
+var YouTubeKey = 'AIzaSyDgZtqmd4rI4SFjNUDWQz6sKFllAZf6sCg';
+var GCMKey = 'AIzaSyDLw3K76tezq1sG91aKLefZvD8O-SzTbLo';
 var TomatoKey = '9htuhtcb4ymusd73d4z6jxcj';
 // var dbContact = mongojs('http://52.192.246.11/test', ['contact']);
 
@@ -37,8 +45,16 @@ exports.dbUSA = dbUSA;
 exports.dbJapan = dbJapan;
 exports.dbKorea = dbKorea;
 exports.dbFrance = dbFrance;
+exports.dbAustralia = dbAustralia;
+exports.dbItalia = dbItalia;
+exports.dbPoland = dbPoland;
+exports.dbThailand = dbThailand;
+exports.dbIndia = dbIndia;
+exports.dbSpain = dbSpain;
+exports.dbUK = dbUK;
 exports.dbGermany = dbGermany;
 exports.dbTaiwan = dbTaiwan;
+exports.dbHonKong = dbHonKong;
 exports.dbChina = dbChina;
 
 /*var mysql = require('mysql');
@@ -54,7 +70,7 @@ exports.db = mysql.createConnection({
 exports.port = 80;
 
 // update record
-exports.genreUpdate = '5 54 23 * * *';
+exports.genreUpdate = '45 21 22 * * *';
 
 exports.recordUpdate = '35 10 7 * * *';
 
@@ -72,11 +88,13 @@ exports.krTrendsUpdate = '25 30 10 * * *';
 
 exports.frTrendsUpdate = '55 50 11 * * *';
 
-exports.twTrendsUpdate = '15 40 12 * * *';
+exports.twTrendsUpdate = '25 1 22 * * *';
 
-exports.usTrendsUpdate = '5 58 18 * * *';
+exports.usTrendsUpdate = '55 9 12 * * *';
 
 exports.cnTrendsUpdate = '5 19 2 * * *';
 
 exports.gmTrendsUpdate = '15 3 1 * * *';
+
+exports.worldMoviesScrape = '55 59 2 * * *';
 

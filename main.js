@@ -32,6 +32,21 @@ var jpTrends = require('./trends/jpTrends');
 var krTrends = require('./trends/krTrends');
 var frTrends = require('./trends/frTrends');
 var twTrends = require('./trends/twTrends');
+var twMovies = require('./crawler/taiwanMovies');
+var hkMovies = require('./crawler/honkongMovies');
+var cnMovies = require('./crawler/chinaMovies');
+var jpMovies = require('./crawler/japanMovies');
+var krMovies = require('./crawler/koreaMovies');
+var frMovies = require('./crawler/franceMovies');
+var spMovies = require('./crawler/spainMovies');
+var ukMovies = require('./crawler/unitedkingdomMovies');
+var gmMovies = require('./crawler/germanyMovies');
+var auMovies = require('./crawler/australiaMovies');
+var tlMovies = require('./crawler/thailandMovies');
+var idMovies = require('./crawler/indiaMovies');
+var itMovies = require('./crawler/italiaMovies');
+var plMovies = require('./crawler/polandMovies');
+var usMovies = require('./crawler/usaMovies');
 var usTrends = require('./trends/usTrends');
 var cnTrends = require('./trends/cnTrends');
 var gmTrends = require('./trends/gmTrends');
@@ -98,7 +113,7 @@ server.get('/google', Read.google);
 
 server.get('/upComing', Read.upComing);
 
-server.get('/monthList', Read.monthList);
+server.get('/upcomingList', Read.upcomingList);
 
 server.get('/myapi', Read.myapi);
 
@@ -548,6 +563,24 @@ var job_gmTrendsUpdate = new cronJob(config.gmTrendsUpdate, function() {
     gmTrends.updateTrends();
 })
 
+var job_worldMoviesScrape = new cronJob(config.worldMoviesScrape, function() {
+    // twMovies.taiwanMovies();
+    // hkMovies.honkongMovies();
+    // cnMovies.chinaMovies();
+    // jpMovies.japanMovies();
+    // krMovies.koreaMovies();
+    // frMovies.franceMovies();
+    // ukMovies.ukMovies();
+    // gmMovies.germanyMovies();
+    // auMovies.australiaMovies();
+    // tlMovies.thailandMovies();
+    // idMovies.indiaMovies();
+    // itMovies.italiaMovies();
+    // spMovies.spainMovies();
+    // plMovies.polandMovies();
+    usMovies.usaMovies();
+})
+
 /*var job_twTrendsUpdate = new cronJob(config.recordUpdate, function () {
   console.log('开始执行定时更新任务');
   var update = spawn(process.execPath, [localPath.resolve(__dirname, 'trends/twTrends.js')]);
@@ -571,6 +604,7 @@ job_reviewUpdate.start();
 job_genreUpdate.start();
 job_cnTrendsUpdate.start();
 job_gmTrendsUpdate.start();
+job_worldMoviesScrape.start();
 
 require('events').EventEmitter.prototype._maxListeners = 100;
  
