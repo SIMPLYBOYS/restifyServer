@@ -171,13 +171,18 @@ function insertReview(done) {
                     dbIMDB.imdb.findOne({title: review['title']}, function(err, doc) {
                         if (doc) {
                             dbReview.reviews.insert({
-                                title: doc['title']
-                            }, function() {
-                                dbReview.reviews.update({'title': doc['title']}, {$set: {review: reviewer}}, function() {
+                                title: doc['title'],
+                                review: reviewer
+                            }, function(err, doc) {
+                                if (!err) {
                                     console.log(review['title'] + 'finished insert review');
                                     count++;
                                     callback(null);
-                                });
+                                } else {
+                                    console.log(review['title'] + 'fail to insert review');
+                                    count++;
+                                    callback(null);
+                                }
                             });
                         } else {
                             console.log(review['title'] + ' not found!');
