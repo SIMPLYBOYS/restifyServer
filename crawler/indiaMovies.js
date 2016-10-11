@@ -171,7 +171,8 @@ function insertDetail(done) {
                                     content,
                                     mainInfo,
                                     gallerySize,
-                                    data = [];
+                                    data = [],
+                                    description = [];
 
                                 if ($('.award-list') != null) {
                                     if ($('.award-list').length == undefined) {
@@ -251,19 +252,23 @@ function insertDetail(done) {
                                 $('.tab-celebrity .celebrity-group').each(function(index, item) {
                                 	if (index == 0) {
                                 		$(item).find('.info').each(function(index, item) {
+                                            var dirName = opencc.convertSync($(item).text().trim().split(' ')[0]);
                                 			staff.push({
-                                				staff: opencc.convertSync($(item).text().trim().split(' ')[0]),
+                                				staff: dirName,
                                 				link: 'http://maoyan.com'+$(item).find('a').attr('href')
                                 			});
+                                            description.push(dirName.split(' ')[0].trim()+'(dir)');
                                 		});
                                 	} else if (index == 1) {	
                                 		$(item).find('.actor').each(function(index, item) {
+                                            var castName = opencc.convertSync($(item).find('.info a').text().trim());
                                 			Cast.push({
 					                            cast: opencc.convertSync($(item).find('.info a').text().trim()),
 					                            as: $(item).find('.role').text().trim().split('：')[1],
 					                            link: 'http://maoyan.com'+$(item).find('.info a').attr('href'),
 					                            avatar: $(item).find('img').attr('data-src').split('@')[0]
 					                        });
+                                            description.push(castName);
                                 		});
                                 	}
                                 });                           
@@ -306,7 +311,9 @@ function insertDetail(done) {
                                 		type: 'full',
                                 		url: $(item).find('img').attr('data-src').split('@')[0]
                                 	});
-                                })                                 
+                                });
+
+                                console.log('description ---> ' + description);                                 
                                                 
                                 dbIndia.india.update({'title': movieList[count]}, {'$set': {
                                         originTitle: originTitle,
@@ -319,6 +326,7 @@ function insertDetail(done) {
                                         story: story,
                                         staff: staff,
                                         eventList: eventList,
+                                        description: description.join(','),
                                         cast: Cast,
                                         review: reviewer,
                                         data: data,

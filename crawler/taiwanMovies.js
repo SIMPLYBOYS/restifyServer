@@ -50,7 +50,7 @@ function insertTitle(done) {
     var count = 0,
         end = moviePages.length;
     async.whilst(
-        function () { return count < end; },
+        function () { return count < 1; },
         function (callback) {
             var innerCount = 0;
             async.whilst(
@@ -172,7 +172,8 @@ function insertDetail(done) {
                                     content,
                                     mainInfo,
                                     gallerySize,
-                                    data = [];
+                                    data = [],
+                                    description = [];
 
                                 if ($('.award-list') != null) {
                                     if ($('.award-list').length == undefined) {
@@ -241,66 +242,37 @@ function insertDetail(done) {
                                 country = opencc.convertSync(country);
                                 runTime = runTime != undefined ? opencc.convertSync(runTime) : '';
                                 console.log(runTime + '\n' + country);
-
                                 year = releaseDate.split('-')[0];
                                 type = null;
                                 content = $('.dra').text().trim();
-
                                 mainInfo = opencc.convertSync(content);
                                 story = mainInfo;
-                                
-                                // $('.movie-stats-container .banner-stats').each(function(index, item) {
-                                // 	if (index == 0) {
-                                // 		// rating = parseInt($('.imdbRating .ratingValue strong span').text());
-                                // 		// votes = parseInt($('.imdbRating a').text());
-                                // 		if (typeof($(item).find('.info-num .stonefont')[0])!= 'undefined')
-                                // 			console.log(encodeURIComponent($(item).find('.info-num .stonefont')[0]['children'][0]['data']));
-
-                                // 		$(item).find('.stonefont').each(function(index, item) {
-                                // 			console.log(encodeURIComponent($(item)[0]['children'][0]['data']));
-                                // 		})
-                                // 	}
-                                // });
 
                                 $('.tab-celebrity .celebrity-group').each(function(index, item) {
                                 	if (index == 0) {
                                 		$(item).find('.info').each(function(index, item) {
+                                            var dirName = opencc.convertSync($(item).text().trim().split(' ')[0]);
                                 			staff.push({
-                                				staff: opencc.convertSync($(item).text().trim().split(' ')[0]),
+                                				staff: dirName,
                                 				link: 'http://maoyan.com'+$(item).find('a').attr('href')
                                 			});
+                                            description.push(dirName.split(' ')[0].trim()+'(dir)');
                                 		});
                                 	} else if (index == 1) {	
                                 		$(item).find('.actor').each(function(index, item) {
+                                            var castName = opencc.convertSync($(item).find('.info a').text().trim());
                                 			Cast.push({
-					                            cast: opencc.convertSync($(item).find('.info a').text().trim()),
+					                            cast: castName,
 					                            as: $(item).find('.role').text().trim().split('：')[1],
 					                            link: 'http://maoyan.com'+$(item).find('.info a').attr('href'),
 					                            avatar: $(item).find('img').attr('data-src').split('@')[0]
 					                        });
+                                            description.push(castName);
                                 		});
                                 	}
                                 });                           
                                                               
-                                // $('#titleDetails .txt-block').each(function(index, item) {
-                                //     if ($(item).text().trim().indexOf('Budget') == 0)
-                                //         budget = $(item).text().trim().split(':')[1].split('(')[0].trim();
-                                //     else if ($(item).text().trim().indexOf('Gross') == 0)
-                                //         cross = $(item).text().trim().split(':')[1].split('(')[0].trim();
-                                //     else if ($(item).text().trim().indexOf('Country') == 0)
-                                //         country = $(item).text().trim().split(':')[1].split('|')[0].trim();
-                                // });
-
-                                // $('.txt-block .itemprop').each(function(index, item) {
-                                //     studio.push($(item).text());
-                                // });
-
                                 $('.comment-container').each(function(index, item) {
-                                	// console.log($(item).find('.portrait img').attr('src').split('@')[0]);
-                                	// console.log($(item).find('.main .name').text());
-                                	// console.log($(item).find('.time').attr('title'));
-                                	// console.log($(item).find('.score-star').attr('data-score'));
-                                	// console.log($(item).find('.comment-content').text().trim());
                                 	reviewer.push({
 	                                    name: opencc.convertSync($(item).find('.main .name').text()),
 	                                    avatar: $(item).find('.portrait img').attr('src').split('@')[0],
@@ -351,6 +323,7 @@ function insertDetail(done) {
                                         story: story,
                                         staff: staff,
                                         eventList: eventList,
+                                        description: description.join(','),
                                         cast: Cast,
                                         review: reviewer,
                                         data: data,

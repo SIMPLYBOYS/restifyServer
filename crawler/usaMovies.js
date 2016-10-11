@@ -12,16 +12,16 @@ var posterPages = [];
 var releaseUrl = [];
 var moviePages = [ //specific for china movies
     100,
-    58,
-    48,
-    44,
-    41,
-    33,
     100,
-    48,
-    51,
-    33,
-    65
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100
 ];
 var Cast = [];
 var reviewer = [];
@@ -35,9 +35,7 @@ var opencc = new OpenCC('s2tw.json');
 exports.usaMovies = function() {
     async.series([
         insertTitle,
-        insertDetail/*,
-        insertTrailer,
-        cleanData*/
+        insertDetail
     ],
     function (err) {
         if (err) console.error(err.stack);
@@ -50,7 +48,7 @@ function insertTitle(done) {
     var count = 0,
         end = moviePages.length;
     async.whilst(
-        function () { return count < 1; },
+        function () { return count < end; },
         function (callback) {
             var innerCount = 0;
             async.whilst(
