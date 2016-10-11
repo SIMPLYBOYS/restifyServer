@@ -552,7 +552,8 @@ function insertDetail(done) {
                                     mainInfo,
                                     gallerySize,
                                     data = [],
-                                    end = $('.subtext a').length;
+                                    end = $('.subtext a').length,
+                                    description = [];
 
                                 year = $('#titleYear a').text();
                                 type = $('.subtext meta').attr('content');
@@ -576,6 +577,15 @@ function insertDetail(done) {
                                         })
                                     }
                                 });
+
+                                $('.plot_summary .credit_summary_item').each(function(index, item) {
+                                    if ($(item).find('.inline').text() == 'Director:' && index == 0) 
+                                        description.push($(item).find('.itemprop').text().trim()+'(dir)')
+                                    else if ($(item).find('.inline').text() == 'Stars:') 
+                                        description.push($(item).find('.itemprop').text().trim());
+                                });
+
+                                console.log('description ----> ' + description);
 
                                 $('#titleDetails .txt-block').each(function(index, item) {
                                     if ($(item).text().trim().indexOf('Budget') == 0)
@@ -712,6 +722,7 @@ function insertDetail(done) {
                                         type: type,
                                         country: country,
                                         mainInfo: mainInfo,
+                                        description: description.join(','),
                                         staff: staff,
                                         rating: {
                                             score: rating,
