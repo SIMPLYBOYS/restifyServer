@@ -50,7 +50,7 @@ function insertTitle(done) {
     var count = 0,
         end = moviePages.length;
     async.whilst(
-        function () { return count < 1; },
+        function () { return count < end; },
         function (callback) {
             var innerCount = 0;
             async.whilst(
