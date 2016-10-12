@@ -6,6 +6,8 @@ var async = require('async');
 var moment = require("moment");
 var OpenCC = require('opencc');
 var TrendsTrailer = require('../trends/TrendsTrailer');
+var elastic = require('../search/elasticsearch');
+var elasticClient = elastic.elasticClient;
 var youTube = config.YouTube;
 var dbJapan = config.dbJapan;
 var posterPages = [];
@@ -37,11 +39,12 @@ exports.japanMovies = function() {
         insertTitle,
         insertDetail,
         insertTrailer,
-        cleanData
+        cleanData,
+        createIndex
     ],
     function (err) {
         if (err) console.error(err.stack);
-          console.log('all jobs for cnTrends update finished!!');
+          console.log('all jobs for japanMovies update finished!!');
     });
 };
 
@@ -411,27 +414,94 @@ function cleanData(done) {
     var movieObj = [];
     dbJapan.japan.find({}, function(err, docs) {  
         docs.forEach(function(item, index) {
-            if (!item.hasOwnProperty('posterUrl') || item['genre'].indexOf('電視劇') != -1) {
+            if (!item.hasOwnProperty('posterUrl')) {
                 console.log('removeList: ' + item['title'] + ' ' + item['_id']);
                 movieObj.push({
                     title: item['title'],
                     id: item['_id']
                 });
+            } else if (item.hasOwnProperty('genre')) {
+                if (item['genre'].indexOf('電視劇') != -1) {
+                    console.log('removeList: ' + item['title'] + ' ' + item['_id']);
+                    movieObj.push({
+                        title: item['title'],
+                        id: item['_id']
+                    });
+                }
             }
-        })
+        });
         var count = 0;
         async.whilst(
             function() { return count < movieObj.length},
             function(callback) {
                 dbJapan.japan.remove({title: movieObj[count]['title']}, function(err, doc) {
                     if (!err) {
+                        console.log('remove: ' + movieObj[count]['title']);
                         count++;
                         callback(null, count);
+                    } else {
+                        console.log(err);
                     }
                 });
             },
             function(err, n) {
-                console.log('clean kr films finish ' + n);
+                console.log('clean jp films finish ' + n);
+                done(null);
+            }
+        );
+    });
+}
+
+function verifyTrailerUrl(done) {
+    dbJapan.japan.find({}, function(err, docs) {  
+        docs.forEach(function(item, index) {
+            if (!item.hasOwnProperty('trailerUrl')) {
+                console.log('removeList: ' + item['title'] + ' ' + item['_id']);
+                movieList.push(item['title']);
+            }
+        });
+        console.log('clean honkong films finish ');
+        done(null);
+    });
+}
+
+function createIndex(done) {
+    var movieObj = [];
+    dbJapan.japan.find({}, function(err, docs) {  
+        docs.forEach(function(item, index) {
+            movieObj.push({
+                title: item['title'],
+                id: item['_id'],
+                posterUrl: item['posterUrl'],
+                description: item['description']
+            });
+        });
+        console.log(movieObj.length);
+        var count = 0;
+        async.whilst(
+            function() { return count < movieObj.length},
+            function(callback) {
+                console.log('count: ' + count);
+                elasticClient.index({
+                    index: 'test',
+                    type: 'japan',
+                    id: movieObj[count]['id'].toString(),
+                    body: {
+                      title: movieObj[count]['title'],
+                      posterUrl: movieObj[count]['posterUrl'],
+                      description: movieObj[count]['description']
+                    }
+                  }, function (error, response) {
+                    console.log(error+'\n'+response);
+                    if (!error) {
+                        count++;
+                        callback(null, count);
+                    }
+                    // console.log('finish create Index!');
+                  });
+            },
+            function(err, n) {
+                console.log('jp films indexing finish ' + n);
                 done(null);
             }
         );

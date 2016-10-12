@@ -6,6 +6,8 @@ var async = require('async');
 var moment = require("moment");
 var OpenCC = require('opencc');
 var TrendsTrailer = require('../trends/TrendsTrailer');
+var elastic = require('../search/elasticsearch');
+var elasticClient = elastic.elasticClient;
 var youTube = config.YouTube;
 var dbHonKong = config.dbHonKong;
 var posterPages = [];
@@ -37,11 +39,12 @@ exports.honkongMovies = function() {
         insertTitle,
         insertDetail,
         insertTrailer,
-        cleanData
+        cleanData,
+        createIndex
     ],
     function (err) {
         if (err) console.error(err.stack);
-          console.log('all jobs for hnTrends update finished!!');
+          console.log('all jobs for honkongMovies update finished!!');
     });
 };
 
@@ -398,9 +401,66 @@ function cleanData(done) {
                 });
             },
             function(err, n) {
-                console.log('clean kr films finish ' + n);
+                console.log('clean honkong films finish ' + n);
                 done(null);
             }
         );
     });
 }
+
+function verifyTrailerUrl(done) {
+    dbHonKong.honkong.find({}, function(err, docs) {  
+        docs.forEach(function(item, index) {
+            if (!item.hasOwnProperty('trailerUrl')) {
+                console.log('removeList: ' + item['title'] + ' ' + item['_id']);
+                movieList.push(item['title']);
+            }
+        })
+        console.log('clean honkong films finish ');
+        done(null);
+    });
+}
+
+function createIndex(done) {
+    var movieObj = [];
+    dbHonKong.honkong.find({}, function(err, docs) {  
+        docs.forEach(function(item, index) {
+            movieObj.push({
+                title: item['title'],
+                id: item['_id'],
+                posterUrl: item['posterUrl'],
+                description: item['description']
+            });
+        });
+        console.log(movieObj.length);
+        var count = 0;
+        async.whilst(
+            function() { return count < movieObj.length},
+            function(callback) {
+                console.log('count: ' + count);
+                elasticClient.index({
+                    index: 'test',
+                    type: 'honkong',
+                    id: movieObj[count]['id'].toString(),
+                    body: {
+                      title: movieObj[count]['title'],
+                      posterUrl: movieObj[count]['posterUrl'],
+                      description: movieObj[count]['description']
+                    }
+                  }, function (error, response) {
+                    console.log(error+'\n'+response);
+                    if (!error) {
+                        count++;
+                        callback(null, count);
+                    }
+                    // console.log('finish create Index!');
+                  });
+            },
+            function(err, n) {
+                console.log('hk films indexing finish ' + n);
+                done(null);
+            }
+        );
+    });
+}
+

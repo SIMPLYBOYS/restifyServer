@@ -6,6 +6,8 @@ var async = require('async');
 var moment = require("moment");
 var OpenCC = require('opencc');
 var TrendsTrailer = require('../trends/TrendsTrailer');
+var elastic = require('../search/elasticsearch');
+var elasticClient = elastic.elasticClient;
 var youTube = config.YouTube;
 var dbGermany = config.dbGermany;
 var posterPages = [];
@@ -37,7 +39,8 @@ exports.germanyMovies = function() {
         insertTitle,
         insertDetail,
         insertTrailer,
-        cleanData
+        cleanData,
+        createIndex
     ],
     function (err) {
         if (err) console.error(err.stack);
@@ -399,6 +402,49 @@ function cleanData(done) {
             },
             function(err, n) {
                 console.log('clean germany films finish ' + n);
+                done(null);
+            }
+        );
+    });
+}
+
+function createIndex(done) {
+    var movieObj = [];
+    dbGermany.germany.find({}, function(err, docs) {  
+        docs.forEach(function(item, index) {
+            movieObj.push({
+                title: item['title'],
+                id: item['_id'],
+                posterUrl: item['posterUrl'],
+                description: item['description']
+            });
+        });
+        console.log(movieObj.length);
+        var count = 0;
+        async.whilst(
+            function() { return count < movieObj.length},
+            function(callback) {
+                console.log('count: ' + count);
+                elasticClient.index({
+                    index: 'test',
+                    type: 'germany',
+                    id: movieObj[count]['id'].toString(),
+                    body: {
+                      title: movieObj[count]['title'],
+                      posterUrl: movieObj[count]['posterUrl'],
+                      description: movieObj[count]['description']
+                    }
+                  }, function (error, response) {
+                    console.log(error+'\n'+response);
+                    if (!error) {
+                        count++;
+                        callback(null, count);
+                    }
+                    // console.log('finish create Index!');
+                  });
+            },
+            function(err, n) {
+                console.log('gr films indexing finish ' + n);
                 done(null);
             }
         );

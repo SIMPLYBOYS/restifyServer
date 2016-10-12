@@ -28,6 +28,30 @@ function searchDocument(channel, input) {
        case 5:
           type = 'china';
           break;
+       case 6:
+          type = 'australia';
+          break;
+       case 7:
+          type = 'france';
+          break;
+       case 8:
+          type = 'germany';
+          break;
+       case 9:
+          type = 'hongkong';
+          break;
+       case 10:
+          type = 'india';
+          break;
+       case 11:
+          type = 'poland';
+          break;
+       case 12:
+          type = 'spain';
+          break;
+       case 13:
+          type = 'tailand';
+          break;
       default:
           type = 'imdb'
           break;
