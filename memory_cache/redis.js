@@ -11,9 +11,8 @@ exports.findImdbReviewsByTitleCached = function (dbReview, redis, title, start, 
             callback(JSON.stringify(obj));
         } else {
             //Review doesn't exist in cache - we need to query the main database 
-            dbReview.reviews.find({title: title}, {review:1, title:1}).limit(1,
-              function(err, doc) {
-                var review = JSON.stringify(doc);
+            dbReview.reviews.aggregate([{$match:{title: title}},{$limit:1}], function(err, doc) {
+            	var review = JSON.stringify(doc);
                 var cacheTitle = title.split(' ').join('_'); 
                 var obj = {
                   title: doc[0]['title'],
