@@ -78,7 +78,7 @@ Creater.prototype.createMovie = function () {
       function(done) { return that.insertDetail(done);},
       insertCast,
       insertCastAvatar,
-      insertReview,
+      // insertReview,
       prepareGalleryPages,
       GalleryWizard,
       function(done) { return that.insertPoster(done);},
@@ -381,15 +381,14 @@ Creater.prototype.insertDetail = function(done) {
                     var originTitle = $('.originalTitle').text().split('(')[0].trim();
                     var votes = $('.imdbRating a').text();
                     var title = originTitle == "" ? doc['title'] : originTitle;
-
+                    var hash = $('.slate_wrapper .poster img')[0];
+                    var rating = parseFloat($('.imdbRating .ratingValue strong span').text());
                     that.title = title;
 
                     finalCastPages.push({
                         castUrl: doc['detailUrl'].split('?')[0]+'fullcredits?ref_=tt_cl_sm#cast',
                         title: title
                     });
-
-                    var hash = $('.slate_wrapper .poster img')[0];
 
                     if (typeof(hash)!='undefined') {
 
@@ -555,7 +554,10 @@ Creater.prototype.insertDetail = function(done) {
                             posterUrl: path,
                             posterHash: hash,
                             title: title,
-                            votes: votes
+                            rating: {
+                                score: rating,
+                                votes: votes
+                            }
                         }});
                     }
                     done(null);
