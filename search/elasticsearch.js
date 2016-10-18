@@ -10,49 +10,46 @@ function searchDocument(channel, input) {
     var type = 0;
 
     switch (parseInt(channel)) {
-       case 0:
-          type = 'japan';
-          break;
        case 1:
-          type = 'usa';
-          break;
-       case 2: 
-          type = 'taiwan';
-          break;
-       case 3:
-          type = 'korea';
-          break;
-       case 4:
-          type = 'france';
-          break;
-       case 5:
-          type = 'china';
-          break;
-       case 6:
           type = 'australia';
           break;
-       case 7:
+       case 2:
+          type = 'china';
+          break;
+       case 3:
           type = 'france';
           break;
-       case 8:
+       case 4:
           type = 'germany';
           break;
-       case 9:
+       case 5:
           type = 'hongkong';
           break;
-       case 10:
+       case 6:
           type = 'india';
           break;
-       case 11:
+       case 7:
+          type = 'italia';
+          break;
+       case 8:
+          type = 'japan';
+          break;
+       case 9:
+          type = 'korea';
+          break;
+       case 10:
           type = 'poland';
           break;
-       case 12:
+       case 11:
           type = 'spain';
           break;
-       case 13:
-          type = 'tailand';
+       case 12: 
+          type = 'taiwan';
           break;
-      default:
+       case 13:
+          type = 'thailand';
+          break;
+       default:
           type = 'imdb'
           break;
     }
@@ -67,7 +64,7 @@ function searchDocument(channel, input) {
             query: {
                 query: input,
                 fuzziness: "AUTO",
-                fields: ["title", "trailerTitle", "description"]
+                fields: ["title", "trailerTitle", "description", "originTitle"]
             }
           }
         }
