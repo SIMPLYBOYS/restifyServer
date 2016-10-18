@@ -414,7 +414,8 @@ function createIndex(done) {
                 title: item['title'],
                 id: item['_id'],
                 posterUrl: item['posterUrl'],
-                description: item['description']
+                description: item['description'],
+                originTitle: item['originTitle']
             });
         });
         console.log(movieObj.length);
@@ -430,7 +431,8 @@ function createIndex(done) {
                     body: {
                       title: movieObj[count]['title'],
                       posterUrl: movieObj[count]['posterUrl'],
-                      description: movieObj[count]['description']
+                      description: movieObj[count]['description'],
+                      originTitle: movieObj[count]['originTitle']
                     }
                   }, function (error, response) {
                     console.log(error+'\n'+response);
