@@ -117,56 +117,28 @@ function insertDetail(done) {
                         var originTitle = $('.ename').text(),
                             eventList = [];
 
-                        if ($('.award-list') != null) {
-                            if ($('.award-list').length == undefined) {
-                                $('.award-list .award-item').each(function(index, item) {
-                                   if (index == 1) {
-                                        console.log($(item).text().trim().split(' ')[0]);
-                                       console.log($(item).find('.content').text().trim());
-                                       if ($(item).find('.content').text().trim().indexOf('提名') == -1) {
-                                         eventList.push({
-                                            title: opencc.convertSync($(item).text().trim().split(' ')[0].replace(/\n/g,'')),
-                                            award: opencc.convertSync($(item).find('.content').text().trim().split('获奖：')[1].split(' / ').join(',')),
-                                            nominate: null,
-                                            icon: $(item).find('img').attr('src')
-                                         })
-                                       } else {
-                                         eventList.push({
-                                            title: opencc.convertSync($(item).text().trim().split(' ')[0].replace(/\n/g,'')),
-                                            award: null,
-                                            nominate: opencc.convertSync($(item).find('.content').text().trim().split('提名：')[1].split(' / ').join(',')),
-                                            icon: $(item).find('img').attr('src')
-                                         })
-                                       }
-                                   }
-                                   
-                                });
-                            } else {
-                                $('.award-list .award-item').each(function(index, item) {
-                                   if (index == 1) {
-                                       console.log($(item).text().trim().split(' ')[0]);
-                                       console.log($(item).find('.content').text().trim());
-                                       if ($(item).find('.content').text().trim().indexOf('提名') == -1) {
-                                         eventList.push({
-                                            title: opencc.convertSync($(item).text().trim().split(' ')[0].replace(/\n/g,'')),
-                                            award: opencc.convertSync($(item).find('.content').text().trim().split('获奖：')[1].split(' / ').join(',')),
-                                            nominate: null,
-                                            icon: $(item).find('img').attr('src')
-                                         })
-                                       } else {
-                                         eventList.push({
-                                            title: opencc.convertSync($(item).text().trim().split(' ')[0].replace(/\n/g,'')),
-                                            award: null,
-                                            nominate: opencc.convertSync($(item).find('.content').text().trim().split('提名：')[1].split(' / ').join(',')),
-                                            icon: $(item).find('img').attr('src')
-                                         })
-                                       }  
-                                   }     
-                                });
-                            }
+                        if ($('.tab-award li').length == 1) {
+                            $('.tab-award li').each(function(index, item) {
+                                if ($(item).find('.content').text().trim().indexOf('提名') == -1) {
+                                     eventList.push({
+                                        title: opencc.convertSync($(item).text().trim().split(' ')[0].replace(/\n/g,'')),
+                                        award: opencc.convertSync($(item).find('.content').text().trim().split('获奖：')[1].split(' / ').join(',')),
+                                        nominate: null,
+                                        icon: $(item).find('img').attr('src')
+                                     })
+                                } 
+                                if ($(item).find('.content').text().trim().indexOf('获奖') == -1) {
+                                    eventList.push({
+                                        title: opencc.convertSync($(item).text().trim().split(' ')[0].replace(/\n/g,'')),
+                                        award: null,
+                                        nominate: opencc.convertSync($(item).find('.content').text().trim().split('提名：')[1].split(' / ').join(',')),
+                                        icon: $(item).find('img').attr('src')
+                                    });
+                               }
+                            });
                         }
 
-                        console.log(originTitle+'\n'+eventList);      
+                        console.log(originTitle+'\n'+JSON.stringify(eventList));      
                         dbIMDB.imdb.findOne({title: originTitle}, function(err, doc) {
                             if (doc) {
                                 dbIMDB.imdb.update({'title': originTitle}, {'$set': {
