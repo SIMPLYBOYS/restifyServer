@@ -12,19 +12,19 @@ var youTube = config.YouTube;
 var dbIMDB = config.dbIMDB;
 var posterPages = [];
 var releaseUrl = [];
-var moviePages = [ //specific for china movies
-    100,
-    100,
-    100,
-    100,
-    100,
-    100,
-    100,
-    100,
-    100,
-    100,
-    100
-];
+var moviePages = [
+    [81,80,13,9,22,28,33,11,12,14,15,3,10,9,7,10,0,1,2,6,8],
+    [71,94,12,10,20,25,25,10,13,14,13,3,14,8,12,15,0,1,2,10,14],
+    [69,85,13,9,18,21,22,10,12,12,11,4,16,8,13,15,0,0,2,12,17],
+    [64,84,10,9,18,23,22,9,11,12,12,3,18,7,12,15,0,2,2,11,16],
+    [53,79,10,9,16,19,18,8,9,10,10,3,18,6,11,11,1,1,2,9,11],
+    [47,64,10,8,14,17,16,7,8,10,8,3,18,6,11,11,0,2,2,8,9],
+    [100,100,100,71,100,100,100,65,75,78,93,26,100,56,84,100,0,0,13,45,45],
+    [100,100,32,27,58,31,60,18,27,29,38,5,51,18,28,40,0,1,6,10,14],
+    [93,79,17,18,30,25,24,11,17,17,21,5,23,10,17,25,1,0,4,5,9],
+    [85,57,9,13,18,17,17,9,13,9,22,4,16,7,11,19,0,1,11,4,6]
+    [100,100,100,100,77,23,31,57,87,21,95,40,49,19,42,100,2,0,100,16,13]
+]; //specific for usa movies
 var Cast = [];
 var reviewer = [];
 var title = [];
@@ -48,48 +48,58 @@ exports.usaMovies = function() {
 
 function insertTitle(done) {
     console.log('insertTitle ---->');
-    var count = 0,
+    var yearCount = 0,
         end = moviePages.length;
     async.whilst(
-        function () { return count < end; },
-        function (callback) {
-            var innerCount = 0;
+        function () { return yearCount < end; },
+        function (yearCallback) {
+            var genreCount = 0;
             async.whilst(
-                function () { console.log('innerCount: ' + innerCount); return innerCount < moviePages[count]; },
-                function (innercallback) {  
-                    url = 'http://maoyan.com/films?sourceId=3&yearId='+(11-count)+'&offset='+(innerCount*30)+'&sortId=1';
-                    request({
-                        url: url,   
-                        encoding: "utf8",
-                        method: "GET"
-                    }, function(err, response, body) {
-                        var $ = cheerio.load(body);
-                        console.log('yearPages: ' + (count+1) + '\n' + $('.movie-list .movie-item').length);
+                function () { console.log('genreCount: ' + genreCount); return genreCount < moviePages[yearCount].length; },
+                function (genreCallback) {  
+                    var pageCount = 0;
+                    async.whilst(
+                        function() { return pageCount <  moviePages[yearCount][genreCount]},
+                        function(pageCallback) {
+                            url = 'http://maoyan.com/films?sourceId=3&yearId='+(11-yearCount)+'&offset='+(pageCount*30)+'&sortId=1'+'&catId='+(genreCount+1);
+                            request({
+                                url: url,   
+                                encoding: "utf8",
+                                method: "GET"
+                            }, function(err, response, body) {
+                                var $ = cheerio.load(body);
+                                console.log('yearPages: ' + (yearCount+1) + '\n' + $('.movie-list .movie-item').length);
 
-                        $('.movie-list .movie-item-title').each(
-                            function(index, item) {
-                                console.log(opencc.convertSync($(item).attr('title')));
-                                link.push('http://maoyan.com'+$(item).find('a').attr('href'));
-                                title.push(opencc.convertSync($(item).attr('title')));
-                                movieList.push(opencc.convertSync($(item).attr('title')));
-                            }
-                        );
+                                $('.movie-list .movie-item-title').each(
+                                    function(index, item) {
+                                        console.log(opencc.convertSync($(item).attr('title')));
+                                        link.push('http://maoyan.com'+$(item).find('a').attr('href'));
+                                        title.push(opencc.convertSync($(item).attr('title')));
+                                        movieList.push(opencc.convertSync($(item).attr('title')));
+                                    }
+                                );
 
-                        $('.movie-list .channel-detail').each(
-                            function(index, item) {
-                                var foo = $(item).find('.integer').text()+$(item).find('.fraction').text();
-                                console.log(parseFloat(foo));
-                                rating.push(parseFloat(foo));
-                            }
-                        );
+                                $('.movie-list .channel-detail').each(
+                                    function(index, item) {
+                                        var foo = $(item).find('.integer').text()+$(item).find('.fraction').text();
+                                        console.log(parseFloat(foo));
+                                        rating.push(parseFloat(foo));
+                                    }
+                                );
 
-                        innerCount++;
-                        innercallback(null, innerCount);  
-                    });
+                                pageCount++;
+                                pageCallback(null, pageCount);  
+                            });
+                        },
+                        function(err, n) {
+                            genreCount++;
+                            genreCallback(null, genreCount);  
+                        }
+                    )
                 },
                 function (err, n) {
-                    count++;
-                    callback(null, count);
+                    yearCount++;
+                    yearCallback(null, yearCount);
                 }
             );
         },
@@ -117,7 +127,7 @@ function insertDetail(done) {
                         var originTitle = $('.ename').text(),
                             eventList = [];
 
-                        if ($('.tab-award li').length == 1) {
+                        if ($('.tab-award li').length > 0) {
                             $('.tab-award li').each(function(index, item) {
                                 if ($(item).find('.content').text().trim().indexOf('提名') == -1) {
                                      eventList.push({
