@@ -110,37 +110,6 @@ upComingPosterDescriptionScraper.prototype.parsePage = function (html) {
         }  
     }
 
-    /*if (typeof(url)!=='undefined') {
-      var bar = $('.slate_wrapper .poster a')[0];
-      var foo = $('.slate_wrapper .poster img')[0];
-      console.log(title);
-      // console.log(bar['attribs']['href']);
-      var path = 'http://www.imdb.com' + bar['attribs']['href'];
-      var hash = foo['attribs']['src'].split('images')[1];
-      console.log(foo['attribs']['src']);
-      hash = hash.split('._V1')[0].slice(3);
-      if (hash.indexOf('@')!= -1) {
-        hash = hash.split('@')[0];
-      }
-      console.log('hash code: ' + hash);
-    } else {
-      var bar = $('.minPosterWithPlotSummaryHeight .poster a')[0];
-      if (typeof(bar) == 'undefined') { //the movie without poster now 
-        return model = {
-          title: title,
-          description: description
-        }
-      }
-      var foo = $('.minPosterWithPlotSummaryHeight .poster img')[0];
-      var path = 'http://www.imdb.com' + bar['attribs']['href'];
-      var hash = foo['attribs']['src'].split('images')[1];
-      console.log(foo['attribs']['src']);
-      hash = hash.split('._V1')[0].slice(3);
-      if (hash.indexOf('@')!= -1) {
-        hash = hash.split('@')[0];
-      }
-    }*/
-
     return model = {
       title: title,
       url: path,
