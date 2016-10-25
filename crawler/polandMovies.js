@@ -279,7 +279,7 @@ function insertDetail(done) {
                                 $('.comment-container').each(function(index, item) {
                                 	reviewer.push({
 	                                    name: opencc.convertSync($(item).find('.main .name').text()),
-                                        avatar: $(item).find('.portrait img').attr('src').split('@')[0],
+                                        avatar: $(item).find('.portrait img').attr('src').split('@')[0] !== '' ? $(item).find('.portrait img').attr('src').split('@')[0] : null,
                                         topic: null,
                                         text: opencc.convertSync($(item).find('.comment-content').text().trim()),
                                         point: $(item).find('.score-star').attr('data-score'),
@@ -411,7 +411,7 @@ function cleanData(done) {
 
 function createIndex(done) {
     var movieObj = [];
-    dbTaiwan.taiwan.find({}, function(err, docs) {  
+    dbPoland.poland.find({}, function(err, docs) {  
         docs.forEach(function(item, index) {
             movieObj.push({
                 title: item['title'],

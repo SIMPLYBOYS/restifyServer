@@ -34,11 +34,10 @@ upComingPosterScraper.prototype.loadWebPage = function () {
   // console.log('\n\nLoading ' + website);
   console.log('loading ' + self.url);
 
-  var foo = self.url;
-  var bar = foo.split('title')[1];
-  foo = foo.split('title')[0] + '_json/title' + bar.split('mediaviewer')[0] + 'mediaviewer';
-  // foo = foo.split('?')[0] + '/tr?' + foo.split('?')[1]; //tricky part since 2016/6/5
-  http.get(foo, function (res) {
+  var path = self.url;
+  var bar = path.split('title')[1];
+  path = path.split('title')[0] + '_json/title' + bar.split('mediaviewer')[0] + 'mediaviewer';
+  http.get(path, function (res) {
     var body = '';
     if (res.statusCode !== 200) {
       return self.emit('error', STATUS_CODES[res.statusCode]);
@@ -64,7 +63,7 @@ upComingPosterScraper.prototype.parseJSON = function (json) {
     var that = this;
     var url;
     var title;
-    json.forEach(function(item, index){
+    json.forEach(function(item, index) {
       // console.log(item);
       // console.log(item['src'].indexOf(that.hash));
       if (item['src'].indexOf(that.hash) != -1) {

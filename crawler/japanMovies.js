@@ -311,7 +311,7 @@ function insertDetail(done) {
                                 	// console.log($(item).find('.comment-content').text().trim());
                                 	reviewer.push({
 	                                    name: opencc.convertSync($(item).find('.main .name').text()),
-	                                    avatar: $(item).find('.portrait img').attr('src').split('@')[0],
+	                                    avatar: $(item).find('.portrait img').attr('src').split('@')[0] !== '' ? $(item).find('.portrait img').attr('src').split('@')[0] : null,
 	                                    topic: null,
 	                                    text: opencc.convertSync($(item).find('.comment-content').text().trim()),
 	                                    point: $(item).find('.score-star').attr('data-score'),

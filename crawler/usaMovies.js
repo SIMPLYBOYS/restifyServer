@@ -129,7 +129,7 @@ function insertDetail(done) {
 
                         if ($('.tab-award li').length > 0) {
                             $('.tab-award li').each(function(index, item) {
-                                if ($(item).find('.content').text().trim().indexOf('提名') == -1) {
+                                if ($(item).find('.content').text().trim().indexOf('提名') == -1 && $(item).find('.content').text().trim().indexOf('获奖') != -1) {
                                      eventList.push({
                                         title: opencc.convertSync($(item).text().trim().split(' ')[0].replace(/\n/g,'')),
                                         award: opencc.convertSync($(item).find('.content').text().trim().split('获奖：')[1].split(' / ').join(',')),
@@ -137,7 +137,7 @@ function insertDetail(done) {
                                         icon: $(item).find('img').attr('src')
                                      })
                                 } 
-                                if ($(item).find('.content').text().trim().indexOf('获奖') == -1) {
+                                if ($(item).find('.content').text().trim().indexOf('获奖') == -1 && $(item).find('.content').text().trim().indexOf('提名') != -1) {
                                     eventList.push({
                                         title: opencc.convertSync($(item).text().trim().split(' ')[0].replace(/\n/g,'')),
                                         award: null,
