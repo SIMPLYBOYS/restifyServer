@@ -59,6 +59,7 @@ upComingPosterDescriptionScraper.prototype.parsePage = function (html) {
     var title = $('.title_wrapper h1').text().split('(')[0].trim();
     var director = [], stars = [];
     var length = $('.credit_summary_item').length;
+    var path;
     // console.log('\n\n0513 length ====> ' + length + '\n\n');
     $('.credit_summary_item').each(function(index, item) { 
       if (index != 1 || length == 2) {
