@@ -48,9 +48,8 @@ youTube.setKey(config.YouTubeKey);
 exports.updateupComing = function() {
     async.series([
         function(done) {
-             var url = start <= 12 ? 'http://www.imdb.com/movies-coming-soon/2016-' : 'http://www.imdb.com/movies-coming-soon/2017-';
-             var i;
-             for (i=start; i<=limit; i++) {
+             for (var i=start; i<=limit; i++) {
+                var url = i <= 12 ? 'http://www.imdb.com/movies-coming-soon/2016-' : 'http://www.imdb.com/movies-coming-soon/2017-';
                 if ((i%12)<10)
                     upComingPages.push(url + '0'+ (i%12) + '/');
                 else
