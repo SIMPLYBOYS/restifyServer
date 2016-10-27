@@ -127,6 +127,8 @@ server.get('/genre', Read.getGenre);
 
 server.get('/genre_topic', Read.getGenreTopic)
 
+server.get('/world/:country/:genre', Read.world);
+
 server.get('/imdb', Read.read);
 
 server.get('/imdb_title', Read.getTitle);
@@ -566,19 +568,19 @@ var job_gmTrendsUpdate = new cronJob(config.gmTrendsUpdate, function() {
 var job_worldMoviesScrape = new cronJob(config.worldMoviesScrape, function() {
     // twMovies.taiwanMovies();
     // hkMovies.honkongMovies();
-    // cnMovies.chinaMovies();
+    cnMovies.chinaMovies();
     // jpMovies.japanMovies();
     // krMovies.koreaMovies();
     // frMovies.franceMovies();
     // ukMovies.ukMovies();
     // gmMovies.germanyMovies();
     // auMovies.australiaMovies();
-    // tlMovies.thailandMovies();
+    //tlMovies.thailandMovies();
     // idMovies.indiaMovies();
     // itMovies.italiaMovies();
     // spMovies.spainMovies();
     // plMovies.polandMovies();
-    usMovies.usaMovies();
+    // usMovies.usaMovies();
 })
 
 /*var job_twTrendsUpdate = new cronJob(config.recordUpdate, function () {

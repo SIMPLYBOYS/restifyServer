@@ -16,7 +16,15 @@ var dbFrance = config.dbFrance;
 var dbTaiwan = config.dbTaiwan;
 var dbReview = config.dbReview;
 var dbGermany = config.dbGermany;
+var dbAustralia = config.dbAustralia;
+var dbHonKong = config.dbHonKong;
+var dbItalia = config.dbItalia;
+var dbSpain = config.dbSpain;
+var dbThailand = config.dbThailand;
+var dbIndia = config.dbIndia;
+var dbPoland = config.dbPoland;
 var dbChina = config.dbChina;
+var dbUK = config.dbUK;
 var dbUSA = config.dbUSA;
 var dbUser = config.dbUser;
 var myapiToken = config.myapiToken;
@@ -117,6 +125,63 @@ exports.read = function (req, res, next) {
         res.end();
     }
 };
+
+exports.world = function (req, res, next) {
+    var channel = req.params.channel,
+        genre = req.params.genre,
+        foo = {};
+
+    switch (parseInt(channel)) {
+       case 1:
+          type = 'australia';
+          break;
+       case 2:
+          type = 'china';
+          break;
+       case 3:
+          type = 'france';
+          break;
+       case 4:
+          type = 'germany';
+          break;
+       case 5:
+          type = 'hongkong';
+          break;
+       case 6:
+          type = 'india';
+          break;
+       case 7:
+          type = 'italia';
+          break;
+       case 8:
+          type = 'japan';
+          break;
+       case 9:
+          type = 'korea';
+          break;
+       case 10:
+          type = 'poland';
+          break;
+       case 11:
+          type = 'spain';
+          break;
+       case 12: 
+          dbTaiwan.taiwan.find({'title': req.query.title}, function(err, docs) {
+            foo['contents'] = docs;
+            res.end(JSON.stringify(foo));
+          });
+          break;
+       case 13:
+          type = 'thailand';
+          break;
+       default:
+          dbIMDB.imdb.find({'title': req.query.title}, function(err, docs) {
+            foo['contents'] = docs;
+            res.end(JSON.stringify(foo));
+          });
+          break;
+    }
+}
 
 exports.access_refresh_token = function(req, res) {
   var code = req.query.code;
