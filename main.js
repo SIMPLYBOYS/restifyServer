@@ -129,6 +129,8 @@ server.get('/genre_topic', Read.getGenreTopic)
 
 server.get('/world/:country/:genre', Read.world);
 
+server.get('/upcoming', Read.upcoming);
+
 server.get('/imdb', Read.read);
 
 server.get('/imdb_title', Read.getTitle);

@@ -126,12 +126,31 @@ exports.read = function (req, res, next) {
     }
 };
 
+exports.upcoming = function(req, res, next) {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
+    var foo = {};
+    dbIMDB.imdb.find({releaseDate: {$gte: parseInt(req.query.release_from)}}).sort({'releaseDate': 1}).skip(parseInt(req.query.skip)).limit(30, function(err, docs){
+        var foo = {};
+        foo['contents'] = docs;
+        foo['byTitle'] = false;
+        var bar = [];
+        console.log(docs.length);
+        for (var i=0; i<docs.length; i++) {
+            if (typeof(docs[i]['description']) == 'undefined')
+                bar.push(docs[i]['title']);
+        }
+        res.end(JSON.stringify(foo));
+    });
+}
+
 exports.world = function (req, res, next) {
-    var channel = req.params.channel,
+    var country = req.params.country,
         genre = req.params.genre,
         foo = {};
 
-    switch (parseInt(channel)) {
+    res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});
+
+    switch (parseInt(country)) {
        case 1:
           type = 'australia';
           break;
