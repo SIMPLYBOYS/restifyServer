@@ -129,7 +129,7 @@ exports.read = function (req, res, next) {
 exports.upcoming = function(req, res, next) {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     var foo = {};
-    dbIMDB.imdb.find({releaseDate: {$gte: parseInt(req.query.release_from)}}).sort({'releaseDate': 1}).skip(parseInt(req.query.skip)).limit(30, function(err, docs){
+    dbIMDB.imdb.find({releaseDate: {$gte: parseInt(req.query.release_from)}}).sort({'releaseDate': 1}).skip(parseInt(req.query.skip)).limit(10, function(err, docs){
         var foo = {};
         foo['contents'] = docs;
         foo['byTitle'] = false;
