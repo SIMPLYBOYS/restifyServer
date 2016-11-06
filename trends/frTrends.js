@@ -125,9 +125,10 @@ function insertTitle(done) {
 function insertPoster(done) {
     console.log('insertPoster ---->');
     var count = 0,
-        poster;
+        poster,
+        end = posterPages.length;
     async.whilst(
-        function () { return count < 9 },
+        function () { return count < end },
         function (callback) {
             poster = posterPages.pop(); 
             console.log(poster['title'] + '---->');
@@ -162,9 +163,10 @@ function insertPoster(done) {
 function prepareGalleryPages(done) {
     console.log('prepareGalleryPages -------->');
     var count = 0,
-        gallery;
+        gallery,
+        end = GalleryPages.length;
     async.whilst(
-        function () { return count < 9 },
+        function () { return count < end },
         function (callback) {
             gallery = GalleryPages.pop(); 
             console.log(gallery);
@@ -199,9 +201,10 @@ function prepareGalleryPages(done) {
 function insertReview(done) {
     console.log('insertReview -------->');
     var count = 0,
-        cast;
+        cast,
+        end = finalReviewPages.length;
     async.whilst(
-        function () { return count < 9 },
+        function () { return count < end },
         function (callback) {
             var innerCount = 0,
                 reviewer = [],
@@ -277,9 +280,10 @@ function insertCast(done) {
         cast,
         as,
         link,
-        Cast;
+        Cast,
+        end = finalCastPages.length;
     async.whilst(
-        function () { return count < 9 },
+        function () { return count < end },
         function (callback) {
             cast = finalCastPages.pop();
             Cast = [];
@@ -593,8 +597,8 @@ function insertDetail(done) {
                                         story: null,
                                         data: data
                                     }},function() {
-                                        count++;
                                         console.log(title[count] + ' updated!');
+                                        count++;
                                         callback(null, count);
                                 });
                             });
