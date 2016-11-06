@@ -237,6 +237,7 @@ function createIndex(done) {
                 movieObj.push({
                     title: item['title'],
                     id: item['_id'],
+                    originTitle: item['originTitle'],
                     posterUrl: item['posterUrl'],
                     description: item['description']
                 });
@@ -255,7 +256,8 @@ function createIndex(done) {
                     body: {
                       title: movieObj[count]['title'],
                       posterUrl: movieObj[count]['posterUrl'],
-                      description: movieObj[count]['description']
+                      description: movieObj[count]['description'],
+                      originTitle: movieObj[count]['originTitle']
                     }
                   }, function (error, response) {
                     console.log(error+'\n'+response);
