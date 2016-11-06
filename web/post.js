@@ -11,7 +11,7 @@ var jobs = kue.createQueue();
 exports.gcmTopic = function(message, done) {
   var options = {
         method: 'POST',
-        url: 'https://gcm-http.googleapis.com/gcm/send',
+        url: 'https://fcm.googleapis.com/fcm/send',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': 'key='+GCMKey
@@ -20,7 +20,16 @@ exports.gcmTopic = function(message, done) {
   };
 
   options.body = { 
-        "to": "/topics/global",
+          "to": "/topics/global",
+          "priority" : "normal",
+          "notification" : {
+          "body" : 'In: ' + message['In'] +
+                   '\nOut: ' + message['Out'] +
+                   '\nUp: ' + message['Up'].join(' ') +
+                   '\nDown: ' + message['Down'].join(' '),
+          "title" : "最新IMDB排名變動",
+          "icon" : "new"
+        },
         "data": { "message": 'In: ' + message['In'] +
                   '\nOut: ' + message['Out'] +
                   '\nUp: ' + message['Up'].join(' ') + 
