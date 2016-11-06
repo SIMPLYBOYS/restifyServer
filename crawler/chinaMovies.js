@@ -36,11 +36,12 @@ var opencc = new OpenCC('s2tw.json');
 
 exports.chinaMovies = function() {
     async.series([
-        insertTitle,
+        /*insertTitle,
         insertDetail,
         insertTrailer,
-        cleanData,
-        createIndex
+        cleanData,*/
+        updateGenre/*,
+        createIndex*/
     ],
     function (err) {
         if (err) console.error(err.stack);
@@ -245,27 +246,12 @@ function insertDetail(done) {
                                 country = opencc.convertSync(country);
                                 runTime = runTime != undefined ? opencc.convertSync(runTime) : '';
                                 console.log(runTime + '\n' + country);
-
                                 year = releaseDate.split('-')[0];
                                 type = null;
                                 content = $('.dra').text().trim();
-
                                 mainInfo = opencc.convertSync(content);
                                 story = mainInfo;
                                 
-                                // $('.movie-stats-container .banner-stats').each(function(index, item) {
-                                // 	if (index == 0) {
-                                // 		// rating = parseInt($('.imdbRating .ratingValue strong span').text());
-                                // 		// votes = parseInt($('.imdbRating a').text());
-                                // 		if (typeof($(item).find('.info-num .stonefont')[0])!= 'undefined')
-                                // 			console.log(encodeURIComponent($(item).find('.info-num .stonefont')[0]['children'][0]['data']));
-
-                                // 		$(item).find('.stonefont').each(function(index, item) {
-                                // 			console.log(encodeURIComponent($(item)[0]['children'][0]['data']));
-                                // 		})
-                                // 	}
-                                // });
-
                                 $('.tab-celebrity .celebrity-group').each(function(index, item) {
                                 	if (index == 0) {
                                 		$(item).find('.info').each(function(index, item) {
@@ -289,19 +275,6 @@ function insertDetail(done) {
                                 		});
                                 	}
                                 });                           
-                                                              
-                                // $('#titleDetails .txt-block').each(function(index, item) {
-                                //     if ($(item).text().trim().indexOf('Budget') == 0)
-                                //         budget = $(item).text().trim().split(':')[1].split('(')[0].trim();
-                                //     else if ($(item).text().trim().indexOf('Gross') == 0)
-                                //         cross = $(item).text().trim().split(':')[1].split('(')[0].trim();
-                                //     else if ($(item).text().trim().indexOf('Country') == 0)
-                                //         country = $(item).text().trim().split(':')[1].split('|')[0].trim();
-                                // });
-
-                                // $('.txt-block .itemprop').each(function(index, item) {
-                                //     studio.push($(item).text());
-                                // });
 
                                 $('.comment-container').each(function(index, item) {
                                 	// console.log($(item).find('.portrait img').attr('src').split('@')[0]);
@@ -352,7 +325,7 @@ function insertDetail(done) {
                                                 
                                 dbChina.china.update({'title': movieList[count]}, {'$set': {
                                         originTitle: originTitle,
-                                        genre: genre,
+                                        genre: genre.split(','),
                                         releaseDate: releaseDate,
                                         runTime: runTime,
                                         type: type,
@@ -441,6 +414,37 @@ function cleanData(done) {
     });
 }
 
+function updateGenre(done) {
+    var movieObj = [];
+     dbChina.china.find({}, function(err, docs) {  
+        docs.forEach(function(item, index) {
+            movieObj.push({
+                title: item['title'],
+                genre: item['genre']
+            })
+        });
+        var count = 0;
+        async.whilst(
+            function() { return count < movieObj.length},
+            function(callback) {
+                console.log(movieObj[count]['title']+' ---> update');
+                dbChina.china.update({title: movieObj[count]['title']}, {$set: {
+                    genre: opencc.convertSync(movieObj[count]['genre']).split(',')
+                }}, function(err, doc) {
+                    if (!err) {
+                        count++;
+                        callback(null, count);
+                    }
+                });
+            },
+            function(err, n) {
+                console.log('clean ch films finish ' + n);
+                done(null);
+            }
+        );
+     });
+}
+
 function createIndex(done) {
     var movieObj = [];
     dbChina.china.find({}, function(err, docs) {  
@@ -448,6 +452,7 @@ function createIndex(done) {
             movieObj.push({
                 title: item['title'],
                 id: item['_id'],
+                originTitle: item['originTitle'],
                 posterUrl: item['posterUrl'],
                 description: item['description']
             });
@@ -465,7 +470,8 @@ function createIndex(done) {
                     body: {
                       title: movieObj[count]['title'],
                       posterUrl: movieObj[count]['posterUrl'],
-                      description: movieObj[count]['description']
+                      description: movieObj[count]['description'],
+                      originTitle: movieObj[count]['originTitle']
                     }
                   }, function (error, response) {
                     console.log(error+'\n'+response);
