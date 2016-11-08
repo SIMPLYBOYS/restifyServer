@@ -105,8 +105,13 @@ upComingGalleryScraper.prototype.parsePage = function (html) {
   if (typeof(picturesUrl) == 'undefined') {
     foo = $('#imageJson').text();
     bar = JSON.parse(foo);
-    bar.mediaViewerModel.allImages[position-1]['src']
-    picturesUrl = bar.mediaViewerModel.allImages[position-1]['src'];
+    // bar.mediaViewerModel.allImages[position-1]['src']
+    if (typeof(bar) == 'undefined')
+      self.emit('error', null);
+    else if (bar.mediaViewerModel.allImages.length > (position-1))
+      picturesUrl = bar.mediaViewerModel.allImages[position-1]['src'];
+    else
+      picturesUrl = "";
   }
 
   console.log('title ====> ' + title);
