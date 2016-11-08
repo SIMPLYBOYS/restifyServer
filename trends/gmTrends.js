@@ -51,9 +51,9 @@ function insertTitle(done) {
 
         var $ = cheerio.load(body);
 
-        $('.movie li').each(function(index, item) {
-        	title.push($(item).find('.teaser-name a').text().split('.')[1].trim());
-        	link.push($(item).find('.teaser-name a').attr('href'));
+        $('.teaser h3').each(function(index, item) {
+        	title.push($(item).find('a').text().split('.')[1].trim());
+        	link.push($(item).find('a').attr('href'));
         });
 
         var count = 0;
