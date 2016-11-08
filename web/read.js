@@ -145,7 +145,7 @@ exports.upcoming = function(req, res, next) {
 
 exports.world = function (req, res, next) {
     var country = req.params.country,
-        genre = req.params.genre,
+        genre = req.query.genre,
         foo = {};
 
     res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});
@@ -253,9 +253,80 @@ exports.refresh_token = function(req, res) {
 
 exports.getGenre = function(req, res) {
     // console.log('date -------> ' + moment().subtract(10, 'days').calendar());
-    dbIMDB.imdb.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
-        res.end(JSON.stringify(docs));
-    });
+    var country = req.query.country;
+    res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'}); 
+    switch (parseInt(country)) {
+       case 1:
+          dbAustralia.australia.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 2:
+          dbChina.china.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 3:
+          dbFrance.france.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 4:
+          dbGermany.germany.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 5:
+          dbHonKong.hongkong.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 6:
+          dbIndia.india.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 7:
+          dbItalia.italia.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 8:
+          dbJapan.japan.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 9:
+          dbKorea.korea.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 10:
+          dbPoland.poland.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 11:
+          dbSpain.spain.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 12: 
+          dbTaiwan.taiwan.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 13:
+          dbThailand.thailand.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       default:
+          dbIMDB.imdb.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+            res.end(JSON.stringify(docs));
+          });
+          break;
+    }
 };
 
 exports.getGenreTopic = function(req, res) {
