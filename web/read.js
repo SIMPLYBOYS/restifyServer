@@ -152,37 +152,70 @@ exports.world = function (req, res, next) {
 
     switch (parseInt(country)) {
        case 1:
-          type = 'australia';
+           dbAustralia.australia.find({'title': req.query.title}, function(err, docs) {
+            foo['contents'] = docs;
+            res.end(JSON.stringify(foo));
+          });
           break;
        case 2:
-          type = 'china';
+           dbChina.china.find({'title': req.query.title}, function(err, docs) {
+            foo['contents'] = docs;
+            res.end(JSON.stringify(foo));
+          });
           break;
        case 3:
-          type = 'france';
+           dbFrance.france.find({'title': req.query.title}, function(err, docs) {
+            foo['contents'] = docs;
+            res.end(JSON.stringify(foo));
+          });
           break;
        case 4:
-          type = 'germany';
+          dbGermany.germany.find({'title': req.query.title}, function(err, docs) {
+            foo['contents'] = docs;
+            res.end(JSON.stringify(foo));
+          });
           break;
        case 5:
-          type = 'hongkong';
+          dbHonKong.hongkong.find({'title': req.query.title}, function(err, docs) {
+            foo['contents'] = docs;
+            res.end(JSON.stringify(foo));
+          });
           break;
        case 6:
-          type = 'india';
+          dbIndia.india.find({'title': req.query.title}, function(err, docs) {
+            foo['contents'] = docs;
+            res.end(JSON.stringify(foo));
+          });
           break;
        case 7:
-          type = 'italia';
+          dbItalia.italia.find({'title': req.query.title}, function(err, docs) {
+            foo['contents'] = docs;
+            res.end(JSON.stringify(foo));
+          });
           break;
        case 8:
-          type = 'japan';
+          dbJapan.japan.find({'title': req.query.title}, function(err, docs) {
+            foo['contents'] = docs;
+            res.end(JSON.stringify(foo));
+          });
           break;
        case 9:
-          type = 'korea';
+          dbKorea.korea.find({'title': req.query.title}, function(err, docs) {
+            foo['contents'] = docs;
+            res.end(JSON.stringify(foo));
+          });
           break;
        case 10:
-          type = 'poland';
+          dbPoland.poland.find({'title': req.query.title}, function(err, docs) {
+            foo['contents'] = docs;
+            res.end(JSON.stringify(foo));
+          });
           break;
        case 11:
-          type = 'spain';
+          dbSpain.spain.find({'title': req.query.title}, function(err, docs) {
+            foo['contents'] = docs;
+            res.end(JSON.stringify(foo));
+          });
           break;
        case 12: 
           dbTaiwan.taiwan.find({'title': req.query.title}, function(err, docs) {
@@ -191,7 +224,10 @@ exports.world = function (req, res, next) {
           });
           break;
        case 13:
-          type = 'thailand';
+          dbThailand.thailand.find({'title': req.query.title}, function(err, docs) {
+            foo['contents'] = docs;
+            res.end(JSON.stringify(foo));
+          });
           break;
        default:
           dbIMDB.imdb.find({'title': req.query.title}, function(err, docs) {
