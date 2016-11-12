@@ -176,7 +176,7 @@ exports.world = function (req, res, next) {
           });
           break;
        case 5:
-          dbHonKong.hongkong.find({'title': req.query.title}, function(err, docs) {
+          dbHonKong.honkong.find({'title': req.query.title}, function(err, docs) {
             foo['contents'] = docs;
             res.end(JSON.stringify(foo));
           });
@@ -229,6 +229,12 @@ exports.world = function (req, res, next) {
             res.end(JSON.stringify(foo));
           });
           break;
+       case 15:
+          dbUK.uk.find({'title': req.query.title}, function(err, docs){
+            foo['contents'] = docs;
+            res.end(JSON.stringify(foo));
+          });
+          break;
        default:
           dbIMDB.imdb.find({'title': req.query.title}, function(err, docs) {
             foo['contents'] = docs;
@@ -236,6 +242,165 @@ exports.world = function (req, res, next) {
           });
           break;
     }
+}
+
+exports.worldReview = function(req, res) {
+    var country = req.params.country,
+        foo = {},
+        start = parseInt(req.query.start),
+        end = start + 10;
+    es.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});
+    switch (parseInt(country)) {
+       case 1:
+        dbAustralia.australia.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+          function(err, doc) {
+            foo['title'] = doc[0]['title'];
+            foo['review'] = doc[0]['review'].slice(start,end);
+            foo['byTitle'] = false;
+            foo['size'] = doc[0]['review'].length;
+            res.end(JSON.stringify(foo));
+        });
+        break;
+       case 2:
+        dbChina.china.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+          function(err, doc) {
+            foo['title'] = doc[0]['title'];
+            foo['review'] = doc[0]['review'].slice(start,end);
+            foo['byTitle'] = false;
+            foo['size'] = doc[0]['review'].length;
+            res.end(JSON.stringify(foo));
+        });
+        break;
+       case 3:
+        dbFrance.france.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+          function(err, doc) {
+            foo['title'] = doc[0]['title'];
+            foo['review'] = doc[0]['review'].slice(start,end);
+            foo['byTitle'] = false;
+            foo['size'] = doc[0]['review'].length;
+            res.end(JSON.stringify(foo));
+        });
+        break;
+       case 4:
+        dbGermany.germany.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+          function(err, doc) {
+            foo['title'] = doc[0]['title'];
+            foo['review'] = doc[0]['review'].slice(start,end);
+            foo['byTitle'] = false;
+            foo['size'] = doc[0]['review'].length;
+            res.end(JSON.stringify(foo));
+        });
+        break;
+       case 5:
+        dbHonKong.honkong.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+          function(err, doc) {
+            foo['title'] = doc[0]['title'];
+            foo['review'] = doc[0]['review'].slice(start,end);
+            foo['byTitle'] = false;
+            foo['size'] = doc[0]['review'].length;
+            res.end(JSON.stringify(foo));
+        });
+        break;
+       case 6:
+        dbIndia.india.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+          function(err, doc) {
+            foo['title'] = doc[0]['title'];
+            foo['review'] = doc[0]['review'].slice(start,end);
+            foo['byTitle'] = false;
+            foo['size'] = doc[0]['review'].length;
+            res.end(JSON.stringify(foo));
+        });
+        break;
+       case 7:
+        dbItalia.italia.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+          function(err, doc) {
+            foo['title'] = doc[0]['title'];
+            foo['review'] = doc[0]['review'].slice(start,end);
+            foo['byTitle'] = false;
+            foo['size'] = doc[0]['review'].length;
+            res.end(JSON.stringify(foo));
+        });
+        break;
+       case 8:
+        dbJapan.japan.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+          function(err, doc) {
+            foo['title'] = doc[0]['title'];
+            foo['review'] = doc[0]['review'].slice(start,end);
+            foo['byTitle'] = false;
+            foo['size'] = doc[0]['review'].length;
+            res.end(JSON.stringify(foo));
+        });
+        break;
+       case 9:
+        dbKorea.korea.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+          function(err, doc) {
+            foo['title'] = doc[0]['title'];
+            foo['review'] = doc[0]['review'].slice(start,end);
+            foo['byTitle'] = false;
+            foo['size'] = doc[0]['review'].length;
+            res.end(JSON.stringify(foo));
+        });
+        break;
+       case 10:
+        dbPoland.poland.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+          function(err, doc) {
+            foo['title'] = doc[0]['title'];
+            foo['review'] = doc[0]['review'].slice(start,end);
+            foo['byTitle'] = false;
+            foo['size'] = doc[0]['review'].length;
+            res.end(JSON.stringify(foo));
+        });
+        break;
+       case 11:
+        dbSpain.spain.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+          function(err, doc) {
+            foo['title'] = doc[0]['title'];
+            foo['review'] = doc[0]['review'].slice(start,end);
+            foo['byTitle'] = false;
+            foo['size'] = doc[0]['review'].length;
+            res.end(JSON.stringify(foo));
+        });
+        break;
+       case 12: 
+        dbTaiwan.taiwan.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+          function(err, doc) {
+            foo['title'] = doc[0]['title'];
+            foo['review'] = doc[0]['review'].slice(start,end);
+            foo['byTitle'] = false;
+            foo['size'] = doc[0]['review'].length;
+            res.end(JSON.stringify(foo));
+        });
+        break;
+       case 13:
+        dbThailand.thailand.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+          function(err, doc) {
+            foo['title'] = doc[0]['title'];
+            foo['review'] = doc[0]['review'].slice(start,end);
+            foo['byTitle'] = false;
+            foo['size'] = doc[0]['review'].length;
+            res.end(JSON.stringify(foo));
+        });
+        break;
+       case 15:
+        dbUK.uk.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+          function(err, doc) {
+            foo['title'] = doc[0]['title'];
+            foo['review'] = doc[0]['review'].slice(start,end);
+            foo['byTitle'] = false;
+            foo['size'] = doc[0]['review'].length;
+            res.end(JSON.stringify(foo));
+        });
+        break;
+       default:
+        dbIMDB.imdb.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
+          function(err, doc) {
+            foo['title'] = doc[0]['title'];
+            foo['review'] = doc[0]['review'].slice(start,end);
+            foo['byTitle'] = false;
+            foo['size'] = doc[0]['review'].length;
+            res.end(JSON.stringify(foo));
+        });
+        break;
 }
 
 exports.access_refresh_token = function(req, res) {
@@ -293,72 +458,77 @@ exports.getGenre = function(req, res) {
     res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'}); 
     switch (parseInt(country)) {
        case 1:
-          dbAustralia.australia.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbAustralia.australia.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
        case 2:
-          dbChina.china.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbChina.china.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
        case 3:
-          dbFrance.france.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbFrance.france.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
        case 4:
-          dbGermany.germany.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbGermany.germany.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
        case 5:
-          dbHonKong.hongkong.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbHonKong.honkong.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
        case 6:
-          dbIndia.india.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbIndia.india.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
        case 7:
-          dbItalia.italia.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbItalia.italia.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
        case 8:
-          dbJapan.japan.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbJapan.japan.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
        case 9:
-          dbKorea.korea.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbKorea.korea.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
        case 10:
-          dbPoland.poland.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbPoland.poland.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
        case 11:
-          dbSpain.spain.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbSpain.spain.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
        case 12: 
-          dbTaiwan.taiwan.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbTaiwan.taiwan.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
        case 13:
-          dbThailand.thailand.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbThailand.thailand.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 15:
+          dbUK.uk.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
        default:
-          dbIMDB.imdb.find({genre: req.query.type}).sort({title:1,"rating.score":-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbIMDB.imdb.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
