@@ -23,7 +23,7 @@ function searchDocument(channel, input) {
           type = 'germany';
           break;
        case 5:
-          type = 'hongkong';
+          type = 'honkong';
           break;
        case 6:
           type = 'india';
@@ -48,6 +48,9 @@ function searchDocument(channel, input) {
           break;
        case 13:
           type = 'thailand';
+          break;
+       case 15:
+          type = 'uk';
           break;
        default:
           type = 'imdb'
