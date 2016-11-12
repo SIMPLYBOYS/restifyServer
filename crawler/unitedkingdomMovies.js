@@ -174,6 +174,7 @@ function insertDetail(done) {
                                     content,
                                     mainInfo,
                                     gallerySize,
+                                    description = [];
                                     data = [];
 
                                 if ($('.award-list') != null) {
@@ -260,24 +261,28 @@ function insertDetail(done) {
                                 // });
 
                                 $('.tab-celebrity .celebrity-group').each(function(index, item) {
-                                	if (index == 0) {
-                                		$(item).find('.info').each(function(index, item) {
-                                			staff.push({
-                                				staff: opencc.convertSync($(item).text().trim().split(' ')[0]),
-                                				link: 'http://maoyan.com'+$(item).find('a').attr('href')
-                                			});
-                                		});
-                                	} else if (index == 1) {	
-                                		$(item).find('.actor').each(function(index, item) {
-                                			Cast.push({
-					                            cast: opencc.convertSync($(item).find('.info a').text().trim()),
-					                            as: $(item).find('.role').text().trim().split('：')[1],
-					                            link: 'http://maoyan.com'+$(item).find('.info a').attr('href'),
-					                            avatar: $(item).find('img').attr('data-src').split('@')[0]
-					                        });
-                                		});
-                                	}
-                                });                           
+                                    if (index == 0) {
+                                        $(item).find('.info').each(function(index, item) {
+                                            var dirName = opencc.convertSync($(item).text().trim().split(' ')[0]);
+                                            staff.push({
+                                                staff: dirName,
+                                                link: 'http://maoyan.com'+$(item).find('a').attr('href')
+                                            });
+                                            description.push(dirName.split(' ')[0].trim()+'(dir)');
+                                        });
+                                    } else if (index == 1) {    
+                                        $(item).find('.actor').each(function(index, item) {
+                                            var castName = opencc.convertSync($(item).find('.info a').text().trim());
+                                            Cast.push({
+                                                cast: opencc.convertSync($(item).find('.info a').text().trim()),
+                                                as: $(item).find('.role').text().trim().split('：')[1],
+                                                link: 'http://maoyan.com'+$(item).find('.info a').attr('href'),
+                                                avatar: $(item).find('img').attr('data-src').split('@')[0]
+                                            });
+                                            description.push(castName);
+                                        });
+                                    }
+                                });                                
                                                               
                                 // $('#titleDetails .txt-block').each(function(index, item) {
                                 //     if ($(item).text().trim().indexOf('Budget') == 0)
@@ -348,6 +353,7 @@ function insertDetail(done) {
                                         story: story,
                                         staff: staff,
                                         eventList: eventList,
+                                        description: description.join(','),
                                         cast: Cast,
                                         review: reviewer,
                                         data: data,
@@ -372,6 +378,49 @@ function insertDetail(done) {
                 }
         );
 }
+
+function updateDescription(done) {
+    var movieObj = [];
+    console.log('updateDescription --->');
+    dbUK.uk.find({}, function(err, docs) {
+        docs.forEach(function(doc, index) {
+            var description = [];
+            if (typeof(doc['staff'][0]) != 'undefined') {
+
+              description.push(doc['staff'][0]['staff']+'(dir)');
+              doc['cast'].forEach(function(item, index) {
+                 description.push(','+item['cast']);
+              });
+            } else {
+              description.push("");
+            }
+            movieObj.push({
+               title: doc['title'],
+               description: description.join(',')
+            });
+        });
+        var count = 0;
+        async.whilst(
+            function() { return count < movieObj.length},
+            function(callback) {
+                dbUK.uk.update({title: movieObj[count]['title']}, {'$set': {
+                    description: movieObj[count]['description'].split(',,').join(',')
+                }}, function(err, doc) {
+                    if (!err) {
+                        console.log(movieObj[count]['title']+' update!');
+                        count++;
+                        callback(null, count);
+                    }
+                });
+            },
+            function(err, n) {
+                console.log('update description of unitedkingdom films finish ' + n);
+                done(null);
+            }
+        );
+    });
+}
+
 
 function insertTrailer(done) {
     console.log('insertTrailer -------->');

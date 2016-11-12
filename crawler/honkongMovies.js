@@ -388,7 +388,7 @@ function cleanData(done) {
                     id: item['_id']
                 });
             }
-        })
+        });
         var count = 0;
         async.whilst(
             function() { return count < movieObj.length},

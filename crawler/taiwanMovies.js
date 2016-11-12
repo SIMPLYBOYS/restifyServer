@@ -40,6 +40,8 @@ exports.taiwanMovies = function() {
         insertDetail,
         insertTrailer,
         cleanData,*/
+        updateReleaseDate,
+        updateGenre,
         createIndex
     ],
     function (err) {
@@ -47,6 +49,35 @@ exports.taiwanMovies = function() {
           console.log('all jobs for taiwan movies update finished!!');
     });
 };
+
+function updateReleaseDate(done) {
+    var movieObj = [];
+    dbTaiwan.taiwan.find({}, function(err, docs) {  
+        docs.forEach(function(item, index) {
+            movieObj.push({
+                title: item['title'],
+                releaseDate: parseInt(item['releaseDate'].split('-').join(''))
+            });
+        })
+        var count = 0;
+        async.whilst(
+            function() { return count < movieObj.length},
+            function(callback) {
+                dbTaiwan.taiwan.update({title: movieObj[count]['title']}, {$set: {releaseDate: movieObj[count]['releaseDate']}},
+                 function(err, doc) {
+                    if (!err) {
+                        count++;
+                        callback(null, count);
+                    }
+                });
+            },
+            function(err, n) {
+                console.log('clean tw films finish ' + n);
+                done(null);
+            }
+        );
+    });
+}
 
 function insertTitle(done) {
     console.log('insertTitle ---->');
@@ -379,11 +410,21 @@ function cleanData(done) {
     var movieObj = [];
     dbTaiwan.taiwan.find({}, function(err, docs) {  
         docs.forEach(function(item, index) {
-            if (!item.hasOwnProperty('posterUrl') || item['genre'].indexOf('電視劇') != -1) {
+            if (!item.hasOwnProperty('posterUrl')) {
                 console.log('removeList: ' + item['title'] + ' ' + item['_id']);
                 movieObj.push({
                     title: item['title'],
                     id: item['_id']
+                });
+            } else {
+                item['genre'].forEach(function(genre, index) {
+                    if (genre == '電視劇') {
+                        movieObj.push({
+                            title: item['title'],
+                            id: item['_id']
+                        });
+                        return;
+                    }
                 });
             }
         })
@@ -440,7 +481,6 @@ function createIndex(done) {
                         count++;
                         callback(null, count);
                     }
-                    // console.log('finish create Index!');
                   });
             },
             function(err, n) {
@@ -449,4 +489,158 @@ function createIndex(done) {
             }
         );
     });
+}
+
+function clearIndex(done) {
+    var movieObj = [];
+    dbTaiwan.taiwan.find({}, function(err, docs) {  
+        docs.forEach(function(item, index) {
+            movieObj.push({
+                title: item['title'],
+                id: item['_id'],
+                posterUrl: item['posterUrl'],
+                description: item['description'],
+                originTitle: item['originTitle']
+            });
+        });
+        console.log(movieObj.length);
+        var count = 0;
+        async.whilst(
+            function() { return count < movieObj.length},
+            function(callback) {
+                console.log('count: ' + count);
+                elasticClient.delete({
+                    index: 'test',
+                    type: 'taiwan',
+                    id: movieObj[count]['id'].toString()
+                  }, function (error, response) {
+                    console.log(error+'\n'+response);
+                    if (!error) {
+                        count++;
+                        callback(null, count);
+                    }
+                  });
+            },
+            function(err, n) {
+                console.log('tw films clean finish ' + n);
+                done(null);
+            }
+        );
+    });
+}
+
+function updateGenre(done) {
+    var movieObj = [];
+     dbTaiwan.taiwan.find({}, function(err, docs) {
+
+        docs.forEach(function(item, index) {
+            if (item.hasOwnProperty('genre')) {
+                movieObj.push({
+                    title: item['title'],
+                    genre: item['genre']
+                });
+            }
+        });
+        var count = 0;
+        async.whilst(
+            function() { return count < movieObj.length},
+            function(callback) {
+                console.log(movieObj[count]['title']+' ---> update');
+                
+                movieObj[count]['genre'].forEach(function(item, index) {
+                    switch(item) {
+                        case '劇情':
+                            movieObj[count]['genre'][index] = 'Drama';
+                            break;
+                        case '犯罪':
+                            movieObj[count]['genre'][index] = 'Crime';
+                            break;
+                        case '懸疑':
+                            movieObj[count]['genre'][index] = 'Mystery';
+                            break;
+                        case '驚悚':
+                            movieObj[count]['genre'][index] = 'Thriller';
+                            break;
+                        case '喜劇':
+                            movieObj[count]['genre'][index] = 'Comedy';
+                            break;
+                        case '動畫':
+                            movieObj[count]['genre'][index] = 'Animation';
+                            break;
+                        case '音樂':
+                            movieObj[count]['genre'][index] = 'Music';
+                            break;
+                        case '歌舞':
+                            movieObj[count]['genre'][index] = 'Musical';
+                            break;
+                        case '動作':
+                            movieObj[count]['genre'][index] = 'Action';
+                            break;
+                        case '冒險':
+                            movieObj[count]['genre'][index] = 'Adventure';
+                            break;
+                        case '恐怖':
+                            movieObj[count]['genre'][index] = 'Horror';
+                            break;
+                        case '奇幻':
+                            movieObj[count]['genre'][index] = 'Fantasy';
+                            break;
+                        case '記錄片': //紀錄片
+                            movieObj[count]['genre'][index] = 'Documentary';
+                            break;
+                        case '武俠':
+                            movieObj[count]['genre'][index] = 'Martial-Arts';
+                            break;
+                        case '家庭':
+                            movieObj[count]['genre'][index] = 'Family';
+                            break;
+                        case '歷史':
+                            movieObj[count]['genre'][index] = 'History';
+                            break;
+                        case '短片':
+                            movieObj[count]['genre'][index] = 'Short-Film';
+                            break;
+                        case '古裝':
+                            movieObj[count]['genre'][index] = 'Costume';
+                            break;
+                        case '科幻':
+                            movieObj[count]['genre'][index] = 'Sci-Fi';
+                            break;
+                        case '戰爭':
+                            movieObj[count]['genre'][index] = 'War';
+                            break;
+                        case '傳記':
+                            movieObj[count]['genre'][index] = 'Biography';
+                            break;
+                        case '運動':
+                            movieObj[count]['genre'][index] = 'Sport';
+                            break;
+                        case '黑色電影':
+                            movieObj[count]['genre'][index] = 'Film-Noir';
+                            break;
+                        case '西部':
+                            movieObj[count]['genre'][index] = 'Western';
+                            break;
+                        case '愛情':
+                            movieObj[count]['genre'][index] = 'Romance';
+                            break;
+                             
+                    }
+                });
+
+                dbTaiwan.taiwan.update({title: movieObj[count]['title']}, {$set: {
+                    genre: opencc.convertSync(movieObj[count]['genre']).split(',')
+                }}, function(err, doc) {
+                    if (!err) {
+                        count++;
+                        callback(null, count);
+                    }
+                });
+            },
+            function(err, n) {
+                console.log('update tw films finish ' + n);
+                done(null);
+            }
+        );
+     });
 }

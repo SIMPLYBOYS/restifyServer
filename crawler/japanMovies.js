@@ -389,26 +389,70 @@ function insertDetail(done) {
 
 function insertTrailer(done) {
     console.log('insertTrailer -------->');
-    var count = 0;
-    async.whilst(
-        function() { return count < movieList.length},
-        function(callback) {
-            dbJapan.japan.findOne({title: movieList[count]}, function(err, doc) {
-                if (doc) {
-                    new TrendsTrailer('jp', movieList[count], youTube, count, callback);
-                    count++;
-                } else {
-                    count++;
-                    callback(null, count);
-                }
-            });
-        },
-        function(err, n) {
-            console.log('insert jp Trailer finish ' + n);
-            done(null);
-        }
-    ); 
+    var movieObj = [];
+    dbJapan.japan.find({genre:'Animation'}, function(err, docs) {
+        docs.forEach(function(item, index) {
+            movieObj.push({
+                title: item['title'],
+                genre: item['genre']
+            })
+        });
+
+        var count = 0;
+        async.whilst(
+            function() { return count < movieObj.length},
+            function(callback) {
+                dbJapan.japan.findOne({title: movieObj[count]['title']}, function(err, doc) {
+                    if (doc) {
+                        new TrendsTrailer('jp', movieObj[count]['title'], youTube, count, callback);
+                        count++;
+                    } else {
+                        count++;
+                        callback(null, count);
+                    }
+                });
+            },
+            function(err, n) {
+                console.log('insert jp Trailer finish ' + n);
+                done(null);
+            }
+        ); 
+    });
 }
+
+/*function insertTrailer(done) {
+    console.log('insertTrailer -------->');
+    var movieObj = [];
+    dbJapan.japan.find({genre:'Music'}, function(err, docs) {
+        docs.forEach(function(item, index) {
+            movieObj.push({
+                title: item['title'],
+                genre: item['genre']
+            })
+        });
+
+        var count = 0;
+        async.whilst(
+            function() { return count < movieObj.length},
+            function(callback) {
+                dbJapan.japan.findOne({title: movieObj[count]['title']}, function(err, doc) {
+                    if (doc) {
+                        new TrendsTrailer('jp', movieObj[count]['title'], youTube, count, callback);
+                        count++;
+                    } else {
+                        count++;
+                        callback(null, count);
+                    }
+                });
+            },
+            function(err, n) {
+                console.log('insert jp Trailer finish ' + n);
+                done(null);
+            }
+        );
+    });
+}*/
+
 
 function cleanData(done) {
     var movieObj = [];
@@ -473,7 +517,8 @@ function createIndex(done) {
                 title: item['title'],
                 id: item['_id'],
                 posterUrl: item['posterUrl'],
-                description: item['description']
+                description: item['description'],
+                originTitle: item['originTitle']
             });
         });
         console.log(movieObj.length);
@@ -489,7 +534,8 @@ function createIndex(done) {
                     body: {
                       title: movieObj[count]['title'],
                       posterUrl: movieObj[count]['posterUrl'],
-                      description: movieObj[count]['description']
+                      description: movieObj[count]['description'],
+                      originTitle: movieObj[count]['originTitle']
                     }
                   }, function (error, response) {
                     console.log(error+'\n'+response);
