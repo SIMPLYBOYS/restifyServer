@@ -94,7 +94,7 @@ function insertTitle(done) {
             function(callback) {
                 dbKorea.korea.findOne({'title': title[count]}, function(err, doc){
                     if (doc) {
-                        dbKorea.korea.update({'title': title[count]}, {'$set': {'top': count+1}}, function(){
+                        dbKorea.korea.update({'title': title[count]}, {'$set': {top: count+1, detailUrl: link[count]}}, function(){
                             count++;
                             callback(null, count);
                         });
