@@ -105,7 +105,7 @@ server.post('/movies/:fbId', Post.movies);
 
 server.get('/my_nyTimes/:fbId', Read.my_nyTimes);
 
-server.get('/my_movies/:fbId', Read.movies);
+server.get('/my_movies/:fbId', Read.my_movies);
 
 server.post('/register/:name/:fbId', Post.register);
 

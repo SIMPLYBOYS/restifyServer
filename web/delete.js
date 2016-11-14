@@ -29,20 +29,20 @@ exports.nyTimes = function(req, res) {
   });
 }
 
-exports.trends = function(req, res) {
+exports.movies = function(req, res) {
   dbUser.user.find({fbId: req.params.fbId}, function(err, person) {
       if (person) {
         dbUser.user.update({
           fbId: req.params.fbId
         }, {
           $pull: {
-            trends: {
+            movies: {
               title: req.params.title
             }
           }
         }, function() {
           res.send({
-            content: 'delete trends finished !!! '
+            content: 'delete movies finished !!! '
           });
           res.end();
         });
