@@ -64,6 +64,7 @@ function insertTitle(done) {
                     if (doc) {
                         dbGermany.germany.update({'title': title[count]}, {'$set': {
                         	top: count+1,
+                            detailUrl: link[count]
                         }}, function(){
                             count++;
                             callback(null, count);
