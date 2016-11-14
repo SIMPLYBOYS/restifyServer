@@ -483,7 +483,7 @@ function insertDetail(done) {
                                     gallerySize,
                                     data = [];
 
-                                $('.meta-body-item').each(function(index, item){
+                                $('.meta-body').each(function(index, item){
                                     if (index == 0) {
                                         releaseDate = $(item).find('strong').text().trim();
                                         year = releaseDate.split(' ')[2];
