@@ -249,7 +249,9 @@ exports.worldReview = function(req, res) {
         foo = {},
         start = parseInt(req.query.start),
         end = start + 10;
-    es.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});
+
+    res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});
+
     switch (parseInt(country)) {
        case 1:
         dbAustralia.australia.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
@@ -392,15 +394,14 @@ exports.worldReview = function(req, res) {
         });
         break;
        default:
-        dbIMDB.imdb.find({title: req.query.title}, {review:1, title:1}).sort({'top': parseInt(req.query.ascending)},
-          function(err, doc) {
-            foo['title'] = doc[0]['title'];
-            foo['review'] = doc[0]['review'].slice(start,end);
-            foo['byTitle'] = false;
-            foo['size'] = doc[0]['review'].length;
-            res.end(JSON.stringify(foo));
+        cacheAccess.findImdbReviewsByTitleCached(dbReview, redisClient, req.query.title, start, end, function(movie) {
+            if (!movie) 
+                res.status(500).send('Server error');
+            else 
+                res.end(movie);
         });
         break;
+    }
 }
 
 exports.access_refresh_token = function(req, res) {
@@ -655,12 +656,12 @@ exports.my_nyTimes = function(req, res) {
     });
 };
 
-exports.my_trends = function(req, res) {
+exports.my_movies = function(req, res) {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     dbUser.user.findOne({fbId: req.params.fbId}, function(err, doc) {
         if (doc) {
             console.log(doc['name']);
-            doc.hasOwnProperty('trends') ? res.end(JSON.stringify(doc['trends'])) : res.end(JSON.stringify([]));
+            doc.hasOwnProperty('movies') ? res.end(JSON.stringify(doc['movies'])) : res.end(JSON.stringify([]));
         } else {
             res.end(JSON.stringify({ content: 'user not exisit!'}));
         }

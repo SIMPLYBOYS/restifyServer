@@ -101,11 +101,11 @@ server.del('/trends/:fbId/:title/', Delelte.trends);
 
 server.post('/nyTimes/:fbId', Post.nyTimes);
 
-server.post('/trends/:fbId', Post.trends);
+server.post('/movies/:fbId', Post.movies);
 
 server.get('/my_nyTimes/:fbId', Read.my_nyTimes);
 
-server.get('/my_trends/:fbId', Read.my_trends);
+server.get('/my_movies/:fbId', Read.movies);
 
 server.post('/register/:name/:fbId', Post.register);
 
@@ -128,6 +128,8 @@ server.get('/genre', Read.getGenre);
 server.get('/genre_topic', Read.getGenreTopic)
 
 server.get('/world/:country/:genre', Read.world);
+
+server.get('/worldReview/:country', Read.worldReview);
 
 server.get('/upcoming', Read.upcoming);
 

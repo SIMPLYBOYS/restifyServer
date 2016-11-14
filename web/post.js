@@ -75,14 +75,14 @@ exports.nyTimes = function(req, res) {
   });
 };
 
-exports.trends = function(req, res) {
+exports.movies = function(req, res) {
   dbUser.user.find({fbId: req.params.fbId}, function(err, person) {
       if (person) {
         dbUser.user.update({
           fbId: req.params.fbId
         }, {
           $addToSet: {
-            trends: {
+            movies: {
               title: req.body['title'],
               link: req.body['link'],
               picUrl: req.body['picUrl'],
@@ -92,7 +92,7 @@ exports.trends = function(req, res) {
           }
         }, function() {
           res.send({
-            content: 'post trends finished !!! '
+            content: 'post movies finished !!! '
           });
           res.end();
         });
