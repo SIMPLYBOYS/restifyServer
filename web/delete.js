@@ -37,7 +37,7 @@ exports.movies = function(req, res) {
         }, {
           $pull: {
             movies: {
-              title: req.params.title
+              title: req.params.title.split('+').join(" ")
             }
           }
         }, function() {
