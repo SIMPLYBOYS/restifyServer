@@ -428,7 +428,7 @@ function createIndex(done) {
                 console.log('count: ' + count);
                 elasticClient.index({
                     index: 'test',
-                    type: 'taiwan',
+                    type: 'poland',
                     id: movieObj[count]['id'].toString(),
                     body: {
                       title: movieObj[count]['title'],
