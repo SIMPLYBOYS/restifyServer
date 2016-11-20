@@ -117,7 +117,8 @@ function newJob (name, fbId, dbUser) {
 
    dbUser.user.insert({
       name: name,
-      fbId: fbId
+      fbId: fbId,
+      link: "https://www.facebook.com/app_scoped_user_id/"+fbId
    }, function(err, doc) {
       if (!err)
         job.save();

@@ -145,7 +145,6 @@ exports.upcoming = function(req, res, next) {
 
 exports.world = function (req, res, next) {
     var country = req.params.country,
-        genre = req.query.genre,
         foo = {};
 
     res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});
@@ -786,6 +785,15 @@ exports.usTrendsDirector = function(req, res) {
         foo['byTitle'] = false;
         res.end(JSON.stringify(foo));
     });
+}
+
+exports.explorePeople = function(req, res) {
+  var foo = {};
+  res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});   
+  dbUser.user.find({}, {movies:0, nyTimes:0}, function(err, docs) {
+    foo['contents'] = docs;
+    res.end(JSON.stringify(foo));
+  });
 }
 
 exports.gmTrends = function(req, res) {

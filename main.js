@@ -97,7 +97,7 @@ var nextCounter = 0;
 
 server.del('/nyTimes/:fbId/:headline', Delelte.nyTimes);
 
-server.del('/trends/:fbId/:title/', Delelte.trends);
+server.del('/movies/:fbId/:title/', Delelte.movies);
 
 server.post('/nyTimes/:fbId', Post.nyTimes);
 
@@ -115,6 +115,8 @@ server.get('/upComing', Read.upComing);
 
 server.get('/upcomingList', Read.upcomingList);
 
+server.get('/explorePeople', Read.explorePeople);
+
 server.get('/myapi', Read.myapi);
 
 server.get('/imdb_records', Read.getRecords);
@@ -127,7 +129,7 @@ server.get('/genre', Read.getGenre);
 
 server.get('/genre_topic', Read.getGenreTopic)
 
-server.get('/world/:country/:genre', Read.world);
+server.get('/world/:country/', Read.world);
 
 server.get('/worldReview/:country', Read.worldReview);
 
