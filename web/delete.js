@@ -54,5 +54,41 @@ exports.movies = function(req, res) {
   });
 }
 
+exports.follow = function(req, res) {
+  console.log('follwing ===============>' + req.params.followerId);
+  dbUser.user.findOne({fbId: req.params.followerId}, function(err, person) {
+    if (person) {
+      dbUser.user.update({
+        fbId: req.params.followerId
+      }, {
+        $pull: {
+          fans: {
+            fbId: req.params.fbId
+          }
+        }
+      }, function() {
+        dbUser.user.update({
+          fbId: req.params.fbId
+        }, {
+          $pull: {
+            follow: {
+              fbId: req.params.followerId
+            }
+          }
+        }, function(){
+          res.send({
+            content: 'remove follwing process finished !!! '
+          });
+          res.end();
+        });
+      });
+    } else {
+      res.end({
+        content: 'user not exisit!'
+      });
+    }
+  })
+}
+
 
  

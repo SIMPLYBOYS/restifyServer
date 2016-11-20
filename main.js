@@ -117,6 +117,10 @@ server.get('/upcomingList', Read.upcomingList);
 
 server.get('/explorePeople', Read.explorePeople);
 
+server.post('/follow/:followerId/:fbId', Post.follow);
+
+server.del('/follow/:followerId/:fbId', Delelte.follow);
+
 server.get('/myapi', Read.myapi);
 
 server.get('/imdb_records', Read.getRecords);

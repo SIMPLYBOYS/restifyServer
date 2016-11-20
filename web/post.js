@@ -127,7 +127,7 @@ function newJob (name, fbId, dbUser) {
    });
 }
 
-jobs.process('register_job', function (job, done){
+jobs.process('register_job', function (job, done) {
   /* carry out all the job function here */
   done && done();
 });
@@ -146,6 +146,42 @@ exports.register = function(req, res) {
       }
   });
 };
+
+exports.follow = function(req, res) {
+  console.log('follwing ===============>' + req.params.followerId);
+  dbUser.user.findOne({fbId: req.params.followerId}, function(err, person) {
+    if (person) {
+      dbUser.user.update({
+        fbId: req.params.followerId
+      }, {
+        $addToSet: {
+          fans: {
+            fbId: req.params.fbId
+          }
+        }
+      }, function() {
+        dbUser.user.update({
+          fbId: req.params.fbId
+        }, {
+          $addToSet: {
+            follow: {
+              fbId: req.params.followerId
+            }
+          }
+        }, function(){
+          res.send({
+            content: 'follwing finished !!! '
+          });
+          res.end();
+        });
+      });
+    } else {
+      res.end({
+        content: 'user not exisit!'
+      });
+    }
+  })
+}
 
 exports.gcmTopic_t = function(req, res) {
   var options = {
