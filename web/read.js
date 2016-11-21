@@ -774,7 +774,7 @@ exports.usTrendsReview = function(req, res) {
         foo['size'] = doc[0]['review'].length;
         res.end(JSON.stringify(foo));
     });
-}
+};
 
 exports.usTrendsDirector = function(req, res) {
     console.log(req.query.title);
@@ -785,16 +785,30 @@ exports.usTrendsDirector = function(req, res) {
         foo['byTitle'] = false;
         res.end(JSON.stringify(foo));
     });
-}
+};
 
 exports.explorePeople = function(req, res) {
-  var foo = {};
-  res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});   
-  dbUser.user.find({}, {movies:0, nyTimes:0}, function(err, docs) {
-    foo['contents'] = docs;
-    res.end(JSON.stringify(foo));
+  var bar = {},
+      content = [];
+  res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
+  dbUser.user.find({}, function(err, docs) {
+      docs.forEach(function(item, index) {
+        var foo = {}
+        foo.name = item['name'];
+        foo.fbId = item['fbId'];
+        foo.total = 0;
+        if (typeof(item['nyTimes']) != 'undefined')
+            foo.total += item['nyTimes'].length;
+        if (typeof(item['movies']) != 'undefined')
+            foo.total += item['movies'].length;
+        content.push(foo);
+      });
+      console.log(content);
+      bar['contents'] = docs;
+      res.end(JSON.stringify(bar));
   });
-}
+};
+
 
 exports.gmTrends = function(req, res) {
     console.log('dbGermany');
@@ -815,7 +829,7 @@ exports.gmTrends = function(req, res) {
             res.end(JSON.stringify(foo));
         });
     }
-}
+};
 
 exports.gmTrendsReview = function(req, res) {
     console.log(req.query.title);
@@ -832,7 +846,7 @@ exports.gmTrendsReview = function(req, res) {
         foo['size'] = doc[0]['review'].length;
         res.end(JSON.stringify(foo));
     });
-}
+};
 
 exports.twTrends = function(req, res) {
     console.log('dbTaiwan');
