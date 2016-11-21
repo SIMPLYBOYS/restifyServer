@@ -1,24 +1,26 @@
 var http = require('http');
 var cheerio = require('cheerio');
 var util = require('util');
+var request = require("request");
+var request = request.defaults({jar: true});
 var EventEmitter = require('events').EventEmitter;
 var STATUS_CODES = http.STATUS_CODES;
 /*
  * Scraper Constructor
 **/
-function trendsKrGalleryScraper (url) {
+function trendsFrGalleryScraper (url) {
     this.url = url;
     this.init();
 }
 /*
  * Make it an EventEmitter
 **/
-util.inherits(trendsKrGalleryScraper, EventEmitter);
+util.inherits(trendsFrGalleryScraper, EventEmitter);
 
 /*
  * Initialize scraping
 **/
-trendsKrGalleryScraper.prototype.init = function () {
+trendsFrGalleryScraper.prototype.init = function () {
     var model;
     var self = this;
     self.on('loaded', function (html) {
@@ -28,31 +30,34 @@ trendsKrGalleryScraper.prototype.init = function () {
     self.loadWebPage();
 };
 
-trendsKrGalleryScraper.prototype.loadWebPage = function () {
+trendsFrGalleryScraper.prototype.loadWebPage = function () {
   var self = this;
-  // console.log('\n\nLoading ' + website);
   console.log('loading ' + self.url);
-  http.get(self.url, function (res) {
-    var body = '';
-    if(res.statusCode !== 200) {
-      return self.emit('error', STATUS_CODES[res.statusCode]);
-    }
-    res.on('data', function (chunk) {
-      body += chunk;
-    });
-    res.on('end', function () {
-      self.emit('loaded', body);
-    });
-  })
-  .on('error', function (err) {
-    self.emit('error', err);
-  });      
+  request({
+      url: self.url,
+      encoding: 'utf8',
+      followRedirect: true,
+      timeout: 2500,
+      maxRedirects:1,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36',
+        'Accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' 
+      },
+      method: "GET",
+  }, function(err, response, body) {
+          if (err || !body) { 
+              console.log(err);
+              self.emit('error', null);
+              return;
+          }
+          self.emit('loaded', body);
+  });
 };
 
 /*
  * Parse html and return an object
 **/
-trendsKrGalleryScraper.prototype.parsePage = function (html) {
+trendsFrGalleryScraper.prototype.parsePage = function (html) {
   var $ = cheerio.load(html);
   var picturesUrl;
   var title;
@@ -73,4 +78,4 @@ trendsKrGalleryScraper.prototype.parsePage = function (html) {
   };
 };
 
-module.exports = trendsKrGalleryScraper;
+module.exports = trendsFrGalleryScraper;

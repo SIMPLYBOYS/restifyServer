@@ -81,7 +81,13 @@ function insertTitle(done) {
     request({
         url: 'http://www.allocine.fr/boxoffice/france/',
         encoding: "utf8",
-        method: "GET"
+        method: "GET",
+        followRedirect: true,
+        maxRedirects:5,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36',
+          'Accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' 
+        }
     }, function(err, response, body) {
 
         var $ = cheerio.load(body),
@@ -135,7 +141,13 @@ function insertPoster(done) {
             request({
                 url: poster['detailUrl'],
                 encoding: "utf8",
-                method: "GET"
+                method: "GET",
+                followRedirect: true,
+		        maxRedirects:5,
+		        headers: {
+		          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36',
+		          'Accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' 
+		        }
             }, function(err, response, body) {
 
                 var $ = cheerio.load(body),
@@ -173,18 +185,22 @@ function prepareGalleryPages(done) {
             request({
                 url: gallery['photoUrl'],
                 encoding: "utf8",
-                method: "GET"
+                method: "GET",
+                followRedirect: true,
+		        maxRedirects:5,
+		        headers: {
+		          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36',
+		          'Accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' 
+		        }
             }, function(err, response, body) {
                 var $ = cheerio.load(body);
-                $('#content-start .section').each(function(index, item){
-                    $(item).find('a').each(function(innerIndex, item){
-                        if (index ==0 && innerIndex == 0)
-                            posterPages.push({
-                                detailUrl: 'http://www.allocine.fr' + $(item).attr('href'),
-                                title: title[count]
-                            })
-                        GalleryfullPages.push('http://www.allocine.fr' + $(item).attr('href'));
-                    })
+                $('#content-start .shot-item').each(function(index, item) {
+                	if (index ==0)
+                        posterPages.push({
+                            detailUrl: 'http://www.allocine.fr' + $(item).attr('href'),
+                            title: title[count]
+                        });
+                    GalleryfullPages.push('http://www.allocine.fr' + $(item).attr('href'));
                 });
                 count++;
                 callback(null, count);
@@ -224,7 +240,13 @@ function insertReview(done) {
                     request({
                         url: url,   
                         encoding: "utf8",
-                        method: "GET"
+                        method: "GET",
+                        followRedirect: true,
+				        maxRedirects:5,
+				        headers: {
+				          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36',
+				          'Accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' 
+				        }
                     }, function(err, response, body) {
                         var $ = cheerio.load(body);
                         $('.hred').each(function(index, item){
@@ -290,7 +312,13 @@ function insertCast(done) {
             request({
                 url: cast['castUrl'], 
                 encoding: "utf8",
-                method: "GET"
+                method: "GET",
+                followRedirect: true,
+		        maxRedirects:5,
+		        headers: {
+		          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36',
+		          'Accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' 
+		        }
             }, function(err, response, body) {
                 var $ = cheerio.load(body);
                 console.log(cast['title']+' --->');
@@ -463,7 +491,13 @@ function insertDetail(done) {
                             request({
                                 url: doc['detailUrl'],
                                 encoding: "utf8",
-                                method: "GET"
+                                method: "GET",
+                                followRedirect: true,
+						        maxRedirects: 5,
+						        headers: {
+						          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36',
+						          'Accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' 
+						        }
                             }, function(err, response, body) {
                                 if (err || !body) { count++; callback(null, count);}
                                 var $ = cheerio.load(body);
