@@ -51,6 +51,7 @@ var usTrends = require('./trends/usTrends');
 var cnTrends = require('./trends/cnTrends');
 var gmTrends = require('./trends/gmTrends');
 var google = require('google');
+var nextCounter = 0;
 
 var server = restify.createServer({
   name: 'myapp',
@@ -93,7 +94,6 @@ https_server.get('/oauth_k', function(req, res, next) {
 });*/
 
 google.resultsPerPage = 10;
-var nextCounter = 0;
 
 server.del('/nyTimes/:fbId/:headline', Delelte.nyTimes);
 
@@ -120,6 +120,8 @@ server.get('/explorePeople', Read.explorePeople);
 server.post('/follow/:followerId/:fbId', Post.follow);
 
 server.del('/follow/:followerId/:fbId', Delelte.follow);
+
+server.get('/social/:type/:fbId', Read.social);
 
 server.get('/myapi', Read.myapi);
 

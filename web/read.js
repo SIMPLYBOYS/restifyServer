@@ -667,6 +667,8 @@ exports.my_movies = function(req, res) {
     });
 };
 
+
+
 exports.getTitle = function(req, res) {
     var foo = {'contents': []};
     dbIMDB.imdb.find({'top': {$lte:250, $gte: 1}}).sort({'top':1}, function(err, docs){
@@ -804,11 +806,50 @@ exports.explorePeople = function(req, res) {
         content.push(foo);
       });
       console.log(content);
-      bar['contents'] = docs;
+      bar['contents'] = content;
       res.end(JSON.stringify(bar));
   });
 };
 
+exports.social = function(req, res) {
+  var bar = {},
+      content = [],
+      person = [],
+      type = req.params.type;
+  res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
+  dbUser.user.find({fbId: req.params.fbId}, function(err, doc) {
+      doc[type].forEach(function(item, index) {
+          person.push({
+            fbId: item['fbId']
+          });
+      });
+
+      var count = 0;
+      async.whilst(
+          function() { return count < person.length; },
+          function(callback) {
+              dbUser.user.find({fbId: person[count]['fbId']}, function(err, doc) {
+                var foo = {}
+                foo.name = doc['name'];
+                foo.fbId = doc['fbId'];
+                foo.total = 0;
+                if (typeof(doc['nyTimes']) != 'undefined')
+                    foo.total += doc['nyTimes'].length;
+                if (typeof(doc['movies']) != 'undefined')
+                    foo.total += doc['movies'].length;
+                content.push(foo);
+              });
+          },
+          function(err, n) {
+              console.log('get '+type+' data finish!' + n);
+              console.log(content);
+              done(null);
+          }
+      );
+      bar['contents'] = content;
+      res.end(JSON.stringify(bar));
+  });
+};
 
 exports.gmTrends = function(req, res) {
     console.log('dbGermany');

@@ -170,7 +170,7 @@ exports.follow = function(req, res) {
           }
         }, function(){
           res.send({
-            content: 'follwing finished !!! '
+            content: 'follwing process finished !!! '
           });
           res.end();
         });

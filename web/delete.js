@@ -87,7 +87,7 @@ exports.follow = function(req, res) {
         content: 'user not exisit!'
       });
     }
-  })
+  });
 }
 
 
