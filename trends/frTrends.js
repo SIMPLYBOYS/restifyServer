@@ -517,26 +517,25 @@ function insertDetail(done) {
                                     gallerySize,
                                     data = [];
 
-                                $('.meta-body').each(function(index, item){
-                                    if (index == 0) {
-                                        releaseDate = $(item).find('strong').text().trim();
+                                $('.card-movie-overview .meta-body .meta-body-item').each(function(index, item) {
+                                	if ($(item).text().trim().indexOf('Date de sortie') == 0) {
+                                		releaseDate = $(item).find('strong').text().trim();
                                         year = releaseDate.split(' ')[2];
                                         runTime = $(item).text().trim().split('(')[1].split(')')[0]
-                                    }
-                                    else if (index == 1) {
+                                	}
+                                    
+                                    if ($(item).text().trim().indexOf('De') == 0) {
                                         staff.push({
                                             'staff': $(item).find('a span').text().trim(),
                                             'link' : 'http://www.allocine.fr'+$(item).find('a').attr('href')
                                         });
-                                    } else if (index == 2) {
-                                        /*$(item).find('.blue-link').each(function(index, item) {
-                                            if ($(item).text().trim() != 'plus')
-                                                console.log($(item).text().trim());
-                                        })*/
-                                    } else if (index == 3) {
+                                    }
+
+                                    if ($(item).text().trim().indexOf('Genres') == 0) {
                                         genre = $(item).find('.blue-link').text().trim();
                                     }
-                                    else if (index == 4) {
+                                    
+                                    if ($(item).text().trim().indexOf('Nationalité') == 0) {
                                         country = $(item).find('.blue-link').text().trim().split(' ')[0]; //fetch main country
                                     }
                                 });
@@ -618,7 +617,7 @@ function insertDetail(done) {
                                 dbFrance.france.update({'title': title[count]}, {'$set': {
                                         originTitle: originTitle,
                                         genre: genre,
-                                        releaseDate: releaseDate,
+                                        releaseDate: releaseDate.split('\n')[0],
                                         runTime: runTime,
                                         type: type,
                                         country: country,
