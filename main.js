@@ -115,7 +115,7 @@ server.get('/upComing', Read.upComing);
 
 server.get('/upcomingList', Read.upcomingList);
 
-server.get('/explorePeople', Read.explorePeople);
+server.get('/explorePeople/:fbId', Read.explorePeople);
 
 server.post('/follow/:followerId/:fbId', Post.follow);
 

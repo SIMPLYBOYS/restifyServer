@@ -791,23 +791,40 @@ exports.usTrendsDirector = function(req, res) {
 
 exports.explorePeople = function(req, res) {
   var bar = {},
-      content = [];
-  res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
-  dbUser.user.find({}, function(err, docs) {
-      docs.forEach(function(item, index) {
-        var foo = {}
-        foo.name = item['name'];
-        foo.fbId = item['fbId'];
-        foo.total = 0;
-        if (typeof(item['nyTimes']) != 'undefined')
-            foo.total += item['nyTimes'].length;
-        if (typeof(item['movies']) != 'undefined')
-            foo.total += item['movies'].length;
-        content.push(foo);
+      content = [],
+      follow = [];
+  res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});
+  dbUser.user.find({fbId: req.params.fbId}, function(err, doc) {
+      doc[0]['follow'].forEach(function(item, index) {
+          follow.push({
+            fbId: item['fbId']
+          });
       });
-      console.log(content);
-      bar['contents'] = content;
-      res.end(JSON.stringify(bar));
+
+      dbUser.user.find({}, function(err, docs) {
+          docs.forEach(function(item, index) {
+              var foo = {}
+              foo['name'] = item['name'];
+              foo['fbId'] = item['fbId'];
+              foo['total'] = 0;
+              if (typeof(item['nyTimes']) != 'undefined')
+                  foo.total += item['nyTimes'].length;
+              if (typeof(item['movies']) != 'undefined')
+                  foo.total += item['movies'].length;
+              follow.some(function(person, index, array) {
+                if (person['fbId'] == foo['fbId']) {
+                  foo['follow'] = true;
+                  return true;
+                }
+                else 
+                  foo['follow'] = false;
+              });
+              content.push(foo);
+          });
+          console.log(content);
+          bar['contents'] = content;
+          res.end(JSON.stringify(bar));
+      });
   });
 };
 
@@ -818,7 +835,14 @@ exports.social = function(req, res) {
       type = req.params.type;
   res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
   dbUser.user.find({fbId: req.params.fbId}, function(err, doc) {
-      doc[type].forEach(function(item, index) {
+
+      if (typeof(doc[0][type]) == 'undefined') {
+          bar['contents'] = content;
+          res.end(JSON.stringify(bar));
+          return;
+      }
+
+      doc[0][type].forEach(function(item, index) {
           person.push({
             fbId: item['fbId']
           });
@@ -828,26 +852,29 @@ exports.social = function(req, res) {
       async.whilst(
           function() { return count < person.length; },
           function(callback) {
-              dbUser.user.find({fbId: person[count]['fbId']}, function(err, doc) {
+              dbUser.user.find({fbId: person[count]['fbId']}, function(err, docs) {
                 var foo = {}
-                foo.name = doc['name'];
-                foo.fbId = doc['fbId'];
-                foo.total = 0;
-                if (typeof(doc['nyTimes']) != 'undefined')
-                    foo.total += doc['nyTimes'].length;
-                if (typeof(doc['movies']) != 'undefined')
-                    foo.total += doc['movies'].length;
-                content.push(foo);
+                docs.forEach(function(item, index) {
+                  foo.name = item['name'];
+                  foo.fbId = item['fbId'];
+                  foo.total = 0;
+                  if (typeof(item['nyTimes']) != 'undefined')
+                      foo.total += item['nyTimes'].length;
+                  if (typeof(item['movies']) != 'undefined')
+                      foo.total += item['movies'].length;
+                  content.push(foo);
+                });
+                count++;
+                callback(null, count);
               });
           },
           function(err, n) {
               console.log('get '+type+' data finish!' + n);
               console.log(content);
-              done(null);
+              bar['contents'] = content;
+              res.end(JSON.stringify(bar));
           }
       );
-      bar['contents'] = content;
-      res.end(JSON.stringify(bar));
   });
 };
 
