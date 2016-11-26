@@ -56,7 +56,7 @@ Creater.prototype.updateMovie = function () {
   if (that['title'] == 'Дети небес')
     that['title'] = 'Bacheha-Ye aseman';
 
-  dbIMDB.imdb.findOne({'Infotitle': that['title']}, function(err, doc) {
+  dbIMDB.imdb.findOne({'title': that['title']}, function(err, doc) {
 
       if (!doc) {
         console.log('\n\n' + that['title'] + ' not found!');
@@ -64,7 +64,7 @@ Creater.prototype.updateMovie = function () {
         return;     
       }
 
-      dbIMDB.imdb.update({'Infotitle': that['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
+      dbIMDB.imdb.update({'title': that['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
         that.emit('updated', that.title);
       });
   });

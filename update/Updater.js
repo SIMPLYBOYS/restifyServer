@@ -331,7 +331,7 @@ Updater.prototype.updateMovie = function () {
   
   var that = this;
 
-  dbIMDB.imdb.findOne({'Infotitle': that['title']}, function(err, doc) {
+  dbIMDB.imdb.findOne({'title': that['title']}, function(err, doc) {
 
       if (!doc) {
         console.log('\n\n' + that['title'] + ' not found!');
@@ -340,8 +340,8 @@ Updater.prototype.updateMovie = function () {
       }
 
       if (!specialCase(doc['title'])) {
-        dbIMDB.imdb.update({'Infotitle': that['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
-          dbIMDB.imdb.update({'Infotitle': doc['title']}, {'$set': {'delta': that['delta']}}, function() {
+        dbIMDB.imdb.update({'title': that['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
+          dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'delta': that['delta']}}, function() {
             that.emit('updated', that.title);
           });
         });
@@ -368,7 +368,7 @@ Updater.prototype.updateRecord = function () {
   
   var that = this;
 
-  dbIMDB.imdb.findOne({'Infotitle': that['title']}, function(err, doc) {
+  dbIMDB.imdb.findOne({'title': that['title']}, function(err, doc) {
       if (!doc) {
         console.log('\n\n' + that['title'] + ' not found!');
         return;     

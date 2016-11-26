@@ -36,14 +36,14 @@ Remover.prototype.updateMovie = function () {
   
   var that = this;
 
-  dbIMDB.imdb.findOne({'Infotitle': that['title']}, function(err, doc) {
+  dbIMDB.imdb.findOne({'title': that['title']}, function(err, doc) {
 
       if (!doc) {
         console.log('\n\n' + that['title'] + 'not found!');
         return;     
       }
 
-      dbIMDB.imdb.update({'Infotitle': that['title']}, {'$unset': {'top': 1}}, function() {
+      dbIMDB.imdb.update({'title': that['title']}, {'$unset': {'top': 1}}, function() {
         that.emit('updated', that.title);
       });
   })
