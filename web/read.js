@@ -454,8 +454,11 @@ exports.refresh_token = function(req, res) {
 
 exports.getGenre = function(req, res) {
     // console.log('date -------> ' + moment().subtract(10, 'days').calendar());
-    var country = req.query.country;
+    var country = req.query.country,
+        searchYearStart = req.query.year == "All" ? parseInt("19000101") : parseInt(req.query.year+"0101"),
+        searchYearEnd = req.query.year == "All" ? parseInt("20171231") : parseInt(req.query.year+"1231");
     res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'}); 
+
     switch (parseInt(country)) {
        case 1:
           dbAustralia.australia.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
@@ -463,7 +466,7 @@ exports.getGenre = function(req, res) {
           });
           break;
        case 2:
-          dbChina.china.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbChina.china.find({genre: req.query.type, releaseDate:{$lte: searchYearEnd, $gte: searchYearStart}}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
@@ -478,7 +481,7 @@ exports.getGenre = function(req, res) {
           });
           break;
        case 5:
-          dbHonKong.honkong.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbHonKong.honkong.find({genre: req.query.type, releaseDate:{$lte: searchYearEnd, $gte: searchYearStart}}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
@@ -493,12 +496,12 @@ exports.getGenre = function(req, res) {
           });
           break;
        case 8:
-          dbJapan.japan.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbJapan.japan.find({genre: req.query.type, releaseDate:{$lte: searchYearEnd, $gte: searchYearStart}}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
        case 9:
-          dbKorea.korea.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbKorea.korea.find({genre: req.query.type, releaseDate:{$lte: searchYearEnd, $gte: searchYearStart}}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
@@ -513,7 +516,7 @@ exports.getGenre = function(req, res) {
           });
           break;
        case 12: 
-          dbTaiwan.taiwan.find({genre: req.query.type}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
+          dbTaiwan.taiwan.find({genre: req.query.type, releaseDate:{$lte: searchYearEnd, $gte: searchYearStart}}).sort({releaseDate:-1}).limit(10).skip(req.query.page*10, function(err, docs){
             res.end(JSON.stringify(docs));
           });
           break;
