@@ -123,9 +123,12 @@ function updatePositionWizard(done) {
     var item = updateMovies.pop();
     console.log('updatePositionWizard');
     console.log(item);
+    
     if (item.title.indexOf(',') != -1) {
-        item.title = item.title.split(',')[1]+" "+item.title.split(',')[0]
+        item.title = item.title.split('(')[0];
+        item.title = item.title.split(',')[1]+item.title.split(',')[0]
     }
+
     var updater = new Updater(item.title, item.position, 'delta', item.delta);
     console.log('Requests Left: ' + updateMovies.length);
     updater.on('error', function (error) {
@@ -148,9 +151,12 @@ function createNewMovieWizard(done) {
     
     console.log('newMovies: '+ newMovies);
     var item = newMovies.pop();
+
     if (item.title.indexOf(',') != -1) {
-        item.title = item.title.split(',')[1]+" "+item.title.split(',')[0]
+        item.title = item.title.split('(')[0];
+        item.title = item.title.split(',')[1]+item.title.split(',')[0]
     }
+
     var creater = new Creater(item.title, item.position);
     console.log('Requests Left: ' + newMovies.length);
 
@@ -176,8 +182,10 @@ function removeMovieWizard(done) {
         item['title'] = 'La dolce vita';
 
     if (item.title.indexOf(',') != -1) {
-        item.title = item.title.split(',')[1]+" "+item.title.split(',')[0]
+        item.title = item.title.split('(')[0];
+        item.title = item.title.split(',')[1]+item.title.split(',')[0]
     }
+
     var remover = new Remover(item.title, item.position);
 
     remover.on('error', function (error) {
