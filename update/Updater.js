@@ -15,6 +15,14 @@ var STATUS_CODES = http.STATUS_CODES;
  * Scraper Constructor
 **/
 function Updater (title, position, type, value) {
+
+    this.infoTitle = title;
+
+    if (title.indexOf(',') != -1) {
+        title = title.split('(')[0];
+        title = title.split(',')[1].trim()+" "+title.split(',')[0]
+    }
+
     this.title = title;
     this.position = position;
     this.type = type;
@@ -42,6 +50,10 @@ Updater.prototype.init = function () {
     this.on('updated', function (title) {
         console.log('\n====> \"'+title + '\" got updated!!!');
         this.emit('complete', title);
+    });
+
+    this.on('infoTitle', function(title) {
+        this.updateMovie_InfoTitle();
     });
 
     this.on('data not founded', function(title) {
@@ -325,6 +337,25 @@ Updater.prototype.updateVote = function () {
           });
     });
   });
+};
+
+Updater.prototype.updateMovie_InfoTitle = function () {
+    var that = this;
+    
+    dbIMDB.imdb.findOne({title: that['infoTitle']}, function(err, doc) {
+        if (!doc) {
+          console.log('\n\n' + that['infoTitle'] + ' not found!');
+          that.emit('data not founded', that['infoTitle']);
+          return;     
+        }
+
+        dbIMDB.imdb.update({'title': that['infoTitle']}, {'$set': {'top': parseInt(that['position'])}}, function() {
+          dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'delta': that['delta']}}, function() {
+            that.emit('updated', that['infoTitle']);
+          });
+        });
+
+    });
 };
 
 Updater.prototype.updateMovie = function () {
