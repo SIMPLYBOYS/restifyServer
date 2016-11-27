@@ -18,18 +18,10 @@ exports.updatePosition = function() {
         
         if (docs.length == 0)
             return;
-        // console.log(docs[0]['outList']);
+
         if (docs[0]['outList']) {
             docs[0]['outList'].forEach(function(movie, index) {
-                 if (movie['item'].indexOf(',') !== -1) {
-                    var bar = movie['item'].trim().split(',');
-                    movie['item'] = bar[1].split('(')[0] + bar[0];
-                    if (movie['item'].indexOf('Paris'))
-                        movie['item'] = 'Paris, Texas';
-                    outMovies.push({'title': movie['item'].trim()});
-                 } else {
-                    outMovies.push({'title': movie['item'].split('(')[0].trim()});
-                 }
+                 outMovies.push({'title': movie['item'].split('(')[0].trim()});
             });
         }
     });
@@ -123,11 +115,6 @@ function updatePositionWizard(done) {
     var item = updateMovies.pop();
     console.log('updatePositionWizard');
     console.log(item);
-    
-    if (item.title.indexOf(',') != -1) {
-        item.title = item.title.split('(')[0];
-        item.title = item.title.split(',')[1]+item.title.split(',')[0]
-    }
 
     var updater = new Updater(item.title, item.position, 'delta', item.delta);
     console.log('Requests Left: ' + updateMovies.length);
@@ -154,7 +141,7 @@ function createNewMovieWizard(done) {
 
     if (item.title.indexOf(',') != -1) {
         item.title = item.title.split('(')[0];
-        item.title = item.title.split(',')[1]+item.title.split(',')[0]
+        item.title = item.title.split(',')[1].trim()+" "+item.title.split(',')[0]
     }
 
     var creater = new Creater(item.title, item.position);
@@ -183,7 +170,7 @@ function removeMovieWizard(done) {
 
     if (item.title.indexOf(',') != -1) {
         item.title = item.title.split('(')[0];
-        item.title = item.title.split(',')[1]+item.title.split(',')[0]
+        item.title = item.title.split(',')[1].trim()+" "+item.title.split(',')[0]
     }
 
     var remover = new Remover(item.title, item.position);
