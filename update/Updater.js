@@ -52,8 +52,12 @@ Updater.prototype.init = function () {
         this.emit('complete', title);
     });
 
-    this.on('infoTitle', function(title) {
-        this.updateMovie_InfoTitle();
+    this.on('infoTitle_case1', function(title) {
+        this.updateMovie_InfoTitle_case1();
+    });
+
+    this.on('infoTitle_case2', function(title) {
+        this.updateMovie_InfoTitle_case2();
     });
 
     this.on('data not founded', function(title) {
@@ -339,17 +343,24 @@ Updater.prototype.updateVote = function () {
   });
 };
 
-Updater.prototype.updateMovie_InfoTitle = function () {
-    var that = this;
-    
-    dbIMDB.imdb.findOne({title: that['infoTitle']}, function(err, doc) {
+Updater.prototype.updateMovie_InfoTitle_case1 = function () {
+    var that = this,
+        title = that['infoTitle'];
+
+    console.log('update by infoTitle case1 ==>');
+
+    if (title.indexOf(',') != -1) {
+        title = title.split(',')[1].trim()+" "+title.split(',')[0].toLowerCase()
+    }
+
+    dbIMDB.imdb.findOne({title: title}, function(err, doc) {
         if (!doc) {
-          console.log('\n\n' + that['infoTitle'] + ' not found!');
-          that.emit('data not founded', that['infoTitle']);
+          console.log('\n\n' + title + ' not found!');
+          that.emit('infoTitle_case2', title);
           return;     
         }
 
-        dbIMDB.imdb.update({'title': that['infoTitle']}, {'$set': {'top': parseInt(that['position'])}}, function() {
+        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
           dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'delta': that['delta']}}, function() {
             that.emit('updated', that['infoTitle']);
           });
@@ -357,6 +368,33 @@ Updater.prototype.updateMovie_InfoTitle = function () {
 
     });
 };
+
+Updater.prototype.updateMovie_InfoTitle_case2 = function () {
+    var that = this,
+        title = that['infoTitle'];
+
+    console.log('update by infoTitle case2 ==>');
+
+    if (title.indexOf(',') != -1) {
+        title = title.split(',')[1].trim()+""+title.split(',')[0]
+    }
+
+    dbIMDB.imdb.findOne({title: title}, function(err, doc) {
+        if (!doc) {
+          console.log('\n\n' + title + ' not found!');
+          that.emit('data not founded', title);
+          return;     
+        }
+
+        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
+          dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'delta': that['delta']}}, function() {
+            that.emit('updated', that['infoTitle']);
+          });
+        });
+
+    });
+};
+
 
 Updater.prototype.updateMovie = function () {
   
@@ -366,7 +404,7 @@ Updater.prototype.updateMovie = function () {
 
       if (!doc) {
         console.log('\n\n' + that['title'] + ' not found!');
-        that.emit('data not founded', that.title);
+        that.emit('infoTitle_case1', that.title);
         return;     
       }
 
