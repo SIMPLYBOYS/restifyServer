@@ -60,6 +60,10 @@ Updater.prototype.init = function () {
         this.updateMovie_InfoTitle_case2();
     });
 
+    this.on('infoTitle_case3', function(title) {
+        this.updateMovie_InfoTitle_case3();
+    });
+
     this.on('data not founded', function(title) {
       console.log('\n====> \"'+title + '\" not updated!!!');
       this.emit('complete', title);
@@ -375,26 +379,41 @@ Updater.prototype.updateMovie_InfoTitle_case2 = function () {
 
     console.log('update by infoTitle case2 ==>');
 
-    if (title.indexOf(',') != -1) {
-        title = title.split(',')[1].trim()+""+title.split(',')[0]
-    }
-
     dbIMDB.imdb.findOne({title: title}, function(err, doc) {
         if (!doc) {
           console.log('\n\n' + title + ' not found!');
-          that.emit('data not founded', title);
+          that.emit('infoTitle_case3', title);
           return;     
         }
-
         dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
           dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'delta': that['delta']}}, function() {
             that.emit('updated', that['infoTitle']);
           });
         });
-
     });
 };
 
+Updater.prototype.updateMovie_InfoTitle_case3 = function() {
+    var that = this,
+        title = that['infoTitle'],
+        selector = {"title": {$regex: "/"+title.split(',')[0]+"/", $options:"i"}},
+        query = {title: new RegExp(title.split(',')[0], 'i') };
+
+    console.log('update by infoTitle case3 ==>');
+
+    dbIMDB.imdb.findOne({title: query.title}, function(err, doc) {
+        if (!doc) {
+          console.log('\n\n' + title + ' not found!');
+          that.emit('data not founded', title);
+          return;
+        }
+        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
+          dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'delta': that['delta']}}, function() {
+            that.emit('updated', that['infoTitle']);
+          });
+        });
+    });
+};
 
 Updater.prototype.updateMovie = function () {
   
