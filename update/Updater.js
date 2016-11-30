@@ -363,13 +363,9 @@ Updater.prototype.updateMovie_InfoTitle_case1 = function () {
           that.emit('infoTitle_case2', title);
           return;     
         }
-
-        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
-          dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'delta': that['delta']}}, function() {
-            that.emit('updated', that['infoTitle']);
-          });
+        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {top: parseInt(that['position']), delta: that['delta']}}, function() {
+          that.emit('updated', that['infoTitle']);
         });
-
     });
 };
 
@@ -385,10 +381,8 @@ Updater.prototype.updateMovie_InfoTitle_case2 = function () {
           that.emit('infoTitle_case3', title);
           return;     
         }
-        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
-          dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'delta': that['delta']}}, function() {
-            that.emit('updated', that['infoTitle']);
-          });
+        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {top: parseInt(that['position']), delta: that['delta']}}, function() {
+          that.emit('updated', that['infoTitle']);
         });
     });
 };
@@ -407,10 +401,8 @@ Updater.prototype.updateMovie_InfoTitle_case3 = function() {
           that.emit('data not founded', title);
           return;
         }
-        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
-          dbIMDB.imdb.update({'title': doc['title']}, {'$set': {'delta': that['delta']}}, function() {
-            that.emit('updated', that['infoTitle']);
-          });
+        dbIMDB.imdb.update({'title': doc['title']}, {'$set': {top: parseInt(that['position']), delta: that['delta']}}, function() {
+          that.emit('updated', that['infoTitle']);
         });
     });
 };
