@@ -168,11 +168,6 @@ function removeMovieWizard(done) {
     if (item['title'] == 'La Dolce vita')
         item['title'] = 'La dolce vita';
 
-    if (item.title.indexOf(',') != -1) {
-        item.title = item.title.split('(')[0];
-        item.title = item.title.split(',')[1].trim()+" "+item.title.split(',')[0]
-    }
-
     var remover = new Remover(item.title, item.position);
 
     remover.on('error', function (error) {
