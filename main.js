@@ -107,6 +107,8 @@ server.get('/my_nyTimes/:fbId', Read.my_nyTimes);
 
 server.get('/my_movies/:fbId', Read.my_movies);
 
+server.get('/postPages', Read.postPages);
+
 server.post('/register/:name/:fbId', Post.register);
 
 server.get('/google', Read.google);

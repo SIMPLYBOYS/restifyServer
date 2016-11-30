@@ -670,7 +670,46 @@ exports.my_movies = function(req, res) {
     });
 };
 
-
+exports.postPages = function(req, res) {
+  var postCh = Math.floor(Math.random() * (6-0));
+  switch (parseInt(country)) {
+       case 0:
+          dbJapan.japan.find({top:{$lte:5,$gte:1}},{posterUrl:1}, function(err, docs) {
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 1:
+          dbUSA.usa.find({top:{$lte:5,$gte:1}},{posterUrl:1}, function(err, docs) {
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 2:
+          dbTaiwan.taiwan.find({top:{$lte:5,$gte:1}},{posterUrl:1}, function(err, docs) {
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 3:
+          dbKorea.korea.find({top:{$lte:5,$gte:1}},{posterUrl:1}, function(err, docs) {
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 4:
+          dbFrance.france.find({top:{$lte:5,$gte:1}},{posterUrl:1}, function(err, docs) {
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       case 5:
+          dbChina.china.find({top:{$lte:5,$gte:1}},{posterUrl:1}, function(err, docs) {
+            res.end(JSON.stringify(docs));
+          });
+          break;
+       default:
+          dbGermany.germany.find({top:{$lte:5,$gte:1}},{posterUrl:1}, function(err, docs) {
+            res.end(JSON.stringify(docs));
+          });
+          break;
+    }
+}
 
 exports.getTitle = function(req, res) {
     var foo = {'contents': []};
