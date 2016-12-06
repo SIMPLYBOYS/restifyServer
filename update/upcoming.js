@@ -160,11 +160,11 @@ function insertCast(done) {
         function () { return count < end; },
         function (callback) {
             cast = finalCastPages.pop();
-            if (!cast.hasOwnProperty()) {
+            /*if (!cast.hasOwnProperty()) {
               count++;
               callback(null, count);
               return;
-            }
+            }*/
             Cast = [];
             request({
                 url: cast['castUrl'], 
@@ -250,7 +250,7 @@ function insertCastAvatar(done) {
                     if (item.length > 0)
                         foo = item;
                 });
-                var query = {'originTitle': new RegExp(foo, 'i') };
+                var query = {'originTitle': new RegExp(foo, 'i')};
                 console.log(query);
                 dbIMDB.imdb.findAndModify({
                     query: { 'title': title , 'cast.cast': listing['cast']},
@@ -553,11 +553,13 @@ function prepareUpComingPosterUrls(done) {
                             } else {
                                 dbIMDB.imdb.findOne({title: title}, function(err, item) {
                                     console.log(item['posterUrl']);
-                                    if (typeof(item['posterUrl']) != 'undefined' || item['posterUrl'] != null) {
-                                        upComingPosterImageObjs.push({
-                                            url: item['posterUrl'], 
+                                    if (item['posterUrl'] != null) {
+                                        if (item['posterUrl'].indexOf('?')!= -1) {
+                                          upComingPosterImageObjs.push({
+                                            url: item['posterUrl'],
                                             hash: item['posterHash']
-                                        });
+                                          });
+                                        }
                                     }
                                     innerCount++;
                                     innercallback(null, innerCount);

@@ -86,10 +86,15 @@ upComingPosterDescriptionScraper.prototype.parsePage = function (html) {
     console.log('description: ' + description);
 
     if (typeof(hash)!='undefined') {
-        hash = hash['attribs']['src'].split('images')[3].split('._V1')[0].slice(3);
-        path = $('.slate_wrapper .poster a').length > 0 ? 'http://www.imdb.com'+$('.slate_wrapper .poster a')[0]['attribs']['href'] : 'http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/180x268/film-173410679._CB282471105_.png';
-        if (hash.indexOf('@')!= -1) 
-            hash = hash.split('@')[0];
+        if (hash['attribs']['src'].indexOf('_V1') != -1) {
+           hash = hash['attribs']['src'].split('images')[3].split('._V1')[0].slice(3);
+           path = $('.slate_wrapper .poster a').length > 0 ? 'http://www.imdb.com'+$('.slate_wrapper .poster a')[0]['attribs']['href'] : 'http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/180x268/film-173410679._CB282471105_.png';
+           if (hash.indexOf('@')!= -1)
+               hash = hash.split('@')[0];
+        } else {
+           hash = '';
+           path = 'http://ia.media-imdb.com/images/G/01/imdb/images/nopicture/180x268/film-173410679._CB282471105_.png';
+        }
     } else if ($('.minPosterWithPlotSummaryHeight .poster img') !=  null) {
         obj = $('.minPosterWithPlotSummaryHeight .poster img')[0];
 
