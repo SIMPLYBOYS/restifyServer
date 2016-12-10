@@ -15,6 +15,41 @@ exports.updatePttPost = function() {
     });
 };
 
+function clearIndex(done) {
+    var postObj = [];
+    dbPtt.ptt.find({}, function(err, docs) {  
+        docs.forEach(function(item, index) {
+            postObj.push({
+                title: item['title'],
+                id: item['_id']
+            });
+        });
+        console.log(postObj.length);
+        var count = 0;
+        async.whilst(
+            function() { return count < postObj.length},
+            function(callback) {
+                console.log('count: ' + count);
+                elasticClient.delete({
+                    index: 'test',
+                    type: 'ptt',
+                    id: postObj[count]['id'].toString()
+                  }, function (error, response) {
+                    console.log(error+'\n'+response);
+                    if (!error) {
+                        count++;
+                        callback(null, count);
+                    }
+                  });
+            },
+            function(err, n) {
+                console.log('ptt clean indexing finish ' + n);
+                done(null);
+            }
+        );
+    });
+}
+
 function createIndex(done) {
     var postObj = [];
     dbPtt.ptt.find({}, function(err, docs) {  
@@ -39,8 +74,8 @@ function createIndex(done) {
                     id: postObj[count]['id'].toString(),
                     body: {
                       title: postObj[count]['title'],
-                      link: postObj[count]['posterUrl'],
-                      date: postObj[count]['description'],
+                      link: postObj[count]['link'],
+                      date: postObj[count]['date'],
                       author: postObj[count]['author']
                     }
                   }, function (error, response) {
