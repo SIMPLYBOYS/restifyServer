@@ -52,6 +52,9 @@ function searchDocument(channel, input) {
        case 15:
           type = 'uk';
           break;
+       case 16: 
+          type = 'ptt';
+          break;
        default:
           type = 'imdb'
           break;
