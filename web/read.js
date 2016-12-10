@@ -152,21 +152,21 @@ exports.world = function (req, res, next) {
     switch (parseInt(country)) {
        case 1:
            dbAustralia.australia.find({'title': req.query.title}, function(err, docs) {
-            foo['contents'] = docs;
-            res.end(JSON.stringify(foo));
-          });
+             foo['contents'] = docs;
+             res.end(JSON.stringify(foo));
+           });
           break;
        case 2:
            dbChina.china.find({'title': req.query.title}, function(err, docs) {
-            foo['contents'] = docs;
-            res.end(JSON.stringify(foo));
-          });
+             foo['contents'] = docs;
+             res.end(JSON.stringify(foo));
+           });
           break;
        case 3:
            dbFrance.france.find({'title': req.query.title}, function(err, docs) {
-            foo['contents'] = docs;
-            res.end(JSON.stringify(foo));
-          });
+             foo['contents'] = docs;
+             res.end(JSON.stringify(foo));
+           });
           break;
        case 4:
           dbGermany.germany.find({'title': req.query.title}, function(err, docs) {
@@ -672,40 +672,48 @@ exports.my_movies = function(req, res) {
 
 exports.postPages = function(req, res) {
   var postCh = Math.floor(Math.random() * (6-0));
-  switch (parseInt(country)) {
+  var foo = {'contents': []};
+  switch (parseInt(postCh)) {
        case 0:
           dbJapan.japan.find({top:{$lte:5,$gte:1}},{posterUrl:1}, function(err, docs) {
-            res.end(JSON.stringify(docs));
+            foo['contents'].push(docs);
+            res.end(JSON.stringify(foo));
           });
           break;
        case 1:
           dbUSA.usa.find({top:{$lte:5,$gte:1}},{posterUrl:1}, function(err, docs) {
-            res.end(JSON.stringify(docs));
+            foo['contents'].push(docs);
+            res.end(JSON.stringify(foo));
           });
           break;
        case 2:
           dbTaiwan.taiwan.find({top:{$lte:5,$gte:1}},{posterUrl:1}, function(err, docs) {
-            res.end(JSON.stringify(docs));
+            foo['contents'].push(docs);
+            res.end(JSON.stringify(foo));
           });
           break;
        case 3:
           dbKorea.korea.find({top:{$lte:5,$gte:1}},{posterUrl:1}, function(err, docs) {
-            res.end(JSON.stringify(docs));
+            foo['contents'].push(docs);
+            res.end(JSON.stringify(foo));
           });
           break;
        case 4:
           dbFrance.france.find({top:{$lte:5,$gte:1}},{posterUrl:1}, function(err, docs) {
-            res.end(JSON.stringify(docs));
+            foo['contents'].push(docs);
+            res.end(JSON.stringify(foo));
           });
           break;
        case 5:
           dbChina.china.find({top:{$lte:5,$gte:1}},{posterUrl:1}, function(err, docs) {
-            res.end(JSON.stringify(docs));
+            foo['contents'].push(docs);
+            res.end(JSON.stringify(foo));
           });
           break;
        default:
           dbGermany.germany.find({top:{$lte:5,$gte:1}},{posterUrl:1}, function(err, docs) {
-            res.end(JSON.stringify(docs));
+            foo['contents'].push(docs);
+            res.end(JSON.stringify(foo));
           });
           break;
     }
