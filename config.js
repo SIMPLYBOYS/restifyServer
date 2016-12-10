@@ -4,6 +4,7 @@ var dbIMDB = mongojs('test', ['imdb']);
 var dbJapan = mongojs('test', ['japan']);
 var dbKorea = mongojs('test', ['korea']);
 var dbTaiwan = mongojs('test', ['taiwan']);
+var dbPtt = mongojs('test', ['ptt']);
 var dbHonKong = mongojs('test', ['honkong']);
 var dbUSA = mongojs('test', ['usa']);
 var dbChina = mongojs('test', ['china']);
@@ -54,6 +55,7 @@ exports.dbSpain = dbSpain;
 exports.dbUK = dbUK;
 exports.dbGermany = dbGermany;
 exports.dbTaiwan = dbTaiwan;
+exports.dbPtt = dbPtt;
 exports.dbHonKong = dbHonKong;
 exports.dbChina = dbChina;
 
@@ -97,4 +99,6 @@ exports.cnTrendsUpdate = '5 19 2 * * *';
 exports.gmTrendsUpdate = '15 3 1 * * *';
 
 exports.worldMoviesScrape = '55 59 2 * * *';
+
+exports.pttPostUpdate = '15 3 5 * * *';
 

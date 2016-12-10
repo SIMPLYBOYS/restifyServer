@@ -26,6 +26,7 @@ var Trailer = require('./Trailer');
 var Position = require('./update/position');
 var Record = require('./update/record');
 var Review = require('./update/review');
+var Ptt = require('./update/ptt');
 var upComing = require('./update/upcoming');
 var Genre = require('./genre/genre');
 var jpTrends = require('./trends/jpTrends');
@@ -579,6 +580,10 @@ var job_gmTrendsUpdate = new cronJob(config.gmTrendsUpdate, function() {
     gmTrends.updateTrends();
 })
 
+var job_pttPostUpdate = new cronJob(config.pttPostUpdate, function() {
+    Ptt.updatePttPost();
+});
+
 var job_worldMoviesScrape = new cronJob(config.worldMoviesScrape, function() {
     // twMovies.taiwanMovies();
     // hkMovies.honkongMovies();
@@ -621,6 +626,7 @@ job_genreUpdate.start();
 job_cnTrendsUpdate.start();
 job_gmTrendsUpdate.start();
 job_worldMoviesScrape.start();
+job_pttPostUpdate.start();
 
 require('events').EventEmitter.prototype._maxListeners = 100;
  
