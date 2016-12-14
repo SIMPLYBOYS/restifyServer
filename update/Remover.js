@@ -12,9 +12,9 @@ function Remover (title, position) {
     this.title = title;
     this.infoTitle = title;
 
-    if (item.title.indexOf(',') != -1) {
-        item.title = item.title.split('(')[0];
-        item.title = item.title.split(',')[1].trim()+" "+item.title.split(',')[0]
+    if (title.indexOf(',') != -1) {
+        title = title.split('(')[0];
+        title = title.split(',')[1].trim()+" "+title.split(',')[0]
     }
 
     this.position = position;

@@ -347,7 +347,7 @@ Creater.prototype.insertTitle = function(done) {
             done(null);
         });  
     });
-}
+};
 
 Creater.prototype.fetchMovieInfo = function(done) {
     var that = this;
@@ -360,7 +360,7 @@ Creater.prototype.fetchMovieInfo = function(done) {
             done(null);
         }
     });
-}
+};
 
 Creater.prototype.insertDetail = function(done) {
     var that = this;
@@ -567,7 +567,7 @@ Creater.prototype.insertDetail = function(done) {
             done(null);
         }
     });
-}
+};
 
 function prepareGalleryPages(done) {
     console.log('prepareGalleryPages -------->');
@@ -664,7 +664,7 @@ Creater.prototype.insertPoster =function(done) {
         }
 
     });
-}
+};
 
 function GalleryWizard(done) {
     console.log('GalleryWizard --->');
@@ -727,7 +727,7 @@ Creater.prototype.insertTrailer = function(done) {
             done(null);
         }
     });
-}
+};
 
 Creater.prototype.prepareRecords = function(done) {
     var that = this;
@@ -744,7 +744,7 @@ Creater.prototype.prepareRecords = function(done) {
             done(null);
         }
     });
-}
+};
 
 Creater.prototype.insertRecords = function(done) {
     var that = this;
@@ -813,7 +813,7 @@ Creater.prototype.insertRecords = function(done) {
             done(null);
         }
     });
-}
+};
 
 var findposition = function(token) {
     if (token.indexOf('*') == -1) {
