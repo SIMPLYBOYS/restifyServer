@@ -558,9 +558,8 @@ function insertDetail(done) {
                                         country = $(item).text().trim().split(',')[0];
                                 });
 
-                                data.push({
-                                    data: releaseDate.split('.')[0]
-                                });
+                                if (typeof(releaseDate)!='undefined') 
+                                    data.push({ data: releaseDate.split('.')[0]});
 
                                 data.push({
                                     data: country
