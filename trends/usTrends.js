@@ -34,7 +34,7 @@ exports.updateTrends = function() {
         resetPosition,
         insertTitle,
         insertDetail,
-        insertRottenTomatoes,
+        // insertRottenTomatoes,
         insertCast,
         insertCastAvatar,
         insertReview,
