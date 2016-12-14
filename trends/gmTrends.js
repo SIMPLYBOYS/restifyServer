@@ -131,10 +131,18 @@ function insertDetail(done) {
                                 runTime = $('.article-meta .first').text();
                                 plot = $('#movie-plot p').text().trim();
                                 story = plot;
-                                rating = parseInt($('.movie-rating-user .rating-number').text().split('Ø')[1].trim());
-                                votes = parseInt($('.movie-rating-user a').text().split('(')[1].split(')')[0]);
-                                posterUrl = $('.article-poster img').attr('src').split('236')[0] + '0x1920.jpg';
-                                releaseDate = $('.article-meta time').text().split('Ab')[1].split('im')[0].trim();
+                                rating = parseFloat($('.movie-rating-user .rating-number').text().split('Ø')[1].trim());
+
+                                if ($('.movie-rating-user a').text().trim()!="")
+                                        votes = parseInt($('.movie-rating-user a').text().split('(')[1].split(')')[0]);
+
+                                if (typeof($('.article-poster img').attr('src')) != 'undefined') {
+                                        posterUrl = $('.article-poster img').attr('src').split('236')[0] + '0x1920.jpg';
+                                        releaseDate = $('.article-meta time').text().split('Ab')[1].split('im')[0].trim();
+                                } else {
+                                        posterUrl = $('.movie-poster img').attr('src');
+                                        releaseDate = $('.article-meta time').text().trim();
+                                }
 
                                 $('.article-meta dd a').each(function(index, item) {
                                 	if (index == 0)
