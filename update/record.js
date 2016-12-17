@@ -11,7 +11,7 @@ exports.updateRecord = function() {
         function (done) {
             dbIMDB.imdb.find({'top': {$lte:250, $gte:1}}, function(err, docs) {
                 docs.forEach(function(doc, top){
-                    updateRecords.push({'title': doc['Infotitle'], 'position': doc['top']});
+                    updateRecords.push({'title': doc['title'], 'position': doc['top']});
                 });
                 done(null);
             });
