@@ -426,9 +426,9 @@ Updater.prototype.updateMovie = function () {
           });
         });
       } else if (doc['title'] == 'Ben-Hur') {
-        dbIMDB.imdb.update({ _id: mongojs.ObjectId('5734d89f39c619427064d312')}, {'$set': {'top': parseInt(that['position'])}},
+        dbIMDB.imdb.update({ _id: mongojs.ObjectId('5705057233c8ea8e13b62488')}, {'$set': {'top': parseInt(that['position'])}},
            function() {
-              dbIMDB.imdb.update({_id: mongojs.ObjectId('5734d89f39c619427064d312')}, {'$set': {'delta': that['delta']}}, function() {
+              dbIMDB.imdb.update({_id: mongojs.ObjectId('5705057233c8ea8e13b62488')}, {'$set': {'delta': that['delta']}}, function() {
                 that.emit('updated', that.title);
               });
         });
