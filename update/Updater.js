@@ -451,6 +451,7 @@ Updater.prototype.updateRecord = function () {
   dbIMDB.imdb.findOne({'title': that['title']}, function(err, doc) {
       if (!doc) {
         console.log('\n\n' + that['title'] + ' not found!');
+        that.emit('data not founded', that['title']);
         return;     
       } else {
         Url = "http://top250.info/movie/?" + doc['idIMDB'].slice(2)+'/full';
