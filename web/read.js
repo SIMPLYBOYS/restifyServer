@@ -126,6 +126,24 @@ exports.read = function (req, res, next) {
     }
 };
 
+exports.imdb_home = function(req, res, next) {
+  res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
+    var foo = {};
+    dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}).limit(10, function(err, docs) {
+        var foo = {},
+            movies = [];
+        for (var i=0; i<docs.length; i++) {
+            movies.push({ 
+              'title' : docs[i]['title'],
+              'detailUrl': docs[i]['detailUrl'],
+              'posterUrl': docs[i]['posterUrl']
+            });
+        }
+        foo['contents'] = movies;
+        res.end(JSON.stringify(foo));
+    });
+}
+
 exports.upcoming = function(req, res, next) {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     var foo = {};

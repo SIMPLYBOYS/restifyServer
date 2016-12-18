@@ -146,6 +146,8 @@ server.get('/upcoming', Read.upcoming);
 
 server.get('/imdb', Read.read);
 
+server.get('/imdb_home', Read.imdb_home);
+
 server.get('/imdb_title', Read.getTitle);
 
 server.get('/imdb_position', Read.getPosition);
