@@ -144,7 +144,7 @@ exports.register = function(req, res) {
         newJob(req.params.name, req.params.fbId, dbUser);
         res.end();
       }
-  });
+   });
 };
 
 exports.follow = function(req, res) {

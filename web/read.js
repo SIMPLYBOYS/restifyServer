@@ -660,8 +660,27 @@ exports.nyTimes = function(req, res) {
             console.log('complete: ' + result);
             foo['contents'].push(result);
             res.end(JSON.stringify(foo));
-        })
+        });
     }
+};
+
+exports.nyTimes_home = function(req, res) {
+    var foo = {'contents': []};
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
+    cacheAccess.getNyTimesHome(redisClient, function(movies) {
+      console.log('nyTimes_home =========> ');
+      if (!movies) {
+          console.log("no movies");
+          res.end("waiting for a while!");
+      } else {
+        var bar = JSON.parse(movies);
+        console.log(bar.length);
+        bar.forEach(function(item, index) {
+          foo['contents'].push(item);
+        });
+        res.end(JSON.stringify(foo));
+      } 
+    });
 };
 
 exports.my_nyTimes = function(req, res) {

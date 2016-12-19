@@ -1,3 +1,9 @@
+var config = require('../config');
+var async = require('async');
+var request = require("request");
+var nyInformer = require('../nytimes/nyInformer');
+var kue = require('kue');
+var jobs = kue.createQueue();
 
 exports.findImdbReviewsByTitleCached = function (dbReview, redis, title, start, end, callback) {
     console.log('findImdbReviewsByTitle Cached ' + title);
@@ -32,4 +38,93 @@ exports.findImdbReviewsByTitleCached = function (dbReview, redis, title, start, 
         }
     });
 };
+
+exports.getNyTimesHome = function(redis, callback) {
+    console.log('getNyTimesHome');
+    redis.get('nytimesHome', function(err, reply) {
+        if (err) {
+            console.log(err);
+            callback(null);
+        } else if (reply) {
+            callback(reply);
+        } else {
+            callback(null);
+            newJob('nytimesHome', redis, callback);
+        }
+    });
+};
+
+function newJob (jobName, redis, callback) {
+   var job = jobs.create('register_job', {
+     name: jobName
+   });
+   
+   job.on('complete', function() {
+      console.log('Job', job.id, 'with name', job.data.name, 'is done');
+   }).on('failed', function() {
+      console.log('Job', job.id, 'with name', job.data.name, 'has failed');
+   });
+
+   async.series([
+        fetchLatestReviews
+   ],function (err, meta) {
+        if (err) console.error(err.stack);
+        console.log('all jobs for Nytimes home cache update finished!!');
+        redis.set('nytimesHome', JSON.stringify(meta[0]), function (err, replies) {
+            console.log('cache done ' + err);
+            if (!err) {
+                console.log(replies);
+                callback(meta[0]);
+            }
+        });
+    });
+}
+
+function fetchLatestReviews (done) {
+    console.log('fetchLatestReviews');
+    request({
+        url: 'https://api.nytimes.com/svc/movies/v2/reviews/search.json?offset=0',
+        encoding: "utf8",
+        method: "GET",
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36',
+            'Accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'api-key': config.nyTimesKey
+        }
+    }, function(err, response, body) {
+        var result = [],
+            meta = [],
+            count = 0;
+
+        results = JSON.parse(body)['results'];
+
+        results.forEach(function(item, index) {
+            meta.push({
+                headline: item['headline'].split('Review:')[1].trim(""),
+                link: item['link']['url']
+            })
+        });
+
+        console.log('collectPicture -------->');
+        async.whilst(
+            function() { return count < meta.length},
+            function(callback) {
+                var informer = new nyInformer(meta[count]['link']);
+                informer.on('complete', function(result){
+                    console.log('complete: ' + result['image']['src']);
+                    if (typeof(result['image']['src']) != 'undefined') 
+                        meta[count]['picUrl'] = result['image']['src'];
+                    else
+                        meta[count]['picUrl'] = 'https://static01.nyt.com/images/2016/12/09/arts/09ALLIHAD/09ALLIHAD-superJumbo.jpg';    
+                    count++;
+                    callback(null, count);
+                });
+            },
+            function(err, n) {
+                console.log('collectPicture finish ' + n);
+                done(null, meta);
+            }
+        ); 
+    });
+}
 

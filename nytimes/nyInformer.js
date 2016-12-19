@@ -126,47 +126,47 @@ nyInformer.prototype.redirectPage = function (url) {
 nyInformer.prototype.fetchInfo = function () {
     var self = this;
     request({
-            url: self.url,
-            encoding: 'utf8',
-            followRedirect: true,
-            maxRedirects:20,
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36',
-              'Accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' 
-            },
-            method: "GET",
-        }, function(err, response, body) {
-                if (err || !body) { return; }
-                var $ = cheerio.load(body);
-                var story = '';
-                var editor = '';
-                var date = '';
-                console.log($('.story-body').length);
-                if ($('.story-body').length > 0) {
-                  $('.story-body .story-body-text').each(function(index, item){
-                      console.log($(item).text());
-                      story +=  '\n\n' + $(item).text();
-                  })
-                  editor = 'By ' + $('.byline-author').text();
-                  date = $('.byline-dateline .dateline').text();
-                } else {
-                  $('#articleBody p').each(function(index, item) {
-                      console.log($(item).text());
-                      story += $(item).text();
-                  })
-                  editor = $('.byline').text();
-                  date = $('.timestamp').text().split(':')[1].trim();
-                }
-              
-                self.emit('loaded', {
-                    story: story,
-                    headline: null,
-                    image: { src: $('.story-body .image img').attr('data-mediaviewer-src'),
-                             description: $('.caption-text').text()},
-                    editor: editor,
-                    date: date,
-                    url: self.url
-                });
+        url: self.url,
+        encoding: 'utf8',
+        followRedirect: true,
+        maxRedirects:20,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36',
+          'Accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' 
+        },
+        method: "GET",
+    }, function(err, response, body) {
+        if (err || !body) { return; }
+        var $ = cheerio.load(body);
+        var story = '';
+        var editor = '';
+        var date = '';
+        console.log($('.story-body').length);
+        if ($('.story-body').length > 0) {
+          $('.story-body .story-body-text').each(function(index, item){
+              console.log($(item).text());
+              story +=  '\n\n' + $(item).text();
+          })
+          editor = 'By ' + $('.byline-author').text();
+          date = $('.byline-dateline .dateline').text();
+        } else {
+          $('#articleBody p').each(function(index, item) {
+              console.log($(item).text());
+              story += $(item).text();
+          })
+          editor = $('.byline').text();
+          date = $('.timestamp').text().split(':')[1].trim();
+        }
+      
+        self.emit('loaded', {
+            story: story,
+            headline: null,
+            image: { src: $('.story-body .image img').attr('data-mediaviewer-src'),
+                     description: $('.caption-text').text()},
+            editor: editor,
+            date: date,
+            url: self.url
+        });
     });
 };
 
