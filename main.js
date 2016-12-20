@@ -51,6 +51,9 @@ var usMovies = require('./crawler/usaMovies');
 var usTrends = require('./trends/usTrends');
 var cnTrends = require('./trends/cnTrends');
 var gmTrends = require('./trends/gmTrends');
+var cacheAccess = require('./memory_cache/redis');
+var redis = require("redis");
+var redisClient = redis.createClient();
 var google = require('google');
 var nextCounter = 0;
 
@@ -588,6 +591,17 @@ var job_pttPostUpdate = new cronJob(config.pttPostUpdate, function() {
     Ptt.updatePttPost();
 });
 
+var job_nyTimesHomeUpdate = new cronJob(config.nyTimesHomeUpdate, function() {
+    cacheAccess.updateNyTimesHome(redisClient, function(movies) {
+      console.log('nyTimes_home update =========> ');
+      if (!movies) {
+          console.log("no movies");
+      } else {
+        console.log('update success!');
+      } 
+    });
+});
+
 var job_worldMoviesScrape = new cronJob(config.worldMoviesScrape, function() {
     // twMovies.taiwanMovies();
     // hkMovies.honkongMovies();
@@ -631,6 +645,7 @@ job_cnTrendsUpdate.start();
 job_gmTrendsUpdate.start();
 job_worldMoviesScrape.start();
 job_pttPostUpdate.start();
+job_nyTimesHomeUpdate.start();
 
 require('events').EventEmitter.prototype._maxListeners = 100;
  

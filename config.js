@@ -104,3 +104,5 @@ exports.worldMoviesScrape = '55 59 2 * * *';
 
 exports.pttPostUpdate = '15 3 5 * * *';
 
+exports.nyTimesHomeUpdate = '15 51 1 * * *'
+
