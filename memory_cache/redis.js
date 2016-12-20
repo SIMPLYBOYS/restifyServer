@@ -39,6 +39,10 @@ exports.findImdbReviewsByTitleCached = function (dbReview, redis, title, start, 
     });
 };
 
+exports.updateNyTimesHome = function(redis, callback) {
+    newJob('nytimesHome', redis, callback);
+}
+
 exports.getNyTimesHome = function(redis, callback) {
     console.log('getNyTimesHome');
     redis.get('nytimesHome', function(err, reply) {
@@ -48,7 +52,7 @@ exports.getNyTimesHome = function(redis, callback) {
         } else if (reply) {
             callback(reply);
         } else {
-            callback(null);
+            callback(null); //feedback to user immediatly
             newJob('nytimesHome', redis, callback);
         }
     });
@@ -101,7 +105,8 @@ function fetchLatestReviews (done) {
         results.forEach(function(item, index) {
             meta.push({
                 headline: item['headline'].split('Review:')[1].trim(""),
-                link: item['link']['url']
+                link: item['link']['url'],
+                picUrl: item['multimedia']['src']
             })
         });
 
@@ -113,9 +118,7 @@ function fetchLatestReviews (done) {
                 informer.on('complete', function(result){
                     console.log('complete: ' + result['image']['src']);
                     if (typeof(result['image']['src']) != 'undefined') 
-                        meta[count]['picUrl'] = result['image']['src'];
-                    else
-                        meta[count]['picUrl'] = 'https://static01.nyt.com/images/2016/12/09/arts/09ALLIHAD/09ALLIHAD-superJumbo.jpg';    
+                        meta[count]['picUrl'] = result['image']['src'];  
                     count++;
                     callback(null, count);
                 });
