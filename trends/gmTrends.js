@@ -119,7 +119,7 @@ function insertDetail(done) {
                                     year,
                                     studio = [],
                                     cast = [],
-                                    rating,
+                                    rating = '',
                                     votes,
                                     plot,
                                     gallerySize,
@@ -131,7 +131,9 @@ function insertDetail(done) {
                                 runTime = $('.article-meta .first').text();
                                 plot = $('#movie-plot p').text().trim();
                                 story = plot;
-                                rating = parseFloat($('.movie-rating-user .rating-number').text().split('Ø')[1].trim());
+                                
+                                if (!isNaN(parseFloat($('.movie-rating-user .rating-number').text())))
+                                        rating = parseFloat($('.movie-rating-user .rating-number').text().split('Ø')[1].trim());
 
                                 if ($('.movie-rating-user a').text().trim()!="")
                                         votes = parseInt($('.movie-rating-user a').text().split('(')[1].split(')')[0]);
