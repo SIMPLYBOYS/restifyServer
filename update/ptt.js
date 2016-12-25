@@ -4,9 +4,11 @@ var moment = require("moment");
 var elastic = require('../search/elasticsearch');
 var elasticClient = elastic.elasticClient;
 var dbPtt = config.dbPtt;
+var indexName = "test";
 
 exports.updatePttPost = function() {
     async.series([
+        initMapping,
         createIndex
     ],
     function (err) {
@@ -14,6 +16,25 @@ exports.updatePttPost = function() {
           console.log('all jobs for ptt posts update finished!!');
     });
 };
+
+function initMapping(done) {
+    console.log('initMapping --->');
+    return elasticClient.indices.putMapping({
+        index: indexName,
+        type: "document",
+        body: {
+            properties: {
+                title: { type: "string" },
+                link: { type: "string" },
+                date: { type: "date" },
+                author: { type: "string" }
+            }
+        }
+    }, function(err, n) {
+        console.log('initMapping finish');
+        done(null);
+    });
+}
 
 function clearIndex(done) {
     var postObj = [];
@@ -31,7 +52,7 @@ function clearIndex(done) {
             function(callback) {
                 console.log('count: ' + count);
                 elasticClient.delete({
-                    index: 'test',
+                    index: indexName,
                     type: 'ptt',
                     id: postObj[count]['id'].toString()
                   }, function (error, response) {
@@ -69,7 +90,7 @@ function createIndex(done) {
             function(callback) {
                 console.log('count: ' + count);
                 elasticClient.index({
-                    index: 'test',
+                    index: indexName,
                     type: 'ptt',
                     id: postObj[count]['id'].toString(),
                     body: {
