@@ -27,6 +27,7 @@ var dbChina = config.dbChina;
 var dbUK = config.dbUK;
 var dbUSA = config.dbUSA;
 var dbUser = config.dbUser;
+var dbPtt = config.dbPtt;
 var myapiToken = config.myapiToken;
 var Updater = require('../update/Updater');
 var nyInformer = require('../nytimes/nyInformer');
@@ -140,6 +141,16 @@ exports.imdb_home = function(req, res, next) {
             });
         }
         foo['contents'] = movies;
+        res.end(JSON.stringify(foo));
+    });
+}
+
+exports.ptt_movies = function(req, res, next) {
+  res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
+    var foo = {};
+    dbPtt.ptt.find({date: {$lte: req.query.post_from}}).sort({'date': -1}).skip(parseInt(req.query.skip)).limit(10, function(err, docs){
+        var foo = {};
+        foo['contents'] = docs;
         res.end(JSON.stringify(foo));
     });
 }

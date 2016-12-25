@@ -113,6 +113,8 @@ server.get('/my_movies/:fbId', Read.my_movies);
 
 server.get('/postPages', Read.postPages);
 
+server.get('/ptt_movies', Read.ptt_movies);
+
 server.post('/register/:name/:fbId', Post.register);
 
 server.get('/google', Read.google);
