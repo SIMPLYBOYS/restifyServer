@@ -2,8 +2,10 @@ var config = require('../config');
 var async = require('async');
 var request = require("request");
 var nyInformer = require('../nytimes/nyInformer');
+var moment = require("moment");
 var kue = require('kue');
 var jobs = kue.createQueue();
+var dbPtt = config.dbPtt;
 
 exports.findImdbReviewsByTitleCached = function (dbReview, redis, title, start, end, callback) {
     console.log('findImdbReviewsByTitle Cached ' + title);
@@ -40,7 +42,7 @@ exports.findImdbReviewsByTitleCached = function (dbReview, redis, title, start, 
 };
 
 exports.updateNyTimesHome = function(redis, callback) {
-    newJob('nytimesHome', redis, callback);
+    nytimesJob('nytimesHome', redis, callback);
 }
 
 exports.getNyTimesHome = function(redis, callback) {
@@ -53,12 +55,27 @@ exports.getNyTimesHome = function(redis, callback) {
             callback(reply);
         } else {
             callback(null); //feedback to user immediatly
-            newJob('nytimesHome', redis, callback);
+            nytimesJob('nytimesHome', redis, callback);
         }
     });
 };
 
-function newJob (jobName, redis, callback) {
+exports.getPttHome = function(redis, callback) {
+    console.log('getPttHome');
+    redis.get('pttHome', function(err, reply) {
+        if (err) {
+            console.log(err);
+            callback(null);
+        } else if (reply) {
+            callback(reply);
+        } else {
+            callback(null); //feedback to user immediatly
+            pttJob('pttHome', redis, callback);
+        }
+    });
+};
+
+function nytimesJob (jobName, redis, callback) {
    var job = jobs.create('register_job', {
      name: jobName
    });
@@ -81,6 +98,45 @@ function newJob (jobName, redis, callback) {
                 callback(meta[0]);
             }
         });
+    });
+}
+
+function pttJob (jobName, redis, callback) {
+   var job = jobs.create('register_job', {
+     name: jobName
+   });
+   
+   job.on('complete', function() {
+      console.log('Job', job.id, 'with name', job.data.name, 'is done');
+   }).on('failed', function() {
+      console.log('Job', job.id, 'with name', job.data.name, 'has failed');
+   });
+
+   async.series([
+        collectPostTopics
+   ],function (err, meta) {
+        if (err) console.error(err.stack);
+        console.log('all jobs for ptt home cache update finished!!');
+        redis.set('pttHome', JSON.stringify(meta[0]), function (err, replies) {
+            console.log('cache done ' + err);
+            if (!err) {
+                console.log(replies);
+                callback(meta[0]);
+            }
+        });
+   });
+}
+
+function collectPostTopics (done) {
+    console.log('collectPostTopics');
+    var meta = []
+    console.log(moment().format('l'));
+    dbPtt.ptt.find({date: {$lte: moment().format('l')}}).sort({'date': -1, '_id': -1}).limit(20, function(err, docs) {
+        var foo = {};
+        docs.forEach(function(item, index) {
+            meta.push(item['title'].split(']')[1].trim());
+        });
+        done(null, meta);
     });
 }
 

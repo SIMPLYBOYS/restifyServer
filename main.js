@@ -115,6 +115,8 @@ server.get('/postPages', Read.postPages);
 
 server.get('/ptt_movies', Read.ptt_movies);
 
+server.get('/ptt_home', Read.ptt_home);
+
 server.post('/register/:name/:fbId', Post.register);
 
 server.get('/google', Read.google);

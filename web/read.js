@@ -148,11 +148,30 @@ exports.imdb_home = function(req, res, next) {
 exports.ptt_movies = function(req, res, next) {
   res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     var foo = {};
-    dbPtt.ptt.find({date: {$lte: req.query.post_from}}).sort({'date': -1}).skip(parseInt(req.query.skip)).limit(10, function(err, docs){
+    dbPtt.ptt.find({date: {$lte: req.query.post_from}}).sort({'date': -1, '_id': -1}).skip(parseInt(req.query.skip)).limit(10, function(err, docs) {
         var foo = {};
         foo['contents'] = docs;
         res.end(JSON.stringify(foo));
     });
+}
+
+exports.ptt_home = function(req, res, next) {
+  var foo = {'contents': []};
+  res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
+  cacheAccess.getPttHome(redisClient, function(movies) {
+    console.log('ptt_home =========> ');
+    if (!movies) {
+        console.log("no movies");
+        res.end("waiting for a while!");
+    } else {
+      var bar = JSON.parse(movies);
+      console.log(bar.length);
+      bar.forEach(function(item, index) {
+        foo['contents'].push(item);
+      });
+      res.end(JSON.stringify(foo));
+    } 
+  });
 }
 
 exports.upcoming = function(req, res, next) {
@@ -1239,7 +1258,7 @@ exports.elasticSearch = function(req, res, next) {
               return;
             }
 
-            result['hits']['hits'].forEach(function(item, index){
+            result['hits']['hits'].forEach(function(item, index) {
                json_res.push(item);
             });
 
