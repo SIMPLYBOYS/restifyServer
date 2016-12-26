@@ -5,6 +5,8 @@ var nyInformer = require('../nytimes/nyInformer');
 var moment = require("moment");
 var kue = require('kue');
 var jobs = kue.createQueue();
+var OpenCC = require('opencc');
+var opencc = new OpenCC('tw2s.json');
 var dbPtt = config.dbPtt;
 
 exports.findImdbReviewsByTitleCached = function (dbReview, redis, title, start, end, callback) {
@@ -134,7 +136,7 @@ function collectPostTopics (done) {
     dbPtt.ptt.find({date: {$lte: moment().format('l')}}).sort({'date': -1, '_id': -1}).limit(20, function(err, docs) {
         var foo = {};
         docs.forEach(function(item, index) {
-            meta.push(item['title'].split(']')[1].trim());
+            meta.push(opencc.convertSync(item['title'].split(']')[1].trim()));
         });
         done(null, meta);
     });
