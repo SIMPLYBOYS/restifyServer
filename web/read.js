@@ -37,6 +37,8 @@ var request = require("request");
 var async = require('async');
 var moment = require("moment");
 var async = require('async');
+var OpenCC = require('opencc');
+var opencc = new OpenCC('s2tw.json');
 var updateMovies = [];
 var monthList = [
     {start: '0101', end: '0131'},
@@ -78,7 +80,6 @@ var genreList = [
     {type: "War"},
     {type: "Western"}
 ];
-
 var client_id = '713961bd892a424f84585a57067750bf'; // Your client id
 var client_secret = '7db9e0e7761a4fd5b2e4653a7229e1b4'; // Your secret
 var redirect_uri = 'worldmovie-login://callback'; // Your redirect uri
@@ -164,15 +165,16 @@ exports.ptt_home = function(req, res, next) {
         console.log("no movies");
         res.end("waiting for a while!");
     } else {
-      var bar = JSON.parse(movies);
+      console.log(movies)
+      var bar = movies.split(',')
       console.log(bar.length);
       bar.forEach(function(item, index) {
-        foo['contents'].push(item);
+        foo['contents'].push(opencc.convertSync(item));
       });
       res.end(JSON.stringify(foo));
     } 
   });
-}
+};
 
 exports.upcoming = function(req, res, next) {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
@@ -189,7 +191,7 @@ exports.upcoming = function(req, res, next) {
         }
         res.end(JSON.stringify(foo));
     });
-}
+};
 
 exports.world = function (req, res, next) {
     var country = req.params.country,
@@ -289,7 +291,7 @@ exports.world = function (req, res, next) {
           });
           break;
     }
-}
+};
 
 exports.worldReview = function(req, res) {
     var country = req.params.country,
@@ -449,7 +451,7 @@ exports.worldReview = function(req, res) {
         });
         break;
     }
-}
+};
 
 exports.access_refresh_token = function(req, res) {
   var code = req.query.code;
@@ -498,7 +500,7 @@ exports.refresh_token = function(req, res) {
       });
     }
   });
-}
+};
 
 exports.getGenre = function(req, res) {
     // console.log('date -------> ' + moment().subtract(10, 'days').calendar());
