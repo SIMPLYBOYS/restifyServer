@@ -98,6 +98,7 @@ trendsUsGalleryScraper.prototype.parsePage = function (html) {
   // if (title == '')
   //   title = $('title').text().split('(')[0].trim();
 
+  position = parseInt(position.split(',').join(''));
   picturesUrl = $('.photo img').attr('src');
 
   if (typeof(picturesUrl) == 'undefined') {
