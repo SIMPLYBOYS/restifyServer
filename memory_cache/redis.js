@@ -77,6 +77,10 @@ exports.getPttHome = function(redis, callback) {
     });
 };
 
+exports.updatePttHome = function(redis, callback) {
+    pttJob('pttHome', redis, callback);
+}
+
 function nytimesJob (jobName, redis, callback) {
    var job = jobs.create('register_job', {
      name: jobName
@@ -130,13 +134,18 @@ function pttJob (jobName, redis, callback) {
 }
 
 function collectPostTopics (done) {
-    console.log('collectPostTopics');
-    var meta = []
-    console.log(moment().format('l'));
-    dbPtt.ptt.find({date: {$lte: moment().format('l')}}).sort({'date': -1, '_id': -1}).limit(20, function(err, docs) {
-        var foo = {};
+    console.log('collectPostTopics ------>');
+    var meta = [],
+        bar,
+        date;
+    bar = moment().format('l').split('/').slice(0,2).join('/');
+    date = moment().format('l').split('/')[2]+'/'+bar;
+    dbPtt.ptt.find({date: {$lte: date}}).sort({'date': -1, '_id': -1}).limit(20, function(err, docs) {
+        var foo = {},
+            reg = /^\[|]/
         docs.forEach(function(item, index) {
-            meta.push(opencc.convertSync(item['title'].split(']')[1].trim()));
+            reg.exec(item['title'].trim()) ? meta.push(opencc.convertSync(item['title'].split(']')[1]).trim()) : 
+                                             meta.push(opencc.convertSync(item['title'].trim()));
         });
         done(null, meta);
     });

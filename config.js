@@ -78,7 +78,7 @@ exports.genreUpdate = '45 21 22 * * *';
 
 exports.recordUpdate = '35 10 7 * * *';
 
-exports.positionUpdate = '5 15 7 * * *';
+exports.positionUpdate = '5 12 7 * * *';
 
 exports.reviewUpdate = '35 40 7 * * *';
 
@@ -102,7 +102,9 @@ exports.gmTrendsUpdate = '15 3 1 * * *';
 
 exports.worldMoviesScrape = '55 59 2 * * *';
 
-exports.pttPostUpdate = '15 3 5 * * *';
+exports.pttPostUpdate = '55 14 12 * * *';
 
 exports.nyTimesHomeUpdate = '15 51 1 * * *'
+
+exports.pttHomeUpdate = '25 53 1 * * *'
 

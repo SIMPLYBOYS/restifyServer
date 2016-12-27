@@ -592,7 +592,18 @@ var job_gmTrendsUpdate = new cronJob(config.gmTrendsUpdate, function() {
 })
 
 var job_pttPostUpdate = new cronJob(config.pttPostUpdate, function() {
-    Ptt.updatePttPost();
+    Ptt.updatePttPost(); //for ptt post indexing
+});
+
+var job_pttHomeUpdate = new cronJob(config.pttHomeUpdate, function() {
+    cacheAccess.updatePttHome(redisClient, function(posts) {
+      console.log('ptt_home update =========> ');
+      if (!posts) {
+          console.log("no posts");
+      } else {
+        console.log('update success!');
+      } 
+    });
 });
 
 var job_nyTimesHomeUpdate = new cronJob(config.nyTimesHomeUpdate, function() {
@@ -622,7 +633,7 @@ var job_worldMoviesScrape = new cronJob(config.worldMoviesScrape, function() {
     // spMovies.spainMovies();
     // plMovies.polandMovies();
     // usMovies.usaMovies();
-})
+});
 
 /*var job_twTrendsUpdate = new cronJob(config.recordUpdate, function () {
   console.log('开始执行定时更新任务');
@@ -650,6 +661,7 @@ job_gmTrendsUpdate.start();
 job_worldMoviesScrape.start();
 job_pttPostUpdate.start();
 job_nyTimesHomeUpdate.start();
+job_pttHomeUpdate.start();
 
 require('events').EventEmitter.prototype._maxListeners = 100;
  
