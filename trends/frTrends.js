@@ -617,7 +617,7 @@ function insertDetail(done) {
                                 dbFrance.france.update({'title': title[count]}, {'$set': {
                                         originTitle: originTitle,
                                         genre: genre,
-                                        releaseDate: releaseDate.split('\n')[0],
+                                        releaseDate: typeof(releaseDate) != 'undefined' ? releaseDate.split('\n')[0] : '',
                                         runTime: runTime,
                                         type: type,
                                         country: country,
