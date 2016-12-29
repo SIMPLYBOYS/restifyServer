@@ -7,7 +7,9 @@ var elasticClient = new elasticsearch.Client({
 exports.elasticClient = elasticClient;
 
 function searchDocument(channel, input) {
-    var type = 0;
+    var type = 0,
+        index = 'test',
+        sort = [];
 
     switch (parseInt(channel)) {
        case 1:
@@ -54,6 +56,9 @@ function searchDocument(channel, input) {
           break;
        case 16: 
           type = 'ptt';
+          index = 'ptt-test';
+          sort.push({"date":{"order":"desc"}});
+          sort.push("_score");
           break;
        default:
           type = 'imdb'
@@ -61,10 +66,11 @@ function searchDocument(channel, input) {
     }
 
     return elasticClient.search({
-      index: 'test',
+      index: index,
       type: type,
       scroll: '10s',
       body: {
+        sort: sort,
         query: {
           multi_match: {
             query: {

@@ -1261,7 +1261,8 @@ exports.elasticSearch = function(req, res, next) {
             }
 
             result['hits']['hits'].forEach(function(item, index) {
-               json_res.push(item);
+              if (item['_score'] > 0.2) 
+                json_res.push(item);
             });
 
             // console.log(result.hits.hits.length + ' hits out of ' + result.hits.total);
