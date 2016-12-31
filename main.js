@@ -193,7 +193,7 @@ server.get('/nyTimes', Read.nyTimes);
 
 server.get('/nyTimes_home', Read.nyTimes_home)
 
-server.get('/search/:channel/:input', Read.elasticSearch);
+server.get('/search/:channel/:input/:scrollId', Read.elasticSearch);
 
 server.get('/gcm', Post.gcmTopic_t);
 

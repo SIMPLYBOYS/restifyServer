@@ -40,7 +40,7 @@ var async = require('async');
 var OpenCC = require('opencc');
 var opencc = new OpenCC('s2tw.json');
 var updateMovies = [];
-var monthList = [
+const monthList = [
     {start: '0101', end: '0131'},
     {start: '0201', end: '0228'},
     {start: '0301', end: '0331'},
@@ -56,7 +56,7 @@ var monthList = [
     {start: '0101', end: '0131'},
     {start: '0201', end: '0228'}
 ];
-var genreList = [
+const genreList = [
     {type: "Animation"},
     {type: "Action"},
     {type: "Adventure"},
@@ -80,9 +80,9 @@ var genreList = [
     {type: "War"},
     {type: "Western"}
 ];
-var client_id = '713961bd892a424f84585a57067750bf'; // Your client id
-var client_secret = '7db9e0e7761a4fd5b2e4653a7229e1b4'; // Your secret
-var redirect_uri = 'worldmovie-login://callback'; // Your redirect uri
+const client_id = '713961bd892a424f84585a57067750bf'; // Your client id
+const client_secret = '7db9e0e7761a4fd5b2e4653a7229e1b4'; // Your secret
+const redirect_uri = 'worldmovie-login://callback'; // Your redirect uri
 
 exports.read = function (req, res, next) {
     console.log('from: '+ req.query.from +'\n to: ' + req.query.to + '\n title: ' + req.query.title);
@@ -1248,11 +1248,13 @@ exports.getToday = function(req, res, next) {
 };
 
 exports.elasticSearch = function(req, res, next) {
-    elastic.searchDocument(req.params.channel, req.params.input).then(function (result) {
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
-        var scrollId = result._scroll_id;
-        var json_res = [];
-        (function next(result) {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
+    let scrollId = result['_scroll_id'];
+    let json_res = [];
+    let foo = {};
+
+    if (req.params.scrollId == '') {
+        elastic.searchDocument(req.params.channel, req.params.input).then(function (result) {
             if (!result.hits.hits.length) {
                 console.log('done ---->');
               // console.log('done ----> ' + JSON.stringify(json_res));
@@ -1261,18 +1263,31 @@ exports.elasticSearch = function(req, res, next) {
             }
 
             result['hits']['hits'].forEach(function(item, index) {
-              if (item['_score'] > 0.2) 
+              if (item['_score'] > 0.9) 
                 json_res.push(item);
             });
 
             // console.log(result.hits.hits.length + ' hits out of ' + result.hits.total);
-
-            elastic.elasticClient.scroll({
-              scroll: '1m',
-              scrollId: scrollId
-            }).then(next);
-        }(result));
-    });
+            foo['search'] = json_res;
+            foo['scrollId'] = scrollId;
+            foo['total'] = result['hits']['total'];
+            res.end(JSON.stringify(json_res));
+        });
+    } else {
+      elastic.elasticClient.scroll({
+        scroll: '1m',
+        scrollId: scrollId
+      }, function(error, response) {
+          response['hits']['hits'].forEach(function(hit, index) {
+              if (hit['_score'] > 0.9)
+                json_res.push(hit);
+          });
+          foo['search'] = json_res;
+          foo['scrollId'] = req.params.scrollId;
+          foo['total'] = response['hits']['total'];
+          res.end(JSON.stringify(foo));
+      });
+    } 
 };
 
 exports.google = function (req, res, next) {

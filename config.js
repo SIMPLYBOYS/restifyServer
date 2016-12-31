@@ -71,7 +71,7 @@ exports.db = mysql.createConnection({
 });*/
 
 // Web服务器端口
-exports.port = 80;
+exports.port = 3000;
 
 // update record
 exports.genreUpdate = '45 21 22 * * *';
@@ -102,9 +102,9 @@ exports.gmTrendsUpdate = '15 3 1 * * *';
 
 exports.worldMoviesScrape = '55 59 2 * * *';
 
-exports.pttPostUpdate = '55 14 12 * * *';
+exports.pttPostUpdate = '* * */12 * * *';
 
 exports.nyTimesHomeUpdate = '15 51 1 * * *'
 
-exports.pttHomeUpdate = '25 53 1 * * *'
+exports.pttHomeUpdate = '5 0 4 * * *'
 

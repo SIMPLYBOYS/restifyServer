@@ -68,7 +68,8 @@ function searchDocument(channel, input) {
     return elasticClient.search({
       index: index,
       type: type,
-      scroll: '10s',
+      scroll: '1m',
+      size: 1000,
       body: {
         sort: sort,
         query: {
