@@ -1249,7 +1249,7 @@ exports.getToday = function(req, res, next) {
 
 exports.elasticSearch = function(req, res, next) {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
-    let scrollId = result['_scroll_id'];
+    let scrollId = '';
     let json_res = [];
     let foo = {};
 
@@ -1262,6 +1262,8 @@ exports.elasticSearch = function(req, res, next) {
               return;
             }
 
+            scrollId = result['_scroll_id'];
+
             result['hits']['hits'].forEach(function(item, index) {
               if (item['_score'] > 0.9) 
                 json_res.push(item);
@@ -1271,7 +1273,7 @@ exports.elasticSearch = function(req, res, next) {
             foo['search'] = json_res;
             foo['scrollId'] = scrollId;
             foo['total'] = result['hits']['total'];
-            res.end(JSON.stringify(json_res));
+            res.end(JSON.stringify(foo));
         });
     } else {
       elastic.elasticClient.scroll({
