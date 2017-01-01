@@ -4,12 +4,13 @@ var moment = require("moment");
 var elastic = require('../search/elasticsearch');
 var elasticClient = elastic.elasticClient;
 var dbPtt = config.dbPtt;
-var indexName = "test";
+var indexName = "ptt-test";
 
 exports.updatePttPost = function() {
     async.series([
-        initMapping,
-        createIndex
+        /*initMapping,
+        createIndex*/
+        update_ISODate
     ],
     function (err) {
         if (err) console.error(err.stack);
@@ -21,12 +22,12 @@ function initMapping(done) {
     console.log('initMapping --->');
     return elasticClient.indices.putMapping({
         index: indexName,
-        type: "document",
+        type: "ptt",
         body: {
             properties: {
                 title: { type: "string" },
                 link: { type: "string" },
-                date: { type: "date" },
+                date: { type: "string" },
                 author: { type: "string" }
             }
         }
@@ -71,9 +72,44 @@ function clearIndex(done) {
     });
 }
 
-function createIndex(done) {
+function update_ISODate(done) {
     var postObj = [];
     dbPtt.ptt.find({}, function(err, docs) {  
+        docs.forEach(function(item, index) {
+            postObj.push({
+                title: item['title'],
+                id: item['_id'],
+                link: item['link'],
+                author: item['autor'],
+                date: item['date']
+            });
+        });
+        console.log(postObj.length);
+        var count = 0;
+        async.whilst(
+            function() { return count < postObj.length},
+            function(callback) {
+                console.log('count: ' + count);
+                dbPtt.ptt.update({_id: postObj[count]['id']},{$set:{
+                    date: new Date(postObj[count]['date'])
+                }}, function(error, response){
+                    if (!error) {
+                        count++;
+                        callback(null, count);
+                    }
+                });
+            },
+            function(err, n) {
+                console.log('ptt ISODate update finish ' + n);
+                done(null);
+            }
+        );
+    });
+}
+
+function createIndex(done) {
+    var postObj = [];
+    dbPtt.ptt.find({}).limit(20, function(err, docs) {  
         docs.forEach(function(item, index) {
             postObj.push({
                 title: item['title'],
