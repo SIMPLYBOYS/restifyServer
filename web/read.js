@@ -1,3 +1,5 @@
+'use strict';
+
 var config = require('../config');
 var url = require('url');
 var cacheAccess = require('../memory_cache/redis');
@@ -149,7 +151,7 @@ exports.imdb_home = function(req, res, next) {
 exports.ptt_movies = function(req, res, next) {
   res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8'});
     var foo = {};
-    dbPtt.ptt.find({date: {$lte: req.query.post_from}}).sort({'date': -1, '_id': -1}).skip(parseInt(req.query.skip)).limit(10, function(err, docs) {
+    dbPtt.ptt.find({}).sort({'date': -1, '_id': -1}).skip(parseInt(req.query.skip)).limit(10, function(err, docs) {
         var foo = {};
         foo['contents'] = docs;
         res.end(JSON.stringify(foo));
@@ -1278,7 +1280,7 @@ exports.elasticSearch = function(req, res, next) {
     } else {
       elastic.elasticClient.scroll({
         scroll: '1m',
-        scrollId: scrollId
+        scrollId: req.params.scrollId
       }, function(error, response) {
           response['hits']['hits'].forEach(function(hit, index) {
               if (hit['_score'] > 0.9)

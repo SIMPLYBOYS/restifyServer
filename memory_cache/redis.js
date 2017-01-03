@@ -140,7 +140,7 @@ function collectPostTopics (done) {
         date;
     bar = moment().format('l').split('/').slice(0,2).join('/');
     date = moment().format('l').split('/')[2]+'/'+bar;
-    dbPtt.ptt.find({date: {$lte: date}}).sort({'date': -1, '_id': -1}).limit(20, function(err, docs) {
+    dbPtt.ptt.find({}).sort({'date': -1, '_id': -1}).limit(20, function(err, docs) {
         var foo = {},
             reg = /^\[|]/
         docs.forEach(function(item, index) {
