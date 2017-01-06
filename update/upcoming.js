@@ -194,7 +194,10 @@ function insertCast(done) {
                 });
 
                 dbIMDB.imdb.findOne({title: cast['title']}, function(err, doc) {
-                    if (doc.hasOwnProperty('cast')) {
+                    if (!doc) {
+                      count++;
+                      callback(null, count);
+                    } else if (doc.hasOwnProperty('cast')) {
                         count++;
                         callback(null, count);
                     } else {
