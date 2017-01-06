@@ -171,10 +171,10 @@ function fetchLatestReviews (done) {
 
         results.forEach(function(item, index) {
             meta.push({
-                headline: item['headline'].split('Review:')[1].trim(""),
+                headline: item['headline'].indexOf('Review:') != -1 ? item['headline'].split('Review:')[1].trim("") : item['headline'],
                 link: item['link']['url'],
-                picUrl: item['multimedia']['src']
-            })
+                picUrl: item['multimedia'] != null ? item['multimedia']['src'] : "http://img.eiga.k-img.com/images/person/noimg/400.png?1423551130"
+            });
         });
 
         console.log('collectPicture -------->');
