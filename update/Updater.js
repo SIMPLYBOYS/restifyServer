@@ -52,6 +52,10 @@ Updater.prototype.init = function () {
         this.emit('complete', title);
     });
 
+    this.on('infoTitle_special', function(title){
+      this.updateMovie_InfoTitle_special();
+    });
+
     this.on('infoTitle_case1', function(title) {
         this.updateMovie_InfoTitle_case1();
     });
@@ -347,6 +351,24 @@ Updater.prototype.updateVote = function () {
   });
 };
 
+Updater.prototype.updateMovie_InfoTitle_special = function () {
+    var that = this,
+        title = that['infoTitle'];
+
+    console.log('update by infoTitle special ==>');
+
+    dbIMDB.imdb.findOne({infoTitle: title}, function(err, doc) {
+        if (!doc) {
+          console.log('\n\n' + title + ' not found!');
+          that.emit('infoTitle_case1', title);
+          return;     
+        }
+        dbIMDB.imdb.update({title: doc['title']}, {'$set': {top: parseInt(that['position']), delta: that['delta']}}, function() {
+          that.emit('updated', that['infoTitle']);
+        });
+    });
+}
+
 Updater.prototype.updateMovie_InfoTitle_case1 = function () {
     var that = this,
         title = that['infoTitle'];
@@ -415,9 +437,11 @@ Updater.prototype.updateMovie = function () {
 
       if (!doc) {
         console.log('\n\n' + that['title'] + ' not found!');
-        that.emit('infoTitle_case1', that.title);
+        that.emit('infoTitle_special', that.title);
         return;     
       }
+
+      //-----------------------------------------------------//
 
       if (!specialCase(doc['title'])) {
         dbIMDB.imdb.update({'title': that['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
@@ -440,6 +464,8 @@ Updater.prototype.updateMovie = function () {
               });
         });
       }
+
+      //-----------------------------------------------------//
 
   });
 };
