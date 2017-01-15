@@ -1,3 +1,5 @@
+'use strict';
+
 var restify = require('restify');
 var cheerio = require("cheerio");
 var request = require("request");
@@ -66,7 +68,7 @@ server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser());
 server.use(restify.bodyParser());
 
-youTube = new config.YouTube;
+var youTube = new config.YouTube;
 youTube.setKey(config.YouTubeKey);
 
 /*var https_options = {
@@ -143,7 +145,7 @@ server.get('/today', Read.getToday);
 
 server.get('/genre', Read.getGenre);
 
-server.get('/genre_topic', Read.getGenreTopic)
+server.get('/genre_topic', Read.getGenreTopic);
 
 server.get('/world/:country/', Read.world);
 
@@ -191,7 +193,7 @@ server.get('/gmTrendsReview', Read.gmTrendsReview);
 
 server.get('/nyTimes', Read.nyTimes);
 
-server.get('/nyTimes_home', Read.nyTimes_home)
+server.get('/nyTimes_home', Read.nyTimes_home);
 
 server.get('/search/:channel/:input/:scrollId', Read.elasticSearch);
 
@@ -328,13 +330,13 @@ server.get("/crawler", function(req, res, next) {
     }, function(err, req, body) {
         if(err || !body) { return; }
         var bufferhelper = new BufferHelper();
-        var str = iconv.decode(new Buffer(body), "big5");
+        // var str = iconv.decode(new Buffer(body), "big5");
         console.log(body);
         var $ = cheerio.load(body);
         var result = [];
         var titles = $("li.item h2");
-        
-        for(var i=0;i<titles.length;i++) {
+        var i;
+        for (i=0;i<titles.length;i+=1) {
             result.push($(titles[i]).text());
         }
             
@@ -350,7 +352,7 @@ server.get("/crawler/1", function(req, res, next){
     var foo = JSON.parse(fs.readFileSync('result.json', 'utf8'));
     // var result = iconv.decode(JSON.stringify(foo), 'Big5');
     var bar = {};
-    bar['contant'] = foo;
+    bar.contant = foo;
     console.log(JSON.stringify(foo));
     res.writeHead(200, {"Content-Type": "text/html"});
     res.write("<html>");
@@ -371,16 +373,13 @@ var findposition = function(token) {
             if (token.indexOf('↑') == -1) {
                 return token.lastIndexOf('-');
             }
-            else {
-                return token.indexOf('↑');
+            else { return token.indexOf('↑');
             }
-        } else {
-            return token.indexOf('↓');
+        } else { return token.indexOf('↓');
         }
-    } else { 
-        return token.indexOf('*');
+    } else { return token.indexOf('*');
     }
-}
+};
 
 server.get('/update_imdb_poster', function(req, res, next) {
     res.send('update poster @ ' + new Date());
@@ -400,84 +399,7 @@ server.get('/update_imdb_poster', function(req, res, next) {
     });
 });
 
-server.get('/content/:id', function(req, res, next) {
-    var contents = {},
-        raw; 
-
-    if (req.params.id == 0) {
-        raw = [{'location':'France', 'time': '5/24 am 9:30', 'imgUrl': 'http://www.telegraph.co.uk/travel/destination/article130148.ece/ALTERNATES/w620/parisguidetower.jpg'},
-            {'location':'France', 'time': '5/24 am 9:30', 'imgUrl': 'http://www.telegraph.co.uk/travel/destination/article130148.ece/ALTERNATES/w620/parisguidetower.jpg'},
-            {'location':'France', 'time': '5/24 am 9:30', 'imgUrl': 'http://www.telegraph.co.uk/travel/destination/article130148.ece/ALTERNATES/w620/parisguidetower.jpg'},
-            {'location':'France', 'time': '5/24 am 9:30', 'imgUrl': 'http://www.telegraph.co.uk/travel/destination/article130148.ece/ALTERNATES/w620/parisguidetower.jpg'},
-            {'location':'France', 'time': '5/24 am 9:30', 'imgUrl': 'http://www.telegraph.co.uk/travel/destination/article130148.ece/ALTERNATES/w620/parisguidetower.jpg'},
-            {'location':'France', 'time': '5/24 am 9:30', 'imgUrl': 'http://www.telegraph.co.uk/travel/destination/article130148.ece/ALTERNATES/w620/parisguidetower.jpg'}];
-    } else if (req.params.id == 1) {
-        raw = [{'location':'France', 'time': '5/24 am 9:30', 'imgUrl': 'http://www.telegraph.co.uk/travel/destination/article130148.ece/ALTERNATES/w620/parisguidetower.jpg'},
-            {'location':'Angleterre', 'time': '5/25 am 10:30', 'imgUrl': 'http://www.traditours.com/images/Photos%20Angleterre/ForumLondonBridge.jpg'},
-            {'location':'Allemagne', 'time': '5/26 am 11:30', 'imgUrl': 'http://tanned-allemagne.com/wp-content/uploads/2012/10/pano_rathaus_1280.jpg'},
-            {'location':'Espagne', 'time': '5/27 pm 00:30', 'imgUrl': 'http://www.sejour-linguistique-lec.fr/wp-content/uploads/espagne-02.jpg'},
-            {'location':'Italie', 'time': '5/28 pm 1:30', 'imgUrl': 'http://retouralinnocence.com/wp-content/uploads/2013/05/Hotel-en-Italie-pour-les-Vacances2.jpg'},
-            {'location':'Russie', 'time': '5/29 pm 2:30', 'imgUrl': 'http://www.choisir-ma-destination.com/uploads/_large_russie-moscou2.jpg'}];
-    } else if (req.params.id == 2) {
-        raw = [ {'location':'Allemagne', 'time': '5/26 am 11:30', 'imgUrl': 'http://tanned-allemagne.com/wp-content/uploads/2012/10/pano_rathaus_1280.jpg'},
-            {'location':'Allemagne', 'time': '5/26 am 11:30', 'imgUrl': 'http://tanned-allemagne.com/wp-content/uploads/2012/10/pano_rathaus_1280.jpg'},
-            {'location':'Allemagne', 'time': '5/26 am 11:30', 'imgUrl': 'http://tanned-allemagne.com/wp-content/uploads/2012/10/pano_rathaus_1280.jpg'},
-            {'location':'Allemagne', 'time': '5/26 am 11:30', 'imgUrl': 'http://tanned-allemagne.com/wp-content/uploads/2012/10/pano_rathaus_1280.jpg'},
-            {'location':'Allemagne', 'time': '5/26 am 11:30', 'imgUrl': 'http://tanned-allemagne.com/wp-content/uploads/2012/10/pano_rathaus_1280.jpg'},
-            {'location':'Allemagne', 'time': '5/26 am 11:30', 'imgUrl': 'http://tanned-allemagne.com/wp-content/uploads/2012/10/pano_rathaus_1280.jpg'}];
-    } else if (req.params.id == 3) {
-        raw = [{'location':'Italie', 'time': '5/28 pm 1:30', 'imgUrl': 'http://retouralinnocence.com/wp-content/uploads/2013/05/Hotel-en-Italie-pour-les-Vacances2.jpg'},
-           {'location':'Italie', 'time': '5/28 pm 1:30', 'imgUrl': 'http://retouralinnocence.com/wp-content/uploads/2013/05/Hotel-en-Italie-pour-les-Vacances2.jpg'},
-           {'location':'Italie', 'time': '5/28 pm 1:30', 'imgUrl': 'http://retouralinnocence.com/wp-content/uploads/2013/05/Hotel-en-Italie-pour-les-Vacances2.jpg'},
-           {'location':'Italie', 'time': '5/28 pm 1:30', 'imgUrl': 'http://retouralinnocence.com/wp-content/uploads/2013/05/Hotel-en-Italie-pour-les-Vacances2.jpg'},
-           {'location':'Italie', 'time': '5/28 pm 1:30', 'imgUrl': 'http://retouralinnocence.com/wp-content/uploads/2013/05/Hotel-en-Italie-pour-les-Vacances2.jpg'},
-           {'location':'Italie', 'time': '5/28 pm 1:30', 'imgUrl': 'http://retouralinnocence.com/wp-content/uploads/2013/05/Hotel-en-Italie-pour-les-Vacances2.jpg'}];
-    } else if (req.params.id == 4) {
-        raw = [{'location':'France', 'time': '5/24 am 9:30', 'imgUrl': 'http://www.telegraph.co.uk/travel/destination/article130148.ece/ALTERNATES/w620/parisguidetower.jpg'},
-            {'location':'France', 'time': '5/24 am 9:30', 'imgUrl': 'http://www.telegraph.co.uk/travel/destination/article130148.ece/ALTERNATES/w620/parisguidetower.jpg'},
-            {'location':'France', 'time': '5/24 am 9:30', 'imgUrl': 'http://www.telegraph.co.uk/travel/destination/article130148.ece/ALTERNATES/w620/parisguidetower.jpg'},
-            {'location':'France', 'time': '5/24 am 9:30', 'imgUrl': 'http://www.telegraph.co.uk/travel/destination/article130148.ece/ALTERNATES/w620/parisguidetower.jpg'},
-            {'location':'France', 'time': '5/24 am 9:30', 'imgUrl': 'http://www.telegraph.co.uk/travel/destination/article130148.ece/ALTERNATES/w620/parisguidetower.jpg'},
-            {'location':'France', 'time': '5/24 am 9:30', 'imgUrl': 'http://www.telegraph.co.uk/travel/destination/article130148.ece/ALTERNATES/w620/parisguidetower.jpg'}];
-    }
-
-    contents['contents'] = raw;
-    res.end(JSON.stringify(contents));
-});
-
-server.get('/detail/:place', function(req, res, next) {
-    var detail = {},
-        raw; 
-    
-    switch (req.params.place) {
-            case "France":
-                   raw = [{'location':'France', 'time': '5/24 am 9:30', 'imgUrl': 'http://www.telegraph.co.uk/travel/destination/article130148.ece/ALTERNATES/w620/parisguidetower.jpg'}];
-                    break;
-            case "Angleterre":
-                   raw = [{'location':'Angleterre', 'time': '5/25 am 10:30', 'imgUrl': 'http://www.traditours.com/images/Photos%20Angleterre/ForumLondonBridge.jpg'}]
-                    break;
-            case "Allemagne":
-                   raw = [{'location':'Allemagne', 'time': '5/26 am 11:30', 'imgUrl': 'http://tanned-allemagne.com/wp-content/uploads/2012/10/pano_rathaus_1280.jpg'}]
-                    break;
-            case "Espagne":
-                   raw = [{'location':'Espagne', 'time': '5/27 pm 00:30', 'imgUrl': 'http://www.sejour-linguistique-lec.fr/wp-content/uploads/espagne-02.jpg'}]
-                    break;
-            case "Italie":
-                   raw = [{'location':'Italie', 'time': '5/28 pm 1:30', 'imgUrl': 'http://retouralinnocence.com/wp-content/uploads/2013/05/Hotel-en-Italie-pour-les-Vacances2.jpg'}]
-                    break;
-            case "Russie":
-                   raw = [{'location':'Russie', 'time': '5/29 pm 2:30', 'imgUrl': 'http://www.choisir-ma-destination.com/uploads/_large_russie-moscou2.jpg'}]
-                    break;
-            default:
-                   raw = [{'location':'France', 'time': '5/24 am 9:30', 'imgUrl': 'http://www.telegraph.co.uk/travel/destination/article130148.ece/ALTERNATES/w620/parisguidetower.jpg'}]
-                    break;
-
-    }
-    detail['contents'] = raw;
-    res.end(JSON.stringify(detail));
-});
-
-server.get('/create_ubike_nTaipei', function(req, res, next) {
+/*server.get('/create_ubike_nTaipei', function(req, res, next) {
 
     request({
         url: "http://data.ntpc.gov.tw/api/v1/rest/datastore/382000000A-000352-001",
@@ -501,7 +423,7 @@ server.get('/create_ubike_nTaipei', function(req, res, next) {
         // console.log(foo.ubike);
         res.end();
     });
-});
+});*/
 
 /*server.get('/special', function(req, res, next) {
     Special.special(req, res);
@@ -589,7 +511,7 @@ var job_cnTrendsUpdate = new cronJob(config.cnTrendsUpdate, function() {
 
 var job_gmTrendsUpdate = new cronJob(config.gmTrendsUpdate, function() {
     gmTrends.updateTrends();
-})
+});
 
 var job_pttPostUpdate = new cronJob(config.pttPostUpdate, function() {
     Ptt.updatePttPost(); //for ptt post indexing
@@ -663,11 +585,17 @@ job_pttPostUpdate.start();
 job_nyTimesHomeUpdate.start();
 job_pttHomeUpdate.start();
 
-require('events').EventEmitter.prototype._maxListeners = 100;
- 
-server.listen(config.port, function () {
+require('events').EventEmitter.prototype._maxListeners = 100; 
+
+exports.listen = function(port) {
+    server.listen(port, function () {
+      console.log('%s listening at %s', server.name, server.url);
+    });
+}
+
+/*server.listen(config.port, function () {
   console.log('%s listening at %s', server.name, server.url);
-});
+});*/
 
 /*https_server.listen(443, function() {
     console.log('%s listening at %s', https_server.name, https_server.url);
@@ -675,4 +603,4 @@ server.listen(config.port, function () {
 
 process.on('uncaughtException', function (err) {
   console.error('uncaughtException: %s', err.stack);
-})
+});
