@@ -916,12 +916,15 @@ exports.explorePeople = function(req, res) {
       follow = [];
   res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});
   dbUser.user.find({fbId: req.params.fbId}, function(err, doc) {
-      doc[0]['follow'].forEach(function(item, index) {
-          follow.push({
-            fbId: item['fbId']
-          });
-      });
 
+      if (typeof(doc[0]['follow']) != 'undefined') {
+        doc[0]['follow'].forEach(function(item, index) {
+            follow.push({
+              fbId: item['fbId']
+            });
+        });
+      }
+      
       dbUser.user.find({}, function(err, docs) {
           docs.forEach(function(item, index) {
               var foo = {}
@@ -932,14 +935,19 @@ exports.explorePeople = function(req, res) {
                   foo.total += item['nyTimes'].length;
               if (typeof(item['movies']) != 'undefined')
                   foo.total += item['movies'].length;
-              follow.some(function(person, index, array) {
-                if (person['fbId'] == foo['fbId']) {
-                  foo['follow'] = true;
-                  return true;
-                }
-                else 
-                  foo['follow'] = false;
-              });
+              if (follow.length > 0) {
+                follow.some(function(person, index, array) {
+                  if (person['fbId'] == foo['fbId']) {
+                    foo['follow'] = true;
+                    return true;
+                  } else {
+                    foo['follow'] = false;
+                  } 
+                });
+              } else {
+                foo['follow'] = false;
+              }
+              
               content.push(foo);
           });
           console.log(content);
@@ -1242,6 +1250,7 @@ exports.getRecords = function(req, res, next) {
 };
 
 exports.getToday = function(req, res, next) {
+    console.log('getToday ---> '+process.pid);
     dbToday.today.find({'date': moment().format('l')}, function(err, doc) {
         var object = {};
             object['contents'] = doc;
