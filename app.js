@@ -1,5 +1,3 @@
-'use strict';
-
 var restify = require('restify');
 var cheerio = require("cheerio");
 var request = require("request");
@@ -60,7 +58,7 @@ var google = require('google');
 var nextCounter = 0;
 
 var server = restify.createServer({
-  name: 'myapp',
+  name: 'worldmovies',
   version: '1.0.0'
 });
 
@@ -68,7 +66,7 @@ server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser());
 server.use(restify.bodyParser());
 
-var youTube = new config.YouTube;
+youTube = new config.YouTube;
 youTube.setKey(config.YouTubeKey);
 
 /*var https_options = {

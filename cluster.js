@@ -2,7 +2,7 @@ var app = require('./app');
 var cluster = require('cluster');
 
 if (cluster.isMaster) {
-	var totalWorkers = require('os').cpus().length;
+	var totalWorkers = require('os').cpus().length-1;
 
 	console.log('Running %d total workers', totalWorkers);
 
