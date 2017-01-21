@@ -6,6 +6,8 @@ var async = require('async');
 var moment = require("moment")
 var TrendsTrailer = require('./TrendsTrailer');
 var trendsGalleryScraper = require('../crawler/trendsKrGalleryScraper');
+var elastic = require('../search/elasticsearch');
+var elasticClient = elastic.elasticClient;
 var youTube = config.YouTube;
 var dbTaiwan = config.dbTaiwan;
 var posterPages = [];
@@ -93,6 +95,44 @@ function createIndex(done) {
             },
             function(err, n) {
                 console.log('tw films indexing finish ' + n);
+                done(null);
+            }
+        );
+    });
+}
+
+function clearIndex(done) {
+    var movieObj = [];
+    dbTaiwan.taiwan.find({}, function(err, docs) {  
+        docs.forEach(function(item, index) {
+            movieObj.push({
+                title: item['title'],
+                id: item['_id'],
+                posterUrl: item['posterUrl'],
+                description: item['description'],
+                originTitle: item['originTitle']
+            });
+        });
+        console.log(movieObj.length);
+        var count = 0;
+        async.whilst(
+            function() { return count < movieObj.length},
+            function(callback) {
+                console.log('count: ' + count);
+                elasticClient.delete({
+                    index: 'test',
+                    type: 'taiwan',
+                    id: movieObj[count]['id'].toString()
+                  }, function (error, response) {
+                    console.log(error+'\n'+response);
+                    if (!error) {
+                        count++;
+                        callback(null, count);
+                    }
+                  });
+            },
+            function(err, n) {
+                console.log('tw films clean finish ' + n);
                 done(null);
             }
         );
