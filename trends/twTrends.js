@@ -40,9 +40,64 @@ exports.updateTrends = function() {
     ],
     function (err) {
         if (err) console.error(err.stack);
-          console.log('all jobs for trends update finished!!');
+          console.log('all jobs for twTrends update finished!!');
     });
 };
+
+function createIndex(done) {
+    var movieObj = [];
+    dbTaiwan.taiwan.find({}, function(err, docs) {  
+        docs.forEach(function(item, index) {
+            movieObj.push({
+                title: item['title'],
+                id: item['_id'],
+                posterUrl: item['posterUrl'],
+                description: item['description'],
+                originTitle: item['originTitle']
+            });
+        });
+        console.log(movieObj.length);
+        var count = 0;
+        async.whilst(
+            function() { return count < movieObj.length},
+            function(callback) {
+                console.log('count: ' + count);
+                client.exists({
+                    index: 'test',
+                    type: 'taiwan',
+                    id: movieObj[count]['id'].toString()
+                }, function(error, exists) {
+                    if (exists == true) {
+                        count++;
+                        callback(null, count);
+                    } else {
+                        elasticClient.index({
+                            index: 'test',
+                            type: 'taiwan',
+                            id: movieObj[count]['id'].toString(),
+                            body: {
+                              title: movieObj[count]['title'],
+                              posterUrl: movieObj[count]['posterUrl'],
+                              description: movieObj[count]['description'],
+                              originTitle: movieObj[count]['originTitle']
+                            }
+                          }, function (error, response) {
+                            console.log(error+'\n'+response);
+                            if (!error) {
+                                count++;
+                                callback(null, count);
+                            }
+                        });
+                    }
+                });
+            },
+            function(err, n) {
+                console.log('tw films indexing finish ' + n);
+                done(null);
+            }
+        );
+    });
+}
 
 function resetPosition (done) {
     console.log('resetPosition ---->');
