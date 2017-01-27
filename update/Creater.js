@@ -51,22 +51,25 @@ Creater.prototype.init = function () {
  * Parse html and return an object
 **/
 Creater.prototype.updateMovie = function () {
-  
   var that = this;
-  if (that['title'] == 'Дети небес')
-    that['title'] = 'Bacheha-Ye aseman';
-
   dbIMDB.imdb.findOne({'title': that['title']}, function(err, doc) {
-
       if (!doc) {
-        console.log('\n\n' + that['title'] + ' not found!');
-        that.createMovie();
-        return;     
-      }
-
-      dbIMDB.imdb.update({'title': that['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
-        that.emit('updated', that.title);
-      });
+        dbIMDB.imdb.findOne({'Infotitle': that['title']}, function(err, doc) {
+            if (!doc) {
+                console.log('\n\n' + that['title'] + ' not found!');
+                that.createMovie();
+                return; 
+            } else {
+                dbIMDB.imdb.update({'Infotitle': that['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
+                    that.emit('updated', that['title']);
+                });
+            }
+        });    
+      } else {
+        dbIMDB.imdb.update({'title': that['title']}, {'$set': {'top': parseInt(that['position'])}}, function() {
+            that.emit('updated', that['title']);
+        });
+      }      
   });
 };
 

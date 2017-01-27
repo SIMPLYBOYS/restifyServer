@@ -357,7 +357,7 @@ Updater.prototype.updateMovie_InfoTitle_special = function () {
 
     console.log('update by infoTitle special ==>');
 
-    dbIMDB.imdb.findOne({infoTitle: title}, function(err, doc) {
+    dbIMDB.imdb.findOne({Infotitle: title}, function(err, doc) {
         if (!doc) {
           console.log('\n\n' + title + ' not found!');
           that.emit('infoTitle_case1', title);
