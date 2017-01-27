@@ -35,6 +35,10 @@ Remover.prototype.init = function () {
         this.emit('complete', title);
     });
 
+    this.on('infoTitle_special', function(title) {
+        this.updateMovie_InfoTitle_special();
+    });
+
     this.on('infoTitle_case1', function(title) {
         this.updateMovie_InfoTitle_case1();
     });
@@ -54,6 +58,24 @@ Remover.prototype.init = function () {
 
     this.updateMovie();
 };
+
+Remover.prototype.updateMovie_InfoTitle_special = function () {
+    var that = this,
+        title = that['infoTitle'];
+
+    console.log('update by infoTitle special ==>');
+
+    dbIMDB.imdb.findOne({Infotitle: title}, function(err, doc) {
+        if (!doc) {
+          console.log('\n\n' + title + ' not found!');
+          that.emit('infoTitle_case1', title);
+          return;     
+        }
+        dbIMDB.imdb.update({title: doc['title']}, {'$unset': {'top': 1}}, function() {
+          that.emit('updated', that['infoTitle']);
+        });
+    });
+}
 
 Remover.prototype.updateMovie_InfoTitle_case1 = function () {
   var that = this,
@@ -127,7 +149,7 @@ Remover.prototype.updateMovie = function () {
 
       if (!doc) {
         console.log('\n\n' + that['title'] + ' not found!');
-        that.emit('infoTitle_case1', that.title);
+        that.emit('infoTitle_special', that.title);
         return;     
       }
 
