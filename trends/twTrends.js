@@ -256,6 +256,11 @@ function insertGalleryPages(done) {
             var galleryfullPages = [];
             var innerCount = 0;
 
+            if (typeof(gallery)=='undefined') {
+                count++;
+                return callback(null, count);
+            }
+
             if (typeof(gallery['gallerySize'])=='undefined') {
                 count++;
                 return callback(null, count);
