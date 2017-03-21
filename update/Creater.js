@@ -269,7 +269,7 @@ function insertCast(done) {
     );
 }
 
-function insertCastAvatar(done) {
+function insertCastAvatar(done) { 
     console.log('insertCastAvatar --->');
     if (!avatarUrl.length) {
         done(null);
@@ -754,6 +754,13 @@ Creater.prototype.insertRecords = function(done) {
     console.log('\n\n-------- 2016 0520 step10 --------- ' + that.title );
     dbIMDB.imdb.findOne({title: that.title}, function(err, doc) {
         if (doc) {
+
+            if (typeof(doc['idIMDB']) == 'undefined') {
+                console.log('idIMDB filed not exisit!');
+                done(null);
+                return;
+            }
+
             Url = "http://top250.info/movie/?" + doc['idIMDB'].slice(2)+'/full';
             request({
                 url: Url,
