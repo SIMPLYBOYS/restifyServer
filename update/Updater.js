@@ -480,6 +480,10 @@ Updater.prototype.updateRecord = function () {
         that.emit('data not founded', that['title']);
         return;     
       } else {
+        if (typeof(doc['idIMDB']) == 'undefined') {
+          that.emit('data not founded', that['title']);
+          return;
+        }
         Url = "http://top250.info/movie/?" + doc['idIMDB'].slice(2)+'/full';
         request({
             url: Url,
