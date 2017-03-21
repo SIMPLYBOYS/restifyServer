@@ -71,7 +71,7 @@ exports.db = mysql.createConnection({
 });*/
 
 // Web服务器端口
-exports.port = 80;
+exports.port = 3000;
 
 // update record
 exports.genreUpdate = '45 21 22 * * *';
