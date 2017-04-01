@@ -142,7 +142,7 @@ function collectPostTopics (done) {
     date = moment().format('l').split('/')[2]+'/'+bar;
     dbPtt.ptt.find({}).sort({'date': -1, '_id': -1}).limit(20, function(err, docs) {
         var foo = {},
-            reg = /^\[|]/
+            reg = /^\]/
         docs.forEach(function(item, index) {
             reg.exec(item['title'].trim()) ? meta.push(opencc.convertSync(item['title'].split(']')[1]).trim()) : 
                                              meta.push(opencc.convertSync(item['title'].trim()));
