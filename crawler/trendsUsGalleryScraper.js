@@ -62,7 +62,6 @@ trendsUsGalleryScraper.prototype.parsePage = function (html) {
   var $ = cheerio.load(html);
   var self = this;
   var picturesUrl;
-  // var title;
   var position = self.url.split('pos_')[1];
 
   if (typeof(position) == 'undefined') {
@@ -93,33 +92,9 @@ trendsUsGalleryScraper.prototype.parsePage = function (html) {
     position = self.url.split('ukn_')[1];
   }
 
-  // title = $('.parent a').text();
-
-  // if (title == '')
-  //   title = $('title').text().split('(')[0].trim();
-
   position = parseInt(position.split(',').join(''));
-  picturesUrl = $('.photo img').attr('src');
-
-  if (typeof(picturesUrl) == 'undefined') {
-    var foo = $('#imageJson').text();
-    console.log(typeof(foo));
-
-    if (foo == "") {
-       self.emit('error', null);
-       return;
-    }
-
-    var bar = JSON.parse(foo);
-
-    if (typeof(bar) == 'undefined') {
-      self.emit('error', null);
-      return;
-    }
-
-    bar.mediaViewerModel.allImages[position-1]['src']
-    picturesUrl = bar.mediaViewerModel.allImages[position-1]['src'];
-  }
+  let foo = $('script').get()[0].children[0].data.trim();
+  picturesUrl = foo.split('msrc')[position].split('src')[1].split('\":"')[1].split('jpg')[0]+'jpg';
 
   return model = {
     title: this.title,

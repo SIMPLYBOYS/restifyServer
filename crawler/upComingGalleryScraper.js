@@ -92,26 +92,14 @@ upComingGalleryScraper.prototype.parsePage = function (html) {
     position = self.url.split('ukn_')[1];
   }
 
-  // if (title == '')
+  position = parseInt(position.split(',').join(''));
+  let foo = $('script').get()[0].children[0].data.trim();
+  picturesUrl = foo.split('msrc')[position].split('src')[1].split('\":"')[1].split('jpg')[0]+'jpg';
   title = $('title').text().split('(')[0].trim();
 
   if (title == '404 Error - IMDb') {
      self.emit('404');
      return;
-  }
-  
-  picturesUrl = $('.photo img').attr('src');
-
-  if (typeof(picturesUrl) == 'undefined') {
-    foo = $('#imageJson').text();
-    bar = JSON.parse(foo);
-    // bar.mediaViewerModel.allImages[position-1]['src']
-    if (typeof(bar) == 'undefined')
-      self.emit('error', null);
-    else if (bar.mediaViewerModel.allImages.length > (position-1))
-      picturesUrl = bar.mediaViewerModel.allImages[position-1]['src'];
-    else
-      picturesUrl = "";
   }
 
   console.log('title ====> ' + title);
