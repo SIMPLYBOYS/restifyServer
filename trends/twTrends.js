@@ -252,7 +252,6 @@ function insertGalleryPages(done) {
         function () { console.log('count: '+ count); return count < 20; },
         function (callback) {
             var gallery = galleryPages.pop();
-            console.log(gallery['gallerySize']+' pages');
             var galleryfullPages = [];
             var innerCount = 0;
 
@@ -265,6 +264,8 @@ function insertGalleryPages(done) {
                 count++;
                 return callback(null, count);
             }
+
+            console.log(gallery['gallerySize']+' pages');
 
             async.whilst(
                 function () { console.log('innerCount: ' + innerCount); return innerCount < Math.ceil(gallery['gallerySize']/20); },
