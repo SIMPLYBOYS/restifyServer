@@ -412,7 +412,11 @@ function generateUpComingMovieInfo(done) {
                             var title = doc['movies'][innerCount]['title'];
                             title = title.slice(0, title.length-1);
                             innerCount++;
-                            new MovieInfomer(title, myapiToken, innerCount, innercallback);
+                            
+                            if (title.length !== 0)
+                                new MovieInfomer(title, myapiToken, innerCount, innercallback);
+                            else
+                                innercallback(null);
                         },
                         function (err, n) {
                             count++;
