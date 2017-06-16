@@ -83,7 +83,8 @@ const genreList = [
     {type: "Western"}
 ];
 const client_id = '713961bd892a424f84585a57067750bf'; // Your client id
-const client_secret = '7db9e0e7761a4fd5b2e4653a7229e1b4'; // Your secret
+// const client_secret = '7db9e0e7761a4fd5b2e4653a7229e1b4'; // Your secret
+const client_secret = 'fa2ea00c7c8c4660925e8ffb550e2b69';
 const redirect_uri = 'worldmovie-login://callback'; // Your redirect uri
 
 exports.read = function (req, res, next) {
@@ -97,7 +98,12 @@ exports.read = function (req, res, next) {
                 res.end(JSON.stringify(foo));
         });
     } else if (typeof(req.query.to)!= 'undefined' && typeof(req.query.from)!= 'undefined') { 
-        dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}).sort({'top':parseInt(req.query.ascending)}, function(err, docs){
+        dbIMDB.imdb.find({'top':{$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}, function(err, docs) {
+            for (var i=0; i<docs.length; i++) {
+                console.log(docs[i]);
+            }
+        });
+        /*dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}).sort({'top':parseInt(req.query.ascending)}, function(err, docs){
             var foo = {};
             foo['contents'] = docs;
             foo['byTitle'] = false;
@@ -110,7 +116,7 @@ exports.read = function (req, res, next) {
             }
             console.log('missing: ' + missing);
             res.end(JSON.stringify(foo));
-        });
+        });*/
     } else if (typeof(req.query.release_to)!= 'undefined' && typeof(req.query.release_from)!= 'undefined') { 
         dbIMDB.imdb.find({releaseDate: {$gte: parseInt(req.query.release_from), $lte: parseInt(req.query.release_to)}}).sort({'releaseDate': 1}, function(err, docs){
             var foo = {};
