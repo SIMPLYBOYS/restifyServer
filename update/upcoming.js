@@ -26,6 +26,7 @@ var upComingGalleryPages = [];
 var upComingThumbnailPages = [];
 var upComingPosterPages = [];
 var upComingPosterImageObjs = [];
+var year = moment().format('YYYY');
 var start = parseInt(moment().format('M'));
 var limit = start + 5;
 var monthList = [
@@ -49,7 +50,7 @@ exports.updateupComing = function() {
     async.series([
         function(done) {
              for (var i=start; i<=limit; i++) {
-                var url = i <= 12 ? 'http://www.imdb.com/movies-coming-soon/2016-' : 'http://www.imdb.com/movies-coming-soon/2017-';
+                var url = i <= 12 ? 'http://www.imdb.com/movies-coming-soon/'+year+'-' : 'http://www.imdb.com/movies-coming-soon/'+year+'-';
                 if ((i%12)<10)
                     upComingPages.push(url + '0'+ (i%12) + '/');
                 else
