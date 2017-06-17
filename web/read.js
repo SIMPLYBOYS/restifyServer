@@ -101,11 +101,6 @@ exports.read = function (req, res, next) {
                 res.end(JSON.stringify(foo));
         });
     } else if (typeof(req.query.to)!= 'undefined' && typeof(req.query.from)!= 'undefined') { 
-        /*dbIMDB.imdb.find({'top':{$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}, function(err, docs) {
-            for (var i=0; i<docs.length; i++) {
-                console.log(docs[i]);
-            }
-        });*/
         dbIMDB.imdb.find({'top': {$lte:parseInt(req.query.to), $gte: parseInt(req.query.from)}}).sort({'top':parseInt(req.query.ascending)}, function(err, docs){
             var foo = {};
             foo['contents'] = docs;
