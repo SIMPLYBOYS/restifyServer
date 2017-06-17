@@ -567,7 +567,7 @@ var job_worldMoviesScrape = new cronJob(config.worldMoviesScrape, function() {
 
 job_recordUpdate.start();
 job_positionUpdate.start();
-/*job_fullrecordUpdate.start();
+job_fullrecordUpdate.start();
 job_upcomingUpdate.start();
 job_jpTrendsUpdate.start();
 job_krTrendsUpdate.start();
@@ -579,7 +579,7 @@ job_genreUpdate.start();
 job_cnTrendsUpdate.start();
 job_gmTrendsUpdate.start();
 job_worldMoviesScrape.start();
-job_pttPostUpdate.start();*/
+job_pttPostUpdate.start();
 job_nyTimesHomeUpdate.start();
 job_pttHomeUpdate.start();
 
