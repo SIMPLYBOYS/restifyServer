@@ -77,9 +77,9 @@ exports.port = 3000;
 // update record
 exports.genreUpdate = '45 21 22 * * *';
 
-exports.recordUpdate = '35 10 7 * * *';
+exports.recordUpdate = '35 2 7 * * *';
 
-exports.positionUpdate = '5 12 7 * * *';
+exports.positionUpdate = '5 4 7 * * *';
 
 exports.reviewUpdate = '35 40 7 * * *';
 
@@ -107,5 +107,5 @@ exports.pttPostUpdate = '* * */12 * * *';
 
 exports.nyTimesHomeUpdate = '15 51 1 * * *'
 
-exports.pttHomeUpdate = '5 0 4 * * *'
+exports.pttHomeUpdate = '5 50 3 * * *'
 
