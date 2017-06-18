@@ -7,6 +7,12 @@ var dbToday = config.dbToday;
 var dbPosition = config.dbPosition;
 var kue = require('kue');
 var jobs = kue.createQueue();
+var SlackBot = require('slackbots');
+var bot = new SlackBot({
+    token: config.SlackBotToken, // Add a bot https://my.slack.com/services/new/bot and put the token 
+    name: 'WorldMoviesPro Bot'
+});
+
 
 exports.gcmTopic = function(message, done) {
   var options = {
@@ -36,6 +42,10 @@ exports.gcmTopic = function(message, done) {
                   '\nDown: ' + message['Down'].join(' ')
         } 
   };
+
+  bot.postMessageToChannel('worldmoviesbot', options.body['notification'], {
+      icon_emoji: ':cat:'
+  });
 
   // console.log(options);
   request(options, function(error, response, body) {

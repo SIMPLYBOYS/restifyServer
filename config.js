@@ -29,6 +29,7 @@ var YouTubeKey = 'AIzaSyDgZtqmd4rI4SFjNUDWQz6sKFllAZf6sCg';
 var GCMKey = 'AIzaSyDLw3K76tezq1sG91aKLefZvD8O-SzTbLo';
 var TomatoKey = '9htuhtcb4ymusd73d4z6jxcj';
 var nyTimesKey = '0167b3336c58445f8945af8a658ba811';
+var SlackBotToken = 'xoxb-199493054278-EgHyT0Ia3CfICKL10JMxyK83';
 // var dbContact = mongojs('http://52.192.246.11/test', ['contact']);
 
 exports.dbUser = dbUser;
